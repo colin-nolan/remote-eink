@@ -121,11 +121,19 @@ paths:
 components:
   schemas:
     Display:
-      type: "object"
+      type: object
       properties:
         id:
-          format: "string"
-        currentImageId:
-          format: "string"
-        imageIds:
-          format: "string"
+          format: string
+        currentImage:
+          format: string
+        images:
+          format: string
+        orientation:
+          format: integer
+        cycleImages:
+          format: boolean
+        cycleRandomly:
+          format: boolean
+        cycleAfterSeconds:
+          format: integer
