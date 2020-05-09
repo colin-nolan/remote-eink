@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "image-display-service"
+version = "0.0.1"
+description = ""
+
+license = "AGPLv3.0"
+
+authors = [
+    "Colin Nolan <cn580@alumni.york.ac.uk>"
+]
+
+readme = "README.md"
+
+repository = ""
+homepage = ""
+
+keywords = []
+
+[tool.poetry.dependencies]
+python = "^3.6"
+connexion = { version = "^2.7.0", extras = ["swagger-ui"] }
+flask-cors = "^3.0.8"
+
+[tool.poetry.dev-dependencies]
+Flask-Testing = "^0.8.0"

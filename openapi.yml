@@ -1,0 +1,131 @@
+---
+
+openapi: 3.0.0
+info:
+  version: 0.0.1
+  title: Display Image Service
+
+paths:
+  /display:
+    get:
+      summary: Get displays
+      responses:
+        200:
+          description: Displays retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: ID of displays.
+          links:
+            getDisplayById:
+              operationRef: "#/paths/~1display~1{displayId}/get"
+              parameters:
+                displayId: "$response.body#/id"
+              description: >
+                The `id` value returned in the response can be used as
+                the `displayId` parameter in `GET /display/{displayId}`.
+
+
+  /display/{displayId}:
+    get:
+      summary: "Get a display"
+      parameters:
+        - name: displayId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the display
+      responses:
+        200:
+          description: "Display retrieved"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Display"
+        404:
+          description: "Display not found"
+
+#  /display/{displayId}/image/{imageId}:
+#    get:
+#      summary: "Get image being displayed"
+#      responses:
+#        200:
+#          description: "Image retrieved"
+#          content:
+#            image/*:
+#              schema:
+#                type: string
+#                format: binary
+#        404:
+#          description: "Image not found"
+#
+#    post:
+#      summary: "Post image to device"
+#      parameters:
+#        - name: imageId
+#          in: path
+#          required: true
+#          schema:
+#            type: string
+#          description: "ID of the image"
+#      requestBody:
+#        content:
+#          image/*:
+#            schema:
+#              type: string
+#              format: binary
+#      responses:
+#        201:
+#          description: "Image posted"
+#        links:
+#          GetUserByUserId:   # <---- arbitrary name for the link
+#            operationId: getUser
+#            # or
+#            # operationRef: '#/paths/~1users~1{userId}/get'
+#            parameters:
+#              userId: '$response.body#/id'
+#
+#  /display/{displayId}/sleep:
+#    get:
+#      summary: "Gets whether the device is sleeping"
+#      tags:
+#        - sleep
+#      responses:
+#        200:
+#          description: "Sleep status"
+#          content:
+#            image/*:
+#              application/json:
+#                schema:
+#                  type: bool
+#
+#    post:
+#      summary: "Post command for the device to sleep"
+#      requestBody:
+#        content:
+#          image/*:
+#            schema:
+#              type: string
+#              format: binary
+#      responses:
+#        201:
+#          description: "Device put into sleep"
+
+components:
+  schemas:
+    Display:
+      type: "object"
+      properties:
+        id:
+          format: "string"
+        currentImageId:
+          format: "string"
+        imageIds:
+          format: "string"
