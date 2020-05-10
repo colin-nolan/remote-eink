@@ -197,7 +197,5 @@ class TestDisplayImage(TestBase):
         self.assertEqual(HTTPStatus.NOT_FOUND, result.status_code)
 
 
-
-
 if __name__ == "__main__":
     unittest.main()

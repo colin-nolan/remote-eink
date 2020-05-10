@@ -102,6 +102,7 @@ def image_post(display_controller: DisplayController, imageId: str, body: bytes)
 
 @_display_id_handler
 def image_delete(display_controller: DisplayController, imageId: str) -> Tuple[str, int]:
-    pass
-
-
+    deleted = display_controller.image_store.delete(imageId)
+    if not deleted:
+        return f"Image not found: {imageId}", HTTPStatus.NOT_FOUND
+    return f"Deleted: {imageId}", HTTPStatus.OK
