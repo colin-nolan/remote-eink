@@ -72,39 +72,42 @@ paths:
 
   /display/{displayId}/image/{imageId}:
     get:
-      summary: "Get image being displayed"
+      summary: Get image from the device
       parameters:
         - $ref: "#/components/parameters/displayId"
         - $ref: "#/components/parameters/imageId"
       responses:
         200:
-          description: "Image retrieved"
+          description: Image retrieved
           content:
             image/*:
               schema:
                 type: string
                 format: binary
         404:
-          description: "Image not found"
+          description: Image not found.
 
-#    post:
-#      summary: "Post image to device"
-#      parameters:
-#        - name: imageId
-#          in: path
-#          required: true
-#          schema:
-#            type: string
-#          description: "ID of the image"
-#      requestBody:
-#        content:
-#          image/*:
-#            schema:
-#              type: string
-#              format: binary
-#      responses:
-#        201:
-#          description: "Image posted"
+    post:
+      summary: Uploads an image onto the device
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+        - $ref: "#/components/parameters/imageId"
+      requestBody:
+        content:
+          image/*:
+            schema:
+              type: string
+              format: binary
+      responses:
+        201:
+          description: Image created.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ImageId"
+
 #        links:
 #          GetUserByUserId:   # <---- arbitrary name for the link
 #            operationId: getUser
@@ -112,7 +115,7 @@ paths:
 #            # operationRef: '#/paths/~1users~1{userId}/get'
 #            parameters:
 #              userId: '$response.body#/id'
-#
+
 #  /display/{displayId}/sleep:
 #    get:
 #      summary: "Gets whether the device is sleeping"

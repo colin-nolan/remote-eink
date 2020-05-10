@@ -15,7 +15,7 @@ class TestImage(unittest.TestCase):
     def test_get_data_with_cache(self):
         image = Image(_IDENTIFIER, lambda: BytesIO(_DATA).read(), _IMAGE_TYPE, cache_data=True)
         self.assertEqual(_IDENTIFIER, image.identifier)
-        self.assertEqual(_IMAGE_TYPE, image.image_type)
+        self.assertEqual(_IMAGE_TYPE, image.type)
         self.assertEqual(_DATA, image.data)
         self.assertEqual(_DATA, image.data)
 

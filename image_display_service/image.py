@@ -44,7 +44,7 @@ class Image:
                  cache_data: bool = True):
         self._identifier = identifier
         self.data_reader = data_reader
-        self.image_type = image_type
+        self.type = image_type
         self._cache_data = cache_data
         self._cached = None
 

@@ -1,21 +1,36 @@
 import json
-from typing import Tuple, Union
+from http import HTTPStatus
+from typing import Tuple, Callable
 
-from flask import make_response
+from bidict import bidict
+from flask import make_response, Response, request
 
-from image_display_service.image import ImageType
+from image_display_service.display.controllers import DisplayController
+from image_display_service.image import ImageType, Image
+from image_display_service.storage import ImageAlreadyExistsError
 from image_display_service.web_api import get_display_controllers
 from marshmallow import Schema, fields
 
+CONTENT_TYPE_HEADER = "Content-Type"
 
-class ImageSchema(Schema):
+
+ImageTypeToMimeType = bidict({
+    ImageType.BMP: "image/bmp",
+    ImageType.JPG: "image/jpeg",
+    ImageType.PNG: "image/png",
+    ImageType.WEBP: "image/webp"
+})
+assert set(ImageTypeToMimeType.keys()) == set(ImageType)
+
+
+class _ImageSchema(Schema):
     identifier = fields.Str(data_key="id")
 
 
-class DisplayControllerSchema(Schema):
+class _DisplayControllerSchema(Schema):
     identifier = fields.Str(data_key="id")
-    current_image = fields.Nested(ImageSchema, only=["identifier"], data_key="currentImage")
-    images = fields.Function(lambda display_controller: ImageSchema(only=["identifier"]).dump(
+    current_image = fields.Nested(_ImageSchema, only=["identifier"], data_key="currentImage")
+    images = fields.Function(lambda display_controller: _ImageSchema(only=["identifier"]).dump(
         display_controller.image_store.list(), many=True))
     image_orientation = fields.Integer(data_key="orientation")
     cycle_images = fields.Bool(data_key="cycleImages")
@@ -23,44 +38,63 @@ class DisplayControllerSchema(Schema):
     cycle_image_after_seconds = fields.Integer(data_key="cycleAfterSeconds")
 
 
-ImageTypeToMimeType = {
-    ImageType.BMP: "image/bmp",
-    ImageType.JPG: "image/jpeg",
-    ImageType.PNG: "image/png",
-    ImageType.WEBP: "image/webp"
-}
-assert set(ImageTypeToMimeType.keys()) == set(ImageType)
+def _display_id_handler(wrappable: Callable) -> Callable:
+    """
+    TODO
+    :param wrappable:
+    :return:
+    """
+    def wrapped(displayId: str, *args, **kwargs):
+        display_controller = get_display_controllers().get(displayId)
+        if display_controller is None:
+            return f"Display not found: {displayId}", HTTPStatus.NOT_FOUND
+        return wrappable(display_controller, *args, **kwargs)
+
+    return wrapped
 
 
 def search() -> Tuple[str, int]:
     identifiers = list(get_display_controllers().keys())
-    return json.dumps(identifiers), 200
+    return json.dumps(identifiers), HTTPStatus.OK
 
 
-def get(displayId: str) -> Tuple[str, int]:
-    display_controller = get_display_controllers().get(displayId)
-    if display_controller is None:
-        return f"Display not found: {displayId}", 404
-    return DisplayControllerSchema().dumps(display_controller), 200
+@_display_id_handler
+def get(display_controller: DisplayController) -> Tuple[str, int]:
+    return _DisplayControllerSchema().dumps(display_controller), HTTPStatus.OK
 
 
-def image_search(displayId: str) -> Tuple[str, int]:
-    display_controller = get_display_controllers().get(displayId)
-
-    if display_controller is None:
-        return f"Display not found: {displayId}", 404
-
+@_display_id_handler
+def image_search(display_controller: DisplayController) -> Tuple[str, int]:
     images = display_controller.image_store.list()
-    return ImageSchema(only=["identifier"]).dumps(images, many=True), 200
+    return _ImageSchema(only=["identifier"]).dumps(images, many=True), HTTPStatus.OK
 
 
-def image_get(displayId: str, imageId: str) -> Tuple[Union[bytes, str], int]:
-    display_controller = get_display_controllers().get(displayId)
+@_display_id_handler
+def image_get(display_controller: DisplayController, imageId: str) -> Response:
     image = display_controller.image_store.retrieve(imageId)
 
     if image is None:
-        return f"Image not found: {imageId}", 404
+        return make_response(f"Image not found: {imageId}", HTTPStatus.NOT_FOUND)
 
-    response = make_response(image.data, 200)
-    response.headers["Content-Type"] = ImageTypeToMimeType[image.image_type]
+    response = make_response(image.data, HTTPStatus.OK)
+    response.headers[CONTENT_TYPE_HEADER] = ImageTypeToMimeType[image.type]
     return response
+
+
+@_display_id_handler
+def image_post(display_controller: DisplayController, imageId: str, body: bytes) -> Tuple[str, int]:
+    content_type = request.headers.get(CONTENT_TYPE_HEADER)
+    if content_type is None:
+        return f"{CONTENT_TYPE_HEADER} header is required", HTTPStatus.BAD_REQUEST
+
+    image_type = ImageTypeToMimeType.inverse.get(content_type)
+    if image_type is None:
+        return f"Unsupported image format: {image_type}", HTTPStatus.UNSUPPORTED_MEDIA_TYPE
+
+    image = Image(imageId, lambda: body, image_type)
+    try:
+        display_controller.image_store.save(image)
+    except ImageAlreadyExistsError:
+        return f"Image with same ID already exists: {imageId}", HTTPStatus.CONFLICT
+
+    return f"Created {imageId}", HTTPStatus.CREATED

@@ -4,6 +4,14 @@ from typing import Dict, Optional, Iterable, List
 from image_display_service.image import Image
 
 
+class ImageAlreadyExistsError(ValueError):
+    """
+    TODO
+    """
+    def __init__(self, image_id: str):
+        super().__init__(f"Image with the same ID already exists: {image_id}")
+
+
 class ImageStore(metaclass=ABCMeta):
     """
     TODO
@@ -65,7 +73,7 @@ class InMemoryImageStore(ImageStore):
 
     def save(self, image: Image):
         if self.retrieve(image.identifier) is not None:
-            raise ValueError(f"Already has image with identifier: {image.identifier}")
+            raise ImageAlreadyExistsError(image.identifier)
         self._images[image.identifier] = image
 
     def delete(self, image_id: str) -> bool:

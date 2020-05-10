@@ -3,7 +3,7 @@ from abc import abstractmethod, ABCMeta
 from typing import TypeVar, Generic
 
 from image_display_service.image import Image, ImageType
-from image_display_service.storage import ImageStore, InMemoryImageStore
+from image_display_service.storage import ImageStore, InMemoryImageStore, ImageAlreadyExistsError
 
 EXAMPLE_IMAGE_1 = Image("example-1", lambda: b"abc", ImageType.PNG)
 EXAMPLE_IMAGE_2 = Image("example-2", lambda: b"def", ImageType.JPG)
@@ -38,7 +38,7 @@ class _TestImageStore(unittest.TestCase, Generic[_ImageStoreType], metaclass=ABC
 
     def test_save_with_same_identifier(self):
         self.image_store.save(EXAMPLE_IMAGE_1)
-        self.assertRaises(ValueError, self.image_store.save, EXAMPLE_IMAGE_1)
+        self.assertRaises(ImageAlreadyExistsError, self.image_store.save, EXAMPLE_IMAGE_1)
 
     def test_delete(self):
         self.image_store.save(EXAMPLE_IMAGE_1)
