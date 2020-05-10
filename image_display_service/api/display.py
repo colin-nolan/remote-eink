@@ -98,3 +98,10 @@ def image_post(display_controller: DisplayController, imageId: str, body: bytes)
         return f"Image with same ID already exists: {imageId}", HTTPStatus.CONFLICT
 
     return f"Created {imageId}", HTTPStatus.CREATED
+
+
+@_display_id_handler
+def image_delete(display_controller: DisplayController, imageId: str) -> Tuple[str, int]:
+    pass
+
+

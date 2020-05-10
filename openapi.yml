@@ -108,6 +108,15 @@ paths:
                 items:
                   $ref: "#/components/schemas/ImageId"
 
+    delete:
+      summary: Delete an image from the device
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+        - $ref: "#/components/parameters/imageId"
+      responses:
+        200:
+          description: Image deleted.
+
 #        links:
 #          GetUserByUserId:   # <---- arbitrary name for the link
 #            operationId: getUser

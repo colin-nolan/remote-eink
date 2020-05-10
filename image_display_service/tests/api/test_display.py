@@ -80,13 +80,13 @@ class TestDisplayApi(TestBase):
     """
     Tests for the `/display` endpoint.
     """
-    def test_list_displays(self):
+    def test_list(self):
         display_controllers = [self.create_dummy_display_controller() for _ in range(10)]
         result = self.client.get("/display")
         self.assertEqual(HTTPStatus.OK, result.status_code)
         self.assertCountEqual([controller.identifier for controller in display_controllers], json.loads(result.json))
 
-    def test_get_display(self):
+    def test_get(self):
         for _ in range(5):
             self.create_dummy_display_controller()
         controller = self.create_dummy_display_controller(number_of_images=10, has_current_image=True)
@@ -105,11 +105,11 @@ class TestDisplayApi(TestBase):
         self.assertEqual(controller.cycle_images_randomly, content["cycleRandomly"])
         self.assertEqual(controller.cycle_image_after_seconds, content["cycleAfterSeconds"])
 
-    def test_get_display_not_exist(self):
+    def test_get_not_exist(self):
         result = self.client.get(f"/display/does-not-exist")
         self.assertEqual(HTTPStatus.NOT_FOUND, result.status_code)
 
-    def test_get_display_with_no_images(self):
+    def test_get_with_no_images(self):
         controller = self.create_dummy_display_controller(number_of_images=0)
         result = self.client.get(f"/display/{controller.identifier}")
         self.assertEqual(HTTPStatus.OK, result.status_code)
@@ -122,7 +122,7 @@ class TestDisplayImage(TestBase):
     """
     Tests for the `/display/{displayId}/image` endpoint.
     """
-    def test_list_images(self):
+    def test_list(self):
         for number_of_images in range(5):
             with self.subTest(number_of_images=number_of_images):
                 controller = self.create_dummy_display_controller(number_of_images=number_of_images)
@@ -131,7 +131,7 @@ class TestDisplayImage(TestBase):
                 self.assertCountEqual(({"id": image.identifier} for image in controller.image_store.list()),
                                       json.loads(result.json))
 
-    def test_list_images_when_display_does_not_exist(self):
+    def test_list_when_display_does_not_exist(self):
         result = self.client.get(f"/display/does-not-exist/image")
         self.assertEqual(HTTPStatus.NOT_FOUND, result.status_code)
 
@@ -146,19 +146,19 @@ class TestDisplayImage(TestBase):
                 self.assertEqual(ImageTypeToMimeType[image_type], result.mimetype)
                 self.assertEqual(controller.image_store.retrieve(image.identifier).data, result.data)
 
-    def test_get_image_when_does_not_exist(self):
+    def test_get_when_does_not_exist(self):
         controller = self.create_dummy_display_controller()
         result = self.client.get(f"/display/{controller.identifier}/image/does-not-exist")
         self.assertEqual(HTTPStatus.NOT_FOUND, result.status_code)
 
-    def test_save_image(self):
+    def test_save(self):
         controller = self.create_dummy_display_controller()
         image = _create_image()
         result = self.client.post(f"/display/{controller.identifier}/image/{image.identifier}", data=image.data,
                                   headers=_set_content_type_header(image))
         self.assertEqual(HTTPStatus.CREATED, result.status_code)
 
-    def test_save_image_duplicate_id(self):
+    def test_save_with_duplicate_id(self):
         controller = self.create_dummy_display_controller()
         image_1 = _create_image()
         self.client.post(f"/display/{controller.identifier}/image/{image_1.identifier}", data=image_1.data,
@@ -168,16 +168,35 @@ class TestDisplayImage(TestBase):
                                   headers=_set_content_type_header(image_2))
         self.assertEqual(HTTPStatus.CONFLICT, result.status_code)
 
-    def test_save_image_no_content_type_header(self):
+    def test_save_no_content_type_header(self):
         controller = self.create_dummy_display_controller()
         image = _create_image()
         result = self.client.post(f"/display/{controller.identifier}/image/{image.identifier}", data=image.data)
         self.assertEqual(HTTPStatus.BAD_REQUEST, result.status_code)
 
-    def test_save_image_display_not_exist(self):
+    def test_save_display_not_exist(self):
         image = _create_image()
         result = self.client.post(f"/display/does-not-exist/image/{image.identifier}", data=image.data)
         self.assertEqual(HTTPStatus.NOT_FOUND, result.status_code)
+
+    def test_delete_image(self):
+        controller = self.create_dummy_display_controller()
+        image = _create_image()
+        self.client.post(f"/display/{controller.identifier}/image/{image.identifier}", data=image.data,
+                         headers=_set_content_type_header(image))
+        result = self.client.delete(f"/display/{controller.identifier}/image/{image.identifier}")
+        self.assertEqual(HTTPStatus.OK, result.status_code)
+
+    def test_delete_image_does_not_exist(self):
+        controller = self.create_dummy_display_controller()
+        result = self.client.delete(f"/display/{controller.identifier}/image/does-not-exist")
+        self.assertEqual(HTTPStatus.NOT_FOUND, result.status_code)
+
+    def test_delete_image_display_does_not_exist(self):
+        result = self.client.delete(f"/display/does-not-exist/image/does-not-exist")
+        self.assertEqual(HTTPStatus.NOT_FOUND, result.status_code)
+
+
 
 
 if __name__ == "__main__":
