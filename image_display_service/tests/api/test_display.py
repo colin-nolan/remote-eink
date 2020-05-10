@@ -8,7 +8,7 @@ from uuid import uuid4
 from flask_testing import TestCase
 import unittest
 
-from image_display_service.api.display import ImageTypeToMimeType, CONTENT_TYPE_HEADER
+from image_display_service.api.display._common import ImageTypeToMimeType, CONTENT_TYPE_HEADER
 from image_display_service.display.controllers import DisplayController
 from image_display_service.display.drivers import DummyDisplayDriver
 from image_display_service.image import Image, ImageType
