@@ -11,7 +11,7 @@ paths:
       summary: Get displays
       responses:
         200:
-          description: Displays retrieved
+          description: List of displays retrieved.
           content:
             application/json:
               schema:
@@ -31,41 +31,62 @@ paths:
                 The `id` value returned in the response can be used as
                 the `displayId` parameter in `GET /display/{displayId}`.
 
-
   /display/{displayId}:
     get:
-      summary: "Get a display"
+      summary: Get a display
       parameters:
-        - name: displayId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: ID of the display
+        - $ref: "#/components/parameters/displayId"
       responses:
         200:
-          description: "Display retrieved"
+          description: Display retrieved.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Display"
         404:
-          description: "Display not found"
+          description: Display not found
 
-#  /display/{displayId}/image/{imageId}:
-#    get:
-#      summary: "Get image being displayed"
-#      responses:
-#        200:
-#          description: "Image retrieved"
-#          content:
-#            image/*:
-#              schema:
-#                type: string
-#                format: binary
-#        404:
-#          description: "Image not found"
-#
+  /display/{displayId}/image:
+    get:
+      summary: Get IDs of images that can be displayed
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+      responses:
+        200:
+          description: Image list retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ImageId"
+#          TODO
+#          links:
+#            getImageById:
+#              operationRef: "#/paths/~1image~1{imageId}/get"
+#              parameters:
+#                displayId: "$response.body#/id"
+#              description: >
+#                The `id` value returned in the response can be used as
+#                the `displayId` parameter in `GET /display/{displayId}`.
+
+  /display/{displayId}/image/{imageId}:
+    get:
+      summary: "Get image being displayed"
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+        - $ref: "#/components/parameters/imageId"
+      responses:
+        200:
+          description: "Image retrieved"
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        404:
+          description: "Image not found"
+
 #    post:
 #      summary: "Post image to device"
 #      parameters:
@@ -119,21 +140,46 @@ paths:
 #          description: "Device put into sleep"
 
 components:
+  parameters:
+    displayId:
+      name: displayId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: ID of the display.
+    imageId:
+      name: imageId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: ID of the image.
+
   schemas:
+    ImageId:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID of image.
+
     Display:
       type: object
       properties:
         id:
-          format: string
+          type: string
         currentImage:
-          format: string
+          $ref: "#/components/schemas/ImageId"
         images:
-          format: string
+          type: array
+          items:
+            $ref: "#/components/schemas/ImageId"
         orientation:
-          format: integer
+          type: integer
         cycleImages:
-          format: boolean
+          type: boolean
         cycleRandomly:
-          format: boolean
+          type: boolean
         cycleAfterSeconds:
-          format: integer
+          type: integer

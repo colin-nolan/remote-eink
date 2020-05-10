@@ -1,15 +1,7 @@
 from abc import ABCMeta, abstractmethod
-from dataclasses import dataclass
 from typing import Optional
 
-
-@dataclass
-class Image:
-    """
-    TODO
-    """
-    identifier: str
-    data: bytes
+from image_display_service.image import Image
 
 
 class DisplayDriver(metaclass=ABCMeta):
