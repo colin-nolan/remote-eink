@@ -2,7 +2,6 @@ import json
 import random
 from abc import ABCMeta
 from http import HTTPStatus
-from types import MappingProxyType
 from typing import Optional, Dict
 from uuid import uuid4
 
@@ -62,7 +61,7 @@ def _set_content_type_header(image: Image, headers: Optional[Dict] = None):
 
 class TestBase(TestCase, metaclass=ABCMeta):
     """
-    TODO
+    Base class for tests against the Flask app.
     """
     def create_app(self):
         self.display_controllers = []
@@ -84,7 +83,7 @@ class TestDisplayApi(TestBase):
         display_controllers = [self.create_dummy_display_controller() for _ in range(10)]
         result = self.client.get("/display")
         self.assertEqual(HTTPStatus.OK, result.status_code)
-        self.assertCountEqual([controller.identifier for controller in display_controllers], json.loads(result.json))
+        self.assertCountEqual([{"id": controller.identifier} for controller in display_controllers], result.json)
 
     def test_get(self):
         for _ in range(5):
@@ -95,15 +94,14 @@ class TestDisplayApi(TestBase):
 
         result = self.client.get(f"/display/{controller.identifier}")
         self.assertEqual(HTTPStatus.OK, result.status_code)
-        content = json.loads(result.json)
-        self.assertEqual(controller.identifier, content["id"])
-        self.assertEqual(controller.current_image.identifier, content["currentImage"]["id"])
+        self.assertEqual(controller.identifier, result.json["id"])
+        self.assertEqual(controller.current_image.identifier, result.json["currentImage"]["id"])
         self.assertCountEqual((image.identifier for image in controller.image_store.list()),
-                              (image["id"] for image in content["images"]))
-        self.assertEqual(controller.image_orientation, content["orientation"])
-        self.assertEqual(controller.cycle_images, content["cycleImages"])
-        self.assertEqual(controller.cycle_images_randomly, content["cycleRandomly"])
-        self.assertEqual(controller.cycle_image_after_seconds, content["cycleAfterSeconds"])
+                              (image["id"] for image in result.json["images"]))
+        self.assertEqual(controller.image_orientation, result.json["orientation"])
+        self.assertEqual(controller.cycle_images, result.json["cycleImages"])
+        self.assertEqual(controller.cycle_images_randomly, result.json["cycleRandomly"])
+        self.assertEqual(controller.cycle_image_after_seconds, result.json["cycleAfterSeconds"])
 
     def test_get_not_exist(self):
         result = self.client.get(f"/display/does-not-exist")
@@ -113,9 +111,8 @@ class TestDisplayApi(TestBase):
         controller = self.create_dummy_display_controller(number_of_images=0)
         result = self.client.get(f"/display/{controller.identifier}")
         self.assertEqual(HTTPStatus.OK, result.status_code)
-        content = json.loads(result.json)
-        self.assertEqual([], content["images"])
-        self.assertIsNone(content["currentImage"])
+        self.assertEqual([], result.json["images"])
+        self.assertIsNone(result.json["currentImage"])
 
 
 class TestDisplayImage(TestBase):
@@ -129,7 +126,7 @@ class TestDisplayImage(TestBase):
                 result = self.client.get(f"/display/{controller.identifier}/image")
                 self.assertEqual(HTTPStatus.OK, result.status_code)
                 self.assertCountEqual(({"id": image.identifier} for image in controller.image_store.list()),
-                                      json.loads(result.json))
+                                      result.json)
 
     def test_list_when_display_does_not_exist(self):
         result = self.client.get(f"/display/does-not-exist/image")

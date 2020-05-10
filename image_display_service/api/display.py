@@ -1,4 +1,3 @@
-import json
 from http import HTTPStatus
 from typing import Tuple, Callable
 
@@ -53,24 +52,24 @@ def _display_id_handler(wrappable: Callable) -> Callable:
     return wrapped
 
 
-def search() -> Tuple[str, int]:
-    identifiers = list(get_display_controllers().keys())
-    return json.dumps(identifiers), HTTPStatus.OK
+def search():
+    return _DisplayControllerSchema(only=["identifier"], many=True).dump(get_display_controllers().values()), \
+           HTTPStatus.OK
 
 
 @_display_id_handler
-def get(display_controller: DisplayController) -> Tuple[str, int]:
-    return _DisplayControllerSchema().dumps(display_controller), HTTPStatus.OK
+def get(display_controller: DisplayController):
+    return _DisplayControllerSchema().dump(display_controller), HTTPStatus.OK
 
 
 @_display_id_handler
-def image_search(display_controller: DisplayController) -> Tuple[str, int]:
+def image_search(display_controller: DisplayController):
     images = display_controller.image_store.list()
-    return _ImageSchema(only=["identifier"]).dumps(images, many=True), HTTPStatus.OK
+    return _ImageSchema(only=["identifier"]).dump(images, many=True), HTTPStatus.OK
 
 
 @_display_id_handler
-def image_get(display_controller: DisplayController, imageId: str) -> Response:
+def image_get(display_controller: DisplayController, imageId: str):
     image = display_controller.image_store.retrieve(imageId)
 
     if image is None:
@@ -82,7 +81,7 @@ def image_get(display_controller: DisplayController, imageId: str) -> Response:
 
 
 @_display_id_handler
-def image_post(display_controller: DisplayController, imageId: str, body: bytes) -> Tuple[str, int]:
+def image_post(display_controller: DisplayController, imageId: str, body: bytes):
     content_type = request.headers.get(CONTENT_TYPE_HEADER)
     if content_type is None:
         return f"{CONTENT_TYPE_HEADER} header is required", HTTPStatus.BAD_REQUEST
@@ -101,7 +100,7 @@ def image_post(display_controller: DisplayController, imageId: str, body: bytes)
 
 
 @_display_id_handler
-def image_delete(display_controller: DisplayController, imageId: str) -> Tuple[str, int]:
+def image_delete(display_controller: DisplayController, imageId: str):
     deleted = display_controller.image_store.delete(imageId)
     if not deleted:
         return f"Image not found: {imageId}", HTTPStatus.NOT_FOUND

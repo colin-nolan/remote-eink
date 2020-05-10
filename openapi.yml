@@ -22,14 +22,6 @@ paths:
                     id:
                       type: string
                       description: ID of displays.
-          links:
-            getDisplayById:
-              operationRef: "#/paths/~1display~1{displayId}/get"
-              parameters:
-                displayId: "$response.body#/id"
-              description: >
-                The `id` value returned in the response can be used as
-                the `displayId` parameter in `GET /display/{displayId}`.
 
   /display/{displayId}:
     get:
@@ -60,15 +52,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ImageId"
-#          TODO
-#          links:
-#            getImageById:
-#              operationRef: "#/paths/~1image~1{imageId}/get"
-#              parameters:
-#                displayId: "$response.body#/id"
-#              description: >
-#                The `id` value returned in the response can be used as
-#                the `displayId` parameter in `GET /display/{displayId}`.
 
   /display/{displayId}/image/{imageId}:
     get:
@@ -116,14 +99,6 @@ paths:
       responses:
         200:
           description: Image deleted.
-
-#        links:
-#          GetUserByUserId:   # <---- arbitrary name for the link
-#            operationId: getUser
-#            # or
-#            # operationRef: '#/paths/~1users~1{userId}/get'
-#            parameters:
-#              userId: '$response.body#/id'
 
 #  /display/{displayId}/sleep:
 #    get:
