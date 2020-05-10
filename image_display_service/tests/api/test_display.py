@@ -1,20 +1,32 @@
 import json
 import random
 from abc import ABCMeta
-from unittest import skip
+from typing import Optional
 from uuid import uuid4
 
 from flask_testing import TestCase
 import unittest
 
+from image_display_service.api.display import ImageTypeToMimeType
 from image_display_service.display.controllers import DisplayController
 from image_display_service.display.drivers import DummyDisplayDriver
-from image_display_service.image import Image
+from image_display_service.image import Image, ImageType
 from image_display_service.storage import InMemoryImageStore
 from image_display_service.web_api import create_app
 
 
-def create_dummy_display_controller(*, number_of_images: int = 0, has_current_image: bool = False) -> DisplayController:
+def _create_image(image_type: Optional[ImageType] = None) -> Image:
+    """
+    TODO
+    :return:
+    """
+    if image_type is None:
+        image_type = random.choice(list(ImageType))
+    identifier = str(uuid4())
+    return Image(identifier, lambda: f"data-{identifier}".encode(), image_type)
+
+
+def _create_dummy_display_controller(*, number_of_images: int = 0, has_current_image: bool = False) -> DisplayController:
     """
     TODO
     :param number_of_images:
@@ -23,7 +35,8 @@ def create_dummy_display_controller(*, number_of_images: int = 0, has_current_im
     """
     if has_current_image and number_of_images == 0:
         raise ValueError("Cannot have current images if no images")
-    image_store = InMemoryImageStore(Image(str(uuid4()), lambda: f"data-{i}".encode()) for i in range(number_of_images))
+
+    image_store = InMemoryImageStore(_create_image() for _ in range(number_of_images))
     current_image = image_store.list()[0] if has_current_image > 0 else None
     return DisplayController(driver=DummyDisplayDriver(), identifier=str(uuid4()), current_image=current_image,
                              image_orientation=random.randint(0, 364), image_store=image_store,
@@ -42,7 +55,7 @@ class TestBase(TestCase, metaclass=ABCMeta):
         return app
 
     def create_dummy_display_controller(self, **kwargs) -> DisplayController:
-        controller = create_dummy_display_controller(**kwargs)
+        controller = _create_dummy_display_controller(**kwargs)
         self.display_controllers.append(controller)
         return controller
 
@@ -107,12 +120,15 @@ class TestDisplayImage(TestBase):
         self.assertEqual(404, result.status_code)
 
     def test_get_display_image(self):
-        controller = self.create_dummy_display_controller(number_of_images=1)
-        image_id = controller.image_store.list()[0].identifier
-        result = self.client.get(f"/display/{controller.identifier}/image/{image_id}")
-        self.assertEqual(200, result.status_code)
-        # TODO: assert on headers
-        self.assertEqual(controller.image_store.retrieve(image_id).data, result.data)
+        for image_type in ImageType:
+            with self.subTest(image_type=image_type.name):
+                controller = self.create_dummy_display_controller()
+                image = _create_image(image_type)
+                controller.image_store.save(image)
+                result = self.client.get(f"/display/{controller.identifier}/image/{image.identifier}")
+                self.assertEqual(200, result.status_code)
+                self.assertEqual(ImageTypeToMimeType[image_type], result.mimetype)
+                self.assertEqual(controller.image_store.retrieve(image.identifier).data, result.data)
 
     def test_get_display_image_when_image_does_not_exist(self):
         controller = self.create_dummy_display_controller()

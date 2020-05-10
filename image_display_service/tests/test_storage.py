@@ -1,13 +1,12 @@
 import unittest
 from abc import abstractmethod, ABCMeta
-from io import BytesIO
 from typing import TypeVar, Generic
 
-from image_display_service.image import Image
+from image_display_service.image import Image, ImageType
 from image_display_service.storage import ImageStore, InMemoryImageStore
 
-EXAMPLE_IMAGE_1 = Image("example-1", lambda: b"abc")
-EXAMPLE_IMAGE_2 = Image("example-2", lambda: b"def")
+EXAMPLE_IMAGE_1 = Image("example-1", lambda: b"abc", ImageType.PNG)
+EXAMPLE_IMAGE_2 = Image("example-2", lambda: b"def", ImageType.JPG)
 
 _ImageStoreType = TypeVar("_ImageStoreType", bound=ImageStore)
 

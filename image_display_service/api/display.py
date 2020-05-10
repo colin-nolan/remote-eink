@@ -1,7 +1,9 @@
 import json
 from typing import Tuple, Union
 
-from image_display_service.display.controllers import DisplayController
+from flask import make_response
+
+from image_display_service.image import ImageType
 from image_display_service.web_api import get_display_controllers
 from marshmallow import Schema, fields
 
@@ -19,6 +21,15 @@ class DisplayControllerSchema(Schema):
     cycle_images = fields.Bool(data_key="cycleImages")
     cycle_images_randomly = fields.Bool(data_key="cycleRandomly")
     cycle_image_after_seconds = fields.Integer(data_key="cycleAfterSeconds")
+
+
+ImageTypeToMimeType = {
+    ImageType.BMP: "image/bmp",
+    ImageType.JPG: "image/jpeg",
+    ImageType.PNG: "image/png",
+    ImageType.WEBP: "image/webp"
+}
+assert set(ImageTypeToMimeType.keys()) == set(ImageType)
 
 
 def search() -> Tuple[str, int]:
@@ -50,5 +61,6 @@ def image_get(displayId: str, imageId: str) -> Tuple[Union[bytes, str], int]:
     if image is None:
         return f"Image not found: {imageId}", 404
 
-    return image.data, 200
-
+    response = make_response(image.data, 200)
+    response.headers["Content-Type"] = ImageTypeToMimeType[image.image_type]
+    return response

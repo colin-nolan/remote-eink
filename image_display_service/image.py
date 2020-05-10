@@ -1,4 +1,16 @@
+from enum import unique, Enum, auto
 from typing import Any, Callable
+
+
+@unique
+class ImageType(Enum):
+    """
+    TODO
+    """
+    BMP = auto()
+    JPG = auto()
+    PNG = auto()
+    WEBP = auto()
 
 
 class Image:
@@ -23,14 +35,16 @@ class Image:
     def data(self) -> bytes:
         if self._cached:
             return self._cached
-        data = self._data_reader()
+        data = self.data_reader()
         if self.cache_data:
             self._cached = data
         return data
 
-    def __init__(self, identifier: str, data_reader: Callable[[], bytes], cache_data: bool = True):
+    def __init__(self, identifier: str, data_reader: Callable[[], bytes], image_type: ImageType,
+                 cache_data: bool = True):
         self._identifier = identifier
-        self._data_reader = data_reader
+        self.data_reader = data_reader
+        self.image_type = image_type
         self._cache_data = cache_data
         self._cached = None
 
