@@ -65,7 +65,6 @@ paths:
           content:
             image/*:
               schema:
-                type: string
                 format: binary
         404:
           description: Image not found.
@@ -79,7 +78,6 @@ paths:
         content:
           image/*:
             schema:
-              type: string
               format: binary
       responses:
         201:
@@ -100,31 +98,31 @@ paths:
         200:
           description: Image deleted.
 
-#  /display/{displayId}/sleep:
-#    get:
-#      summary: "Gets whether the device is sleeping"
-#      tags:
-#        - sleep
-#      responses:
-#        200:
-#          description: "Sleep status"
-#          content:
-#            image/*:
-#              application/json:
-#                schema:
-#                  type: bool
-#
-#    post:
-#      summary: "Post command for the device to sleep"
-#      requestBody:
-#        content:
-#          image/*:
-#            schema:
-#              type: string
-#              format: binary
-#      responses:
-#        201:
-#          description: "Device put into sleep"
+  /display/{displayId}/sleep:
+    get:
+      summary: Gets whether the device is sleeping
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+      responses:
+        200:
+          description: Sleep status
+          content:
+            application/json:
+              schema:
+                type: bool
+
+    put:
+      summary: Set the device sleep status.
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: boolean
+      responses:
+        201:
+          description: Device put into sleep.
 
 components:
   parameters:

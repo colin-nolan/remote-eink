@@ -51,6 +51,14 @@ class DisplayDriver(metaclass=ABCMeta):
         self._sleep()
         self._sleeping = True
 
+    def wake(self):
+        """
+        TODO
+        :return:
+        """
+        self._wake()
+        self._sleeping = False
+
     @abstractmethod
     def _display(self, image_data: bytes):
         """
@@ -73,6 +81,13 @@ class DisplayDriver(metaclass=ABCMeta):
         :return:
         """
 
+    @abstractmethod
+    def _wake(self):
+         """
+        TODO
+        :return:
+        """
+
 
 class DummyDisplayDriver(DisplayDriver):
     """
@@ -85,4 +100,7 @@ class DummyDisplayDriver(DisplayDriver):
         pass
 
     def _sleep(self):
+        pass
+
+    def _wake(self):
         pass
