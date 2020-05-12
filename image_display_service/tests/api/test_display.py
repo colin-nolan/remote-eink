@@ -1,4 +1,3 @@
-import json
 import random
 from abc import ABCMeta
 from http import HTTPStatus
@@ -12,7 +11,7 @@ from image_display_service.api.display._common import ImageTypeToMimeType, CONTE
 from image_display_service.display.controllers import DisplayController
 from image_display_service.display.drivers import DummyDisplayDriver
 from image_display_service.image import Image, ImageType
-from image_display_service.storage import InMemoryImageStore
+from image_display_service.storage.image_stores import InMemoryImageStore
 from image_display_service.web_api import create_app
 
 
@@ -137,11 +136,11 @@ class TestDisplayImage(TestBase):
             with self.subTest(image_type=image_type.name):
                 controller = self.create_dummy_display_controller()
                 image = _create_image(image_type)
-                controller.image_store.save(image)
+                controller.image_store.set(image)
                 result = self.client.get(f"/display/{controller.identifier}/image/{image.identifier}")
                 self.assertEqual(HTTPStatus.OK, result.status_code)
                 self.assertEqual(ImageTypeToMimeType[image_type], result.mimetype)
-                self.assertEqual(controller.image_store.retrieve(image.identifier).data, result.data)
+                self.assertEqual(controller.image_store.get(image.identifier).data, result.data)
 
     def test_get_when_does_not_exist(self):
         controller = self.create_dummy_display_controller()

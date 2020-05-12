@@ -1,10 +1,9 @@
-from copy import copy
-from typing import Optional, Iterable, List
+from typing import Optional
 from uuid import uuid4
 
 from image_display_service.display.drivers import DisplayDriver
 from image_display_service.image import Image
-from image_display_service.storage import ImageStore
+from image_display_service.storage.image_stores import ImageStore
 
 DEFAULT_SECONDS_BETWEEN_CYCLE = 60 * 60
 

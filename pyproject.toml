@@ -21,6 +21,8 @@ bidict = "^0.19.0"
 connexion = { version = "^2.7.0", extras = ["swagger-ui"] }
 flask-cors = "^3.0.8"
 marshmallow = "^3.6.0"
+marshmallow_enum = "^1.5.1"
+tinydb = "^4.1.1"
 python = "^3.6"
 
 [tool.poetry.dev-dependencies]

@@ -14,6 +14,25 @@ tests = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.i
 
 [[package]]
 category = "main"
+description = "The bidirectional mapping library for Python."
+name = "bidict"
+optional = false
+python-versions = ">=3"
+version = "0.19.0"
+
+[package.extras]
+coverage = ["coverage (<5)", "pytest-cov (<3)"]
+dev = ["setuptools-scm (<4)", "Sphinx (<3)", "docutils (0.15.2)", "hypothesis (<5)", "py (<2)", "pytest (<6)", "pytest-benchmark (>=3.2.0,<4)", "sortedcollections (<2)", "sortedcontainers (<3)", "coverage (<5)", "pytest-cov (<3)", "flake8 (<3.8)", "pydocstyle (<3.1)", "pylint (2.4.3)", "astroid (2.3.2)", "pre-commit (<2)", "tox (<4)"]
+docs = ["Sphinx (<3)", "docutils (0.15.2)"]
+flake8 = ["flake8 (<3.8)"]
+lint = ["flake8 (<3.8)", "pydocstyle (<3.1)", "pylint (2.4.3)", "astroid (2.3.2)"]
+pydocstyle = ["pydocstyle (<3.1)"]
+pylint = ["pylint (2.4.3)", "astroid (2.3.2)"]
+sphinx = ["Sphinx (<3)", "docutils (0.15.2)"]
+test = ["hypothesis (<5)", "py (<2)", "pytest (<6)", "pytest-benchmark (>=3.2.0,<4)", "sortedcollections (<2)", "sortedcontainers (<3)", "Sphinx (<3)", "docutils (0.15.2)"]
+
+[[package]]
+category = "main"
 description = "Python package for providing Mozilla's CA Bundle."
 name = "certifi"
 optional = false
@@ -203,6 +222,31 @@ version = "1.1.1"
 
 [[package]]
 category = "main"
+description = "A lightweight library for converting complex datatypes to and from native Python datatypes."
+name = "marshmallow"
+optional = false
+python-versions = ">=3.5"
+version = "3.6.0"
+
+[package.extras]
+dev = ["pytest", "pytz", "simplejson", "mypy (0.770)", "flake8 (3.7.9)", "flake8-bugbear (20.1.4)", "pre-commit (>=1.20,<3.0)", "tox"]
+docs = ["sphinx (3.0.3)", "sphinx-issues (1.2.0)", "alabaster (0.7.12)", "sphinx-version-warning (1.1.2)"]
+lint = ["mypy (0.770)", "flake8 (3.7.9)", "flake8-bugbear (20.1.4)", "pre-commit (>=1.20,<3.0)"]
+tests = ["pytest", "pytz", "simplejson"]
+
+[[package]]
+category = "main"
+description = "Enum field for Marshmallow"
+name = "marshmallow-enum"
+optional = false
+python-versions = "*"
+version = "1.5.1"
+
+[package.dependencies]
+marshmallow = ">=2.0.0"
+
+[[package]]
+category = "main"
 description = ""
 name = "openapi-spec-validator"
 optional = false
@@ -213,6 +257,17 @@ version = "0.2.8"
 PyYAML = ">=5.1"
 jsonschema = "*"
 six = "*"
+
+[[package]]
+category = "main"
+description = "pathvalidate is a Python library to sanitize/validate a string such as filenames/file-paths/etc."
+name = "pathvalidate"
+optional = false
+python-versions = ">=3.5"
+version = "2.3.0"
+
+[package.extras]
+test = ["allpairspy", "click", "faker", "pytest"]
 
 [[package]]
 category = "main"
@@ -272,6 +327,14 @@ Jinja2 = ">=2.0"
 
 [[package]]
 category = "main"
+description = "TinyDB is a tiny, document oriented database optimized for your happiness :)"
+name = "tinydb"
+optional = false
+python-versions = ">=3.5,<4.0"
+version = "4.1.1"
+
+[[package]]
+category = "main"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 name = "urllib3"
 optional = false
@@ -309,13 +372,17 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "22a2d80aff97d7192e6498fc6dd96e2404a6d51885d5d983e11d7ef3d314d3ce"
+content-hash = "164a79bfa5b5664839385c207f7dee465bc0bf19e51131e98dbcc9c7c47e7de7"
 python-versions = "^3.6"
 
 [metadata.files]
 attrs = [
     {file = "attrs-19.3.0-py2.py3-none-any.whl", hash = "sha256:08a96c641c3a74e44eb59afb61a24f2cb9f4d7188748e76ba4bb5edfa3cb7d1c"},
     {file = "attrs-19.3.0.tar.gz", hash = "sha256:f7b7ce16570fe9965acd6d30101a28f62fb4a7f9e926b3bbc9b61f8b04247e72"},
+]
+bidict = [
+    {file = "bidict-0.19.0-py2.py3-none-any.whl", hash = "sha256:754756ef233b3c71984b185b7028fdd6f402382e84c9d3e89b0b866d40dd5d45"},
+    {file = "bidict-0.19.0.tar.gz", hash = "sha256:ef7461a18fb4a6f3ccaa73f43ffe2e98661fba4b43b647ec7886b3298c8e9187"},
 ]
 certifi = [
     {file = "certifi-2020.4.5.1-py2.py3-none-any.whl", hash = "sha256:1d987a998c75633c40847cc966fcf5904906c920a7f17ef374f5aa4282abd304"},
@@ -407,10 +474,22 @@ markupsafe = [
     {file = "MarkupSafe-1.1.1-cp38-cp38-win_amd64.whl", hash = "sha256:e8313f01ba26fbbe36c7be1966a7b7424942f670f38e666995b88d012765b9be"},
     {file = "MarkupSafe-1.1.1.tar.gz", hash = "sha256:29872e92839765e546828bb7754a68c418d927cd064fd4708fab9fe9c8bb116b"},
 ]
+marshmallow = [
+    {file = "marshmallow-3.6.0-py2.py3-none-any.whl", hash = "sha256:f88fe96434b1f0f476d54224d59333eba8ca1a203a2695683c1855675c4049a7"},
+    {file = "marshmallow-3.6.0.tar.gz", hash = "sha256:c2673233aa21dde264b84349dc2fd1dce5f30ed724a0a00e75426734de5b84ab"},
+]
+marshmallow-enum = [
+    {file = "marshmallow-enum-1.5.1.tar.gz", hash = "sha256:38e697e11f45a8e64b4a1e664000897c659b60aa57bfa18d44e226a9920b6e58"},
+    {file = "marshmallow_enum-1.5.1-py2.py3-none-any.whl", hash = "sha256:57161ab3dbfde4f57adeb12090f39592e992b9c86d206d02f6bd03ebec60f072"},
+]
 openapi-spec-validator = [
     {file = "openapi-spec-validator-0.2.8.tar.gz", hash = "sha256:e489c7a273284bc78277ac22791482e8058d323b4a265015e9fcddf6a8045bcd"},
     {file = "openapi_spec_validator-0.2.8-py2-none-any.whl", hash = "sha256:d4da8aef72bf5be40cf0df444abd20009a41baf9048a8e03750c07a934f1bdd8"},
     {file = "openapi_spec_validator-0.2.8-py3-none-any.whl", hash = "sha256:0caacd9829e9e3051e830165367bf58d436d9487b29a09220fa7edb9f47ff81b"},
+]
+pathvalidate = [
+    {file = "pathvalidate-2.3.0-py3-none-any.whl", hash = "sha256:1697c8ea71ff4c48e7aa0eda72fe4581404be8f41e51a17363ef682dd6824d35"},
+    {file = "pathvalidate-2.3.0.tar.gz", hash = "sha256:32d30dbacb711c16bb188b12ce7e9a46b41785f50a12f64500f747480a4b6ee3"},
 ]
 pyrsistent = [
     {file = "pyrsistent-0.16.0.tar.gz", hash = "sha256:28669905fe725965daa16184933676547c5bb40a5153055a8dee2a4bd7933ad3"},
@@ -440,6 +519,10 @@ swagger-ui-bundle = [
     {file = "swagger_ui_bundle-0.0.6-py2-none-any.whl", hash = "sha256:49d2e12d60a6499e9d37ea37953b5d700f4e114edc7520fe918bae5eb693a20e"},
     {file = "swagger_ui_bundle-0.0.6-py3-none-any.whl", hash = "sha256:f776811855092c086dbb08216c8810a84accef8c76c796a135caa13645c5cc68"},
     {file = "swagger_ui_bundle-0.0.6.tar.gz", hash = "sha256:c5373b683487b1b914dccd23bcd9a3016afa2c2d1cda10f8713c0a9af0f91dd3"},
+]
+tinydb = [
+    {file = "tinydb-4.1.1-py3-none-any.whl", hash = "sha256:68eb9d1b32931ea657319c7dff70c0d735fc10ecbde29c824a2a5e1333b8ed49"},
+    {file = "tinydb-4.1.1.tar.gz", hash = "sha256:1b8d7308ba2fe6d582c6ae69f33c62013053939f7ab8d1787b1e15950566a202"},
 ]
 urllib3 = [
     {file = "urllib3-1.25.9-py2.py3-none-any.whl", hash = "sha256:88206b0eb87e6d677d424843ac5209e3fb9d0190d0ee169599165ec25e9d9115"},

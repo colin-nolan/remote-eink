@@ -1,21 +1,23 @@
 from enum import unique, Enum, auto
 from typing import Any, Callable
 
+ImageDataReader = Callable[[], bytes]
+
 
 @unique
 class ImageType(Enum):
     """
-    TODO
+    Image type.
     """
-    BMP = auto()
-    JPG = auto()
-    PNG = auto()
-    WEBP = auto()
+    BMP = "bmp"
+    JPG = "jpg"
+    PNG = "png"
+    WEBP = "webp"
 
 
 class Image:
     """
-    TODO
+    Image that can be displayed.
     """
     @property
     def identifier(self) -> str:
@@ -35,15 +37,22 @@ class Image:
     def data(self) -> bytes:
         if self._cached:
             return self._cached
-        data = self.data_reader()
+        data = self._data_reader()
         if self.cache_data:
             self._cached = data
         return data
 
-    def __init__(self, identifier: str, data_reader: Callable[[], bytes], image_type: ImageType,
+    def __init__(self, identifier: str, data_reader: ImageDataReader, image_type: ImageType,
                  cache_data: bool = True):
+        """
+        Constructor.
+        :param identifier: image identifier
+        :param data_reader: (reusable) callable that can be used to read a copy of the image data
+        :param image_type: the type of the image (e.g. PNG)
+        :param cache_data: whether to cache the data when read using the reader
+        """
         self._identifier = identifier
-        self.data_reader = data_reader
+        self._data_reader = data_reader
         self.type = image_type
         self._cache_data = cache_data
         self._cached = None

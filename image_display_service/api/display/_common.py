@@ -36,4 +36,3 @@ def display_id_handler(wrappable: Callable) -> Callable:
         return wrappable(display_controller, *args, **kwargs)
 
     return wrapped
-

@@ -16,9 +16,9 @@ from connexion import Resolver
 from connexion.operations import AbstractOperation
 
 
-class ExtendedRestyResolver(Resolver):
+class CustomRestResolver(Resolver):
     """
-    TODO
+    Custom rest resolver.
     """
     DEFAULT_COLLECTION_ENDPOINT = "search"
 

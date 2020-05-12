@@ -6,7 +6,7 @@ from image_display_service.api.display._common import ImageTypeToMimeType, CONTE
     ImageSchema
 from image_display_service.display.controllers import DisplayController
 from image_display_service.image import Image
-from image_display_service.storage import ImageAlreadyExistsError
+from image_display_service.storage.image_stores import ImageAlreadyExistsError
 
 
 @display_id_handler
@@ -17,7 +17,7 @@ def search(display_controller: DisplayController):
 
 @display_id_handler
 def get(display_controller: DisplayController, imageId: str):
-    image = display_controller.image_store.retrieve(imageId)
+    image = display_controller.image_store.get(imageId)
 
     if image is None:
         return make_response(f"Image not found: {imageId}", HTTPStatus.NOT_FOUND)
@@ -39,7 +39,7 @@ def post(display_controller: DisplayController, imageId: str, body: bytes):
 
     image = Image(imageId, lambda: body, image_type)
     try:
-        display_controller.image_store.save(image)
+        display_controller.image_store.set(image)
     except ImageAlreadyExistsError:
         return f"Image with same ID already exists: {imageId}", HTTPStatus.CONFLICT
 
@@ -48,7 +48,7 @@ def post(display_controller: DisplayController, imageId: str, body: bytes):
 
 @display_id_handler
 def delete(display_controller: DisplayController, imageId: str):
-    deleted = display_controller.image_store.delete(imageId)
+    deleted = display_controller.image_store.remove(imageId)
     if not deleted:
         return f"Image not found: {imageId}", HTTPStatus.NOT_FOUND
     return f"Deleted: {imageId}", HTTPStatus.OK
