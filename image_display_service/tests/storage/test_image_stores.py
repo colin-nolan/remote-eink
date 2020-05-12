@@ -36,30 +36,30 @@ class _TestImageStore(unittest.TestCase, Generic[_ImageStoreType], metaclass=ABC
         self.assertIsNone(self.image_store.get("does-not-exist"))
 
     def test_list(self):
-        self.image_store.set(EXAMPLE_IMAGE_1)
-        self.image_store.set(EXAMPLE_IMAGE_2)
+        self.image_store.add(EXAMPLE_IMAGE_1)
+        self.image_store.add(EXAMPLE_IMAGE_2)
         self.assertCountEqual((EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2), self.image_store.list())
 
     def test_set(self):
-        self.image_store.set(EXAMPLE_IMAGE_1)
-        self.image_store.set(EXAMPLE_IMAGE_2)
+        self.image_store.add(EXAMPLE_IMAGE_1)
+        self.image_store.add(EXAMPLE_IMAGE_2)
         self.assertEqual(EXAMPLE_IMAGE_1, self.image_store.get(EXAMPLE_IMAGE_1.identifier))
         self.assertEqual(EXAMPLE_IMAGE_2, self.image_store.get(EXAMPLE_IMAGE_2.identifier))
 
     def test_set_with_same_identifier(self):
-        self.image_store.set(EXAMPLE_IMAGE_1)
-        self.assertRaises(ImageAlreadyExistsError, self.image_store.set, EXAMPLE_IMAGE_1)
+        self.image_store.add(EXAMPLE_IMAGE_1)
+        self.assertRaises(ImageAlreadyExistsError, self.image_store.add, EXAMPLE_IMAGE_1)
 
     def test_set_with_same_image_data(self):
-        self.image_store.set(EXAMPLE_IMAGE_1)
+        self.image_store.add(EXAMPLE_IMAGE_1)
         image_1_copy = Image(EXAMPLE_IMAGE_2.identifier, lambda: EXAMPLE_IMAGE_1.data, EXAMPLE_IMAGE_1.type)
-        self.image_store.set(image_1_copy)
+        self.image_store.add(image_1_copy)
         self.assertEqual(EXAMPLE_IMAGE_1, self.image_store.get(EXAMPLE_IMAGE_1.identifier))
         self.assertEqual(image_1_copy, self.image_store.get(image_1_copy.identifier))
 
     def test_remove(self):
-        self.image_store.set(EXAMPLE_IMAGE_1)
-        self.image_store.set(EXAMPLE_IMAGE_2)
+        self.image_store.add(EXAMPLE_IMAGE_1)
+        self.image_store.add(EXAMPLE_IMAGE_2)
         self.assertTrue(self.image_store.remove(EXAMPLE_IMAGE_1.identifier))
         self.assertCountEqual([EXAMPLE_IMAGE_2], self.image_store.list())
         self.assertTrue(self.image_store.remove(EXAMPLE_IMAGE_2.identifier))

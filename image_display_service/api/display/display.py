@@ -10,7 +10,7 @@ class _DisplayControllerSchema(Schema):
     identifier = fields.Str(data_key="id")
     current_image = fields.Nested(ImageSchema, only=["identifier"], data_key="currentImage")
     images = fields.Function(lambda display_controller: ImageSchema(only=["identifier"]).dump(
-        display_controller.image_store.list(), many=True))
+        display_controller.list_images(), many=True))
     image_orientation = fields.Integer(data_key="orientation")
     cycle_images = fields.Bool(data_key="cycleImages")
     cycle_images_randomly = fields.Bool(data_key="cycleRandomly")
@@ -18,8 +18,8 @@ class _DisplayControllerSchema(Schema):
 
 
 def search():
-    return _DisplayControllerSchema(only=["identifier"], many=True).dump(get_display_controllers().values()), \
-           HTTPStatus.OK
+    return _DisplayControllerSchema(only=["identifier"], many=True) \
+               .dump(get_display_controllers().values()), HTTPStatus.OK
 
 
 @display_id_handler

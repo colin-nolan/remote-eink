@@ -16,8 +16,8 @@ DISPLAY_CONTROLLERS_CONFIG_KEY = "DISPLAY_CONTROLLERS"
 
 def get_display_controllers() -> Dict[str, DisplayController]:
     """
-    TODO
-    :return:
+    Gets the display controllers configured on the app.
+    :return: display controllers, mapped by the controllers identifiers
     """
     return {controller.identifier: controller for controller in current_app.config[DISPLAY_CONTROLLERS_CONFIG_KEY]}
 

@@ -18,15 +18,14 @@ class TestDisplayApi(TestBase):
     def test_get(self):
         for _ in range(5):
             self.create_dummy_display_controller()
-        controller = self.create_dummy_display_controller(number_of_images=10, has_current_image=True)
+        controller = self.create_dummy_display_controller(number_of_images=10)
         for _ in range(5):
             self.create_dummy_display_controller()
 
         result = self.client.get(f"/display/{controller.identifier}")
         self.assertEqual(HTTPStatus.OK, result.status_code)
         self.assertEqual(controller.identifier, result.json["id"])
-        self.assertEqual(controller.current_image.identifier, result.json["currentImage"]["id"])
-        self.assertCountEqual((image.identifier for image in controller.image_store.list()),
+        self.assertCountEqual((image.identifier for image in controller._image_store.list()),
                               (image["id"] for image in result.json["images"]))
         self.assertEqual(controller.image_orientation, result.json["orientation"])
         self.assertEqual(controller.cycle_images, result.json["cycleImages"])

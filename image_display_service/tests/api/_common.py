@@ -15,8 +15,8 @@ from image_display_service.web_api import create_app
 
 def create_image(image_type: Optional[ImageType] = None) -> Image:
     """
-    TODO
-    :return:
+    Creates image for testing.
+    :return: created image
     """
     if image_type is None:
         image_type = random.choice(list(ImageType))
@@ -24,20 +24,14 @@ def create_image(image_type: Optional[ImageType] = None) -> Image:
     return Image(identifier, lambda: f"data-{identifier}".encode(), image_type)
 
 
-def create_dummy_display_controller(*, number_of_images: int = 0, has_current_image: bool = False) \
-        -> DisplayController:
+def create_dummy_display_controller(*, number_of_images: int = 0) -> DisplayController:
     """
-    TODO
-    :param number_of_images:
-    :param has_current_image:
-    :return:
+    Creates a dummy display controller.
+    :param number_of_images: number of images in the display controller's image store
+    :return: the dummy display controller
     """
-    if has_current_image and number_of_images == 0:
-        raise ValueError("Cannot have current images if no images")
-
     image_store = InMemoryImageStore(create_image() for _ in range(number_of_images))
-    current_image = image_store.list()[0] if has_current_image > 0 else None
-    return DisplayController(driver=DummyDisplayDriver(), identifier=str(uuid4()), current_image=current_image,
+    return DisplayController(driver=DummyDisplayDriver(), identifier=str(uuid4()),
                              image_orientation=random.randint(0, 364), image_store=image_store,
                              cycle_images=random.choice([True, False]), cycle_randomly=random.choice([True, False]),
                              cycle_image_after_seconds=random.randint(1, 9999))
@@ -45,10 +39,10 @@ def create_dummy_display_controller(*, number_of_images: int = 0, has_current_im
 
 def set_content_type_header(image: Image, headers: Optional[Dict] = None):
     """
-    TODO
-    :param image:
-    :param headers:
-    :return:
+    Sets content type header for the given image.
+    :param image: image to set content type headers for
+    :param headers: existing headers to add to (else will create new dict)
+    :return: headers
     """
     if headers is None:
         headers = {}

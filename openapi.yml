@@ -36,7 +36,45 @@ paths:
               schema:
                 $ref: "#/components/schemas/Display"
         404:
-          description: Display not found
+          description: Display not found.
+
+  /display/{displayId}/current-image:
+    get:
+      summary: Get ID of the image currently being displayed
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+      responses:
+        200:
+          description: ID of currently displayed image
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/ImageId"
+        404:
+          description: No current image set.
+
+    put:
+      summary: Puts the image onto the display.
+      parameters:
+          - $ref: "#/components/parameters/displayId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              items:
+                $ref: "#/components/schemas/ImageId"
+      responses:
+        200:
+          description: Set device's sleep status as instructed.
+
+    delete:
+      summary: Clear display of the current image
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+      responses:
+        200:
+          description: Image cleared from the display.
 
   /display/{displayId}/image:
     get:
@@ -121,8 +159,8 @@ paths:
             schema:
               type: boolean
       responses:
-        201:
-          description: Device put into sleep.
+        200:
+          description: Set device's sleep status as instructed.
 
 components:
   parameters:

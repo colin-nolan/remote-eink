@@ -1,4 +1,4 @@
-from enum import unique, Enum, auto
+from enum import unique, Enum
 from typing import Any, Callable
 
 ImageDataReader = Callable[[], bytes]

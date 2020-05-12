@@ -11,13 +11,13 @@ from image_display_service.storage.image_stores import ImageAlreadyExistsError
 
 @display_id_handler
 def search(display_controller: DisplayController):
-    images = display_controller.image_store.list()
+    images = display_controller.list_images()
     return ImageSchema(only=["identifier"]).dump(images, many=True), HTTPStatus.OK
 
 
 @display_id_handler
 def get(display_controller: DisplayController, imageId: str):
-    image = display_controller.image_store.get(imageId)
+    image = display_controller.get_image(imageId)
 
     if image is None:
         return make_response(f"Image not found: {imageId}", HTTPStatus.NOT_FOUND)
@@ -39,7 +39,7 @@ def post(display_controller: DisplayController, imageId: str, body: bytes):
 
     image = Image(imageId, lambda: body, image_type)
     try:
-        display_controller.image_store.set(image)
+        display_controller.add_image(image)
     except ImageAlreadyExistsError:
         return f"Image with same ID already exists: {imageId}", HTTPStatus.CONFLICT
 
@@ -48,7 +48,7 @@ def post(display_controller: DisplayController, imageId: str, body: bytes):
 
 @display_id_handler
 def delete(display_controller: DisplayController, imageId: str):
-    deleted = display_controller.image_store.remove(imageId)
+    deleted = display_controller.remove_image(imageId)
     if not deleted:
         return f"Image not found: {imageId}", HTTPStatus.NOT_FOUND
     return f"Deleted: {imageId}", HTTPStatus.OK

@@ -25,9 +25,10 @@ class ImageSchema(Schema):
 
 def display_id_handler(wrappable: Callable) -> Callable:
     """
-    TODO
-    :param wrappable:
-    :return:
+    Handles `displayId` in the response handler.
+    :param wrappable: handler to wrap
+    :return: handler wrapped in layer to take display ID, validate it and then pass the corresponding display controller
+             to the handler
     """
     def wrapped(displayId: str, *args, **kwargs):
         display_controller = get_display_controllers().get(displayId)

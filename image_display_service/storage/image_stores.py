@@ -3,8 +3,6 @@ import os
 from abc import abstractmethod, ABCMeta
 from typing import Dict, Optional, Iterable, List
 
-from pathvalidate import sanitize_filename
-
 from image_display_service.image import Image, ImageDataReader
 from image_display_service.storage.manifest_stores import Manifest, TinyDbManifest, ManifestRecord
 
@@ -39,7 +37,7 @@ class ImageStore(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def set(self, image: Image):
+    def add(self, image: Image):
         """
         Saves the given image.
         :param image: image to save
@@ -59,7 +57,7 @@ class ImageStore(metaclass=ABCMeta):
         :param images: images to save
         """
         for image in images:
-            self.set(image)
+            self.add(image)
 
 
 class InMemoryImageStore(ImageStore):
@@ -76,7 +74,7 @@ class InMemoryImageStore(ImageStore):
     def list(self) -> List[Image]:
         return sorted(list(self._images.values()), key=lambda image: image.identifier)
 
-    def set(self, image: Image):
+    def add(self, image: Image):
         if self.get(image.identifier) is not None:
             raise ImageAlreadyExistsError(image.identifier)
         self._images[image.identifier] = image
@@ -140,7 +138,7 @@ class ManifestBasedImageStore(ImageStore, metaclass=ABCMeta):
     def list(self) -> List[Image]:
         return [self._get_image(manifest_record) for manifest_record in self._manifest.list()]
 
-    def set(self, image: Image):
+    def add(self, image: Image):
         if self._manifest.get_by_image_id(image.identifier) is not None:
             raise ImageAlreadyExistsError(image.identifier)
         storage_location = self._add_to_storage_location(image)
