@@ -260,17 +260,6 @@ six = "*"
 
 [[package]]
 category = "main"
-description = "pathvalidate is a Python library to sanitize/validate a string such as filenames/file-paths/etc."
-name = "pathvalidate"
-optional = false
-python-versions = ">=3.5"
-version = "2.3.0"
-
-[package.extras]
-test = ["allpairspy", "click", "faker", "pytest"]
-
-[[package]]
-category = "main"
 description = "Persistent/Functional/Immutable data structures"
 name = "pyrsistent"
 optional = false
@@ -372,7 +361,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "164a79bfa5b5664839385c207f7dee465bc0bf19e51131e98dbcc9c7c47e7de7"
+content-hash = "3d2ebf67c7261f7ee14ff1ae1963a60101545ad2a779df6635f1406a8468d2ff"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -486,10 +475,6 @@ openapi-spec-validator = [
     {file = "openapi-spec-validator-0.2.8.tar.gz", hash = "sha256:e489c7a273284bc78277ac22791482e8058d323b4a265015e9fcddf6a8045bcd"},
     {file = "openapi_spec_validator-0.2.8-py2-none-any.whl", hash = "sha256:d4da8aef72bf5be40cf0df444abd20009a41baf9048a8e03750c07a934f1bdd8"},
     {file = "openapi_spec_validator-0.2.8-py3-none-any.whl", hash = "sha256:0caacd9829e9e3051e830165367bf58d436d9487b29a09220fa7edb9f47ff81b"},
-]
-pathvalidate = [
-    {file = "pathvalidate-2.3.0-py3-none-any.whl", hash = "sha256:1697c8ea71ff4c48e7aa0eda72fe4581404be8f41e51a17363ef682dd6824d35"},
-    {file = "pathvalidate-2.3.0.tar.gz", hash = "sha256:32d30dbacb711c16bb188b12ce7e9a46b41785f50a12f64500f747480a4b6ee3"},
 ]
 pyrsistent = [
     {file = "pyrsistent-0.16.0.tar.gz", hash = "sha256:28669905fe725965daa16184933676547c5bb40a5153055a8dee2a4bd7933ad3"},

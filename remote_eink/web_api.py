@@ -6,8 +6,8 @@ from connexion import FlaskApp
 from flask import current_app
 from flask_cors import CORS
 
-from image_display_service.display.controllers import DisplayController
-from image_display_service.resolver import CustomRestResolver
+from remote_eink.display.controllers import DisplayController
+from remote_eink.resolver import CustomRestResolver
 
 OPEN_API_LOCATION = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../openapi.yml")
 
@@ -29,7 +29,7 @@ def create_app(display_controllers: Collection[DisplayController]) -> FlaskApp:
     :return: Flask app
     """
     app = connexion.App(__name__, options=dict(swagger_ui=True))
-    app.add_api(OPEN_API_LOCATION, resolver=CustomRestResolver("image_display_service.api"), strict_validation=True)
+    app.add_api(OPEN_API_LOCATION, resolver=CustomRestResolver("remote_eink.api"), strict_validation=True)
     CORS(app.app)
 
     with app.app.app_context():

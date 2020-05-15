@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from image_display_service.tests.api._common import TestBase
+from remote_eink.tests.api._common import TestBase
 
 
 class TestDisplaySleep(TestBase):

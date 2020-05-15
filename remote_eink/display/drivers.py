@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Optional
 
-from image_display_service.image import Image
+from remote_eink.image import Image
 
 
 class DisplayDriver(metaclass=ABCMeta):
@@ -32,6 +32,8 @@ class DisplayDriver(metaclass=ABCMeta):
         :param image:
         :return:
         """
+        if self.sleeping:
+            self.wake()
         self._display(image.data)
         self._image = image
 
@@ -48,16 +50,18 @@ class DisplayDriver(metaclass=ABCMeta):
         TODO
         :return:
         """
-        self._sleep()
-        self._sleeping = True
+        if not self.sleeping:
+            self._sleep()
+            self._sleeping = True
 
     def wake(self):
         """
         TODO
         :return:
         """
-        self._wake()
-        self._sleeping = False
+        if self.sleeping:
+            self._wake()
+            self._sleeping = False
 
     @abstractmethod
     def _display(self, image_data: bytes):
@@ -83,7 +87,7 @@ class DisplayDriver(metaclass=ABCMeta):
 
     @abstractmethod
     def _wake(self):
-         """
+        """
         TODO
         :return:
         """

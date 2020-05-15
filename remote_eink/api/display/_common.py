@@ -4,8 +4,8 @@ from typing import Callable
 from bidict import bidict
 from marshmallow import Schema, fields
 
-from image_display_service.image import ImageType
-from image_display_service.web_api import get_display_controllers
+from remote_eink.image import ImageType
+from remote_eink.web_api import get_display_controllers
 
 
 CONTENT_TYPE_HEADER = "Content-Type"

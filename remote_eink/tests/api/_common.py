@@ -5,12 +5,12 @@ from uuid import uuid4
 
 from flask_testing import TestCase
 
-from image_display_service.api.display._common import CONTENT_TYPE_HEADER, ImageTypeToMimeType
-from image_display_service.display.controllers import DisplayController
-from image_display_service.display.drivers import DummyDisplayDriver
-from image_display_service.image import ImageType, Image
-from image_display_service.storage.image_stores import InMemoryImageStore
-from image_display_service.web_api import create_app
+from remote_eink.api.display._common import CONTENT_TYPE_HEADER, ImageTypeToMimeType
+from remote_eink.display.controllers import DisplayController
+from remote_eink.display.drivers import DummyDisplayDriver
+from remote_eink.image import ImageType, Image
+from remote_eink.storage.image_stores import InMemoryImageStore
+from remote_eink.web_api import create_app
 
 
 def create_image(image_type: Optional[ImageType] = None) -> Image:

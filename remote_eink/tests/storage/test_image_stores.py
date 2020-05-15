@@ -4,9 +4,9 @@ import unittest
 from abc import abstractmethod, ABCMeta
 from typing import TypeVar, Generic
 
-from image_display_service.image import Image
-from image_display_service.storage.image_stores import ImageStore, InMemoryImageStore, ImageAlreadyExistsError, FileSystemImageStore
-from image_display_service.tests.storage._common import EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2
+from remote_eink.image import Image
+from remote_eink.storage.image_stores import ImageStore, InMemoryImageStore, ImageAlreadyExistsError, FileSystemImageStore
+from remote_eink.tests.storage._common import EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2
 
 _ImageStoreType = TypeVar("_ImageStoreType", bound=ImageStore)
 

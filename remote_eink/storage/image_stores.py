@@ -3,8 +3,8 @@ import os
 from abc import abstractmethod, ABCMeta
 from typing import Dict, Optional, Iterable, List
 
-from image_display_service.image import Image, ImageDataReader
-from image_display_service.storage.manifest_stores import Manifest, TinyDbManifest, ManifestRecord
+from remote_eink.image import Image, ImageDataReader
+from remote_eink.storage.manifest_stores import Manifest, TinyDbManifest, ManifestRecord
 
 
 class ImageAlreadyExistsError(ValueError):

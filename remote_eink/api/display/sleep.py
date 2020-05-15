@@ -1,4 +1,4 @@
-from image_display_service.api.display import display_id_handler, DisplayController, HTTPStatus
+from remote_eink.api.display import display_id_handler, DisplayController, HTTPStatus
 
 
 @display_id_handler

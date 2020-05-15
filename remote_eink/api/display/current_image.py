@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
-from image_display_service.api.display._common import display_id_handler, ImageSchema
-from image_display_service.display.controllers import DisplayController
+from remote_eink.api.display._common import display_id_handler, ImageSchema
+from remote_eink.display.controllers import DisplayController
 
 
 @display_id_handler

@@ -6,7 +6,7 @@ from marshmallow import Schema, fields, post_load
 from marshmallow_enum import EnumField
 from tinydb import TinyDB, Query
 
-from image_display_service.image import ImageType
+from remote_eink.image import ImageType
 
 
 class ManifestAlreadyExistsError(ValueError):
@@ -20,7 +20,7 @@ class ManifestAlreadyExistsError(ValueError):
 @dataclass
 class ManifestRecord:
     """
-    TODO
+    Record in the image storage manifest.
     """
     identifier: str
     image_type: ImageType
@@ -32,7 +32,7 @@ class ManifestRecord:
 
 class _ManifestRecordSchema(Schema):
     """
-    TODO
+    Marshmallow schema for `ManifestRecord`.
     """
     identifier = fields.Str(data_key="id")
     image_type = EnumField(ImageType, data_key="image_type")
@@ -50,42 +50,41 @@ class Manifest(metaclass=ABCMeta):
     @abstractmethod
     def get_by_image_id(self, image_id: str) -> Optional[ManifestRecord]:
         """
-        TODO
-        :param image_id:
-        :return:
+        Gets manifest record for image with the given ID.
+        :param image_id: image ID
+        :return: manifest record of the image or `None` if no record exists
         """
 
     @abstractmethod
     def get_by_storage_location(self, storage_location: str) -> Optional[ManifestRecord]:
         """
-        TODO
-        :param storage_location:
-        :return:
+        Gets manifest record for the image at the given storage location.
+        :param storage_location: location image is stored
+        :return: manifest record of the image or `None` if no record exists
         """
 
     @abstractmethod
     def list(self) -> List[ManifestRecord]:
         """
-        TODO
-        :return:
+        Lists all the records in the manifest.
+        :return: all records
         """
 
     @abstractmethod
     def add(self, image_id: str, image_type: ImageType, storage_location: str):
         """
-        TODO
-        :param image_id:
-        :param image_type:
-        :param storage_location:
-        :return:
+        Adds manifest for the image with the given ID, given type that is stored in the given location.
+        :param image_id: ID of the image
+        :param image_type: type of the image
+        :param storage_location: where the image is stored
         """
 
     @abstractmethod
     def remove(self, image_id: str) -> bool:
         """
-        TODO
-        :param image_id:
-        :return:
+        Removes the manifest for the image with the given ID.
+        :param image_id: ID of the image
+        :return: `True` if an image is removed else `False`
         """
 
 
@@ -94,6 +93,9 @@ class InMemoryManifest(Manifest):
     In memory manifest implementation.
     """
     def __init__(self):
+        """
+        Constructor.
+        """
         self._manifest_records: Dict[str, ManifestRecord] = {}
 
     def get_by_image_id(self, image_id: str) -> Optional[ManifestRecord]:
@@ -135,8 +137,8 @@ class TinyDbManifest(Manifest):
 
     def __init__(self, database_location: str):
         """
-        TODO
-        :param database_location:
+        Constructor.
+        :param database_location: location of database on disk
         """
         self._database_location = database_location
 

@@ -1,8 +1,8 @@
 from http import HTTPStatus
 
-from image_display_service.api.display._common import ImageTypeToMimeType
-from image_display_service.image import ImageType
-from image_display_service.tests.api._common import create_image, TestBase, set_content_type_header
+from remote_eink.api.display._common import ImageTypeToMimeType
+from remote_eink.image import ImageType
+from remote_eink.tests.api._common import create_image, TestBase, set_content_type_header
 
 
 class TestDisplayImage(TestBase):
