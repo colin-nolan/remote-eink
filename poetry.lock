@@ -96,6 +96,15 @@ tests = ["decorator", "pytest", "pytest-cov", "testfixtures", "flask (>=1.0.4)",
 
 [[package]]
 category = "main"
+description = "A backport of the dataclasses module for Python 3.6"
+marker = "python_version >= \"3.6\" and python_version < \"3.7\""
+name = "dataclasses"
+optional = false
+python-versions = ">=3.6, <3.7"
+version = "0.7"
+
+[[package]]
+category = "main"
 description = "A simple framework for building complex web applications."
 name = "flask"
 optional = false
@@ -361,7 +370,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "3d2ebf67c7261f7ee14ff1ae1963a60101545ad2a779df6635f1406a8468d2ff"
+content-hash = "a544f1e9e2503ad29ae3f333c441b2a4b2e16e4715d9170cbeef9fbb59f3064b"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -392,6 +401,10 @@ clickclick = [
 connexion = [
     {file = "connexion-2.7.0-py2.py3-none-any.whl", hash = "sha256:5439e9659a89c4380d93a07acfbf3380d70be4130574de8881e5f0dfec7ad0e2"},
     {file = "connexion-2.7.0.tar.gz", hash = "sha256:1ccfac57d4bb7adf4295ba6f5e48f5a1f66057df6a0713417766c9b5235182ee"},
+]
+dataclasses = [
+    {file = "dataclasses-0.7-py3-none-any.whl", hash = "sha256:3459118f7ede7c8bea0fe795bff7c6c2ce287d01dd226202f7c9ebc0610a7836"},
+    {file = "dataclasses-0.7.tar.gz", hash = "sha256:494a6dcae3b8bcf80848eea2ef64c0cc5cd307ffc263e17cdf42f3e5420808e6"},
 ]
 flask = [
     {file = "Flask-1.1.2-py2.py3-none-any.whl", hash = "sha256:8a4fdd8936eba2512e9c85df320a37e694c93945b33ef33c89946a340a238557"},

@@ -1,0 +1,21 @@
+---
+
+language: python
+python:
+  - 3.6
+  - 3.8
+
+before_install:
+  - pip install poetry codecov coverage
+
+install:
+  - poetry install --no-root
+
+script:
+  - coverage run -m unittest discover -v -s remote_eink/tests
+  - coverage run -m pip install .
+
+after_success:
+  - coverage combine -a
+  - coverage report
+  - codecov
