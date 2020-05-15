@@ -1,0 +1,6 @@
+[run]
+branch = True
+source = .
+omit =
+    remote_eink/tests/*
+parallel = True
