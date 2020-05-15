@@ -1,7 +1,7 @@
 import unittest
 from io import BytesIO
 
-from remote_eink.image import Image, ImageType
+from remote_eink.models import Image, ImageType
 
 _IDENTIFIER = "example-1"
 _DATA = b"test"

@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
 from remote_eink.api.display._common import ImageTypeToMimeType
-from remote_eink.image import ImageType
+from remote_eink.models import ImageType
 from remote_eink.tests.api._common import create_image, TestBase, set_content_type_header
 
 

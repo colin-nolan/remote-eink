@@ -6,7 +6,7 @@ from marshmallow import Schema, fields, post_load
 from marshmallow_enum import EnumField
 from tinydb import TinyDB, Query
 
-from remote_eink.image import ImageType
+from remote_eink.models import ImageType
 
 
 class ManifestAlreadyExistsError(ValueError):

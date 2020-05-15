@@ -4,7 +4,7 @@ from typing import Callable
 from bidict import bidict
 from marshmallow import Schema, fields
 
-from remote_eink.image import ImageType
+from remote_eink.models import ImageType
 from remote_eink.web_api import get_display_controllers
 
 

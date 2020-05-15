@@ -11,15 +11,7 @@ from remote_eink.resolver import CustomRestResolver
 
 OPEN_API_LOCATION = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../openapi.yml")
 
-DISPLAY_CONTROLLERS_CONFIG_KEY = "DISPLAY_CONTROLLERS"
-
-
-def get_display_controllers() -> Dict[str, DisplayController]:
-    """
-    Gets the display controllers configured on the app.
-    :return: display controllers, mapped by the controllers identifiers
-    """
-    return {controller.identifier: controller for controller in current_app.config[DISPLAY_CONTROLLERS_CONFIG_KEY]}
+_DISPLAY_CONTROLLERS_CONFIG_KEY = "DISPLAY_CONTROLLERS"
 
 
 def create_app(display_controllers: Collection[DisplayController]) -> FlaskApp:
@@ -33,6 +25,15 @@ def create_app(display_controllers: Collection[DisplayController]) -> FlaskApp:
     CORS(app.app)
 
     with app.app.app_context():
-        app.app.config[DISPLAY_CONTROLLERS_CONFIG_KEY] = display_controllers
+        app.app.config[_DISPLAY_CONTROLLERS_CONFIG_KEY] = display_controllers
 
     return app
+
+
+def get_display_controllers() -> Dict[str, DisplayController]:
+    """
+    Gets the display controllers configured on the app.
+    :return: display controllers, mapped by the controllers identifiers
+    """
+    return {controller.identifier: controller for controller in current_app.config[_DISPLAY_CONTROLLERS_CONFIG_KEY]}
+

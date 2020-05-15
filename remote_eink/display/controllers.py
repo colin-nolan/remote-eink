@@ -2,8 +2,8 @@ from typing import Optional, List
 from uuid import uuid4
 
 from remote_eink.display.drivers import DisplayDriver
-from remote_eink.image import Image
-from remote_eink.storage.image_stores import ImageStore
+from remote_eink.models import Image
+from remote_eink.storage.images import ImageStore
 
 DEFAULT_SECONDS_BETWEEN_CYCLE = 60 * 60
 

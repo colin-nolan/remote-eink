@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Optional
 
-from remote_eink.image import Image
+from remote_eink.models import Image
 
 
 class DisplayDriver(metaclass=ABCMeta):
