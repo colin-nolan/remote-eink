@@ -421,7 +421,7 @@ testing = ["jaraco.itertools", "func-timeout"]
 webserver = ["cheroot", "requests"]
 
 [metadata]
-content-hash = "3e425b7d089d039a4be33e41b8899c2afda03d81d7c854b2a28df16952759ae4"
+content-hash = "42e131875bfdd71a264d019b45afea99223c4c8b5ae49b2d0362ac8a2ce24527"
 python-versions = "^3.6"
 
 [metadata.files]
