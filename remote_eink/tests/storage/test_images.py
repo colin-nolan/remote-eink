@@ -5,7 +5,8 @@ from abc import abstractmethod, ABCMeta
 from typing import TypeVar, Generic
 
 from remote_eink.models import Image
-from remote_eink.storage.images import ImageStore, InMemoryImageStore, ImageAlreadyExistsError, FileSystemImageStore
+from remote_eink.storage.images import ImageStore, InMemoryImageStore, ImageAlreadyExistsError, FileSystemImageStore, \
+    ListenableImageStore, ImageStoreEvent
 from remote_eink.tests.storage._common import EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2
 
 _ImageStoreType = TypeVar("_ImageStoreType", bound=ImageStore)
@@ -26,11 +27,7 @@ class _TestImageStore(unittest.TestCase, Generic[_ImageStoreType], metaclass=ABC
 
     def setUp(self):
         super().setUp()
-        self.image_store = self.create_image_store()
-
-    def test_init_with_images(self):
-        image_store = self.create_image_store([EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2])
-        self.assertCountEqual((EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2), image_store.list())
+        self.image_store: _ImageStoreType = self.create_image_store()
 
     def test_get_non_existent(self):
         self.assertIsNone(self.image_store.get("does-not-exist"))
@@ -73,6 +70,10 @@ class TestInMemoryImageStore(_TestImageStore[InMemoryImageStore]):
     """
     Tests `InMemoryImageStore`.
     """
+    def test_init_with_images(self):
+        image_store = self.create_image_store([EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2])
+        self.assertCountEqual((EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2), image_store.list())
+
     def create_image_store(self, *args, **kwargs) -> InMemoryImageStore:
         return InMemoryImageStore(*args, **kwargs)
 
@@ -81,6 +82,10 @@ class TestFileSystemImageStore(_TestImageStore[InMemoryImageStore]):
     """
     Tests `FileSystemImageStore`.
     """
+    def test_init_with_images(self):
+        image_store = self.create_image_store([EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2])
+        self.assertCountEqual((EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2), image_store.list())
+
     def setUp(self):
         self._temp_directories = []
         super().setUp()
@@ -95,6 +100,37 @@ class TestFileSystemImageStore(_TestImageStore[InMemoryImageStore]):
         temp_directory = tempfile.mkdtemp()
         self._temp_directories.append(temp_directory)
         return FileSystemImageStore(temp_directory, *args, **kwargs)
+
+
+class TestListenableImageStore(_TestImageStore[ListenableImageStore]):
+    """
+    Tests `ListenableImageStore`.
+    """
+    def test_add_listener(self):
+        added = None
+
+        def add_listener(image):
+            nonlocal added
+            added = image
+
+        self.image_store.add_event_listener(add_listener, ImageStoreEvent.ADD)
+        self.image_store.add(EXAMPLE_IMAGE_1)
+        self.assertEqual(added, EXAMPLE_IMAGE_1)
+
+    def test_remove_listener(self):
+        removed = None
+
+        def remove_listener(image_id):
+            nonlocal removed
+            removed = image_id
+
+        self.image_store.add_event_listener(remove_listener, ImageStoreEvent.REMOVE)
+        self.image_store.remove(EXAMPLE_IMAGE_1.identifier)
+        self.assertEqual(removed, EXAMPLE_IMAGE_1.identifier)
+
+    def create_image_store(self, *args, **kwargs) -> ListenableImageStore:
+        inner_image_store = InMemoryImageStore()
+        return ListenableImageStore(inner_image_store)
 
 
 del _TestImageStore

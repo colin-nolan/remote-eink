@@ -2,8 +2,7 @@ from http import HTTPStatus
 
 from flask import make_response, request
 
-from remote_eink.api.display._common import ImageTypeToMimeType, CONTENT_TYPE_HEADER, display_id_handler, \
-    ImageSchema
+from remote_eink.api.display._common import ImageTypeToMimeType, CONTENT_TYPE_HEADER, display_id_handler, ImageSchema
 from remote_eink.display.controllers import DisplayController
 from remote_eink.models import Image
 from remote_eink.storage.images import ImageAlreadyExistsError
@@ -11,13 +10,13 @@ from remote_eink.storage.images import ImageAlreadyExistsError
 
 @display_id_handler
 def search(display_controller: DisplayController):
-    images = display_controller.list_images()
+    images = display_controller.image_store.list()
     return ImageSchema(only=["identifier"]).dump(images, many=True), HTTPStatus.OK
 
 
 @display_id_handler
 def get(display_controller: DisplayController, imageId: str):
-    image = display_controller.get_image(imageId)
+    image = display_controller.image_store.get(imageId)
 
     if image is None:
         return make_response(f"Image not found: {imageId}", HTTPStatus.NOT_FOUND)
@@ -39,7 +38,7 @@ def post(display_controller: DisplayController, imageId: str, body: bytes):
 
     image = Image(imageId, lambda: body, image_type)
     try:
-        display_controller.add_image(image)
+        display_controller.image_store.add(image)
     except ImageAlreadyExistsError:
         return f"Image with same ID already exists: {imageId}", HTTPStatus.CONFLICT
 
@@ -48,7 +47,7 @@ def post(display_controller: DisplayController, imageId: str, body: bytes):
 
 @display_id_handler
 def delete(display_controller: DisplayController, imageId: str):
-    deleted = display_controller.remove_image(imageId)
+    deleted = display_controller.image_store.remove(imageId)
     if not deleted:
         return f"Image not found: {imageId}", HTTPStatus.NOT_FOUND
     return f"Deleted: {imageId}", HTTPStatus.OK

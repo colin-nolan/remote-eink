@@ -32,9 +32,7 @@ def create_dummy_display_controller(*, number_of_images: int = 0) -> DisplayCont
     """
     image_store = InMemoryImageStore(create_image() for _ in range(number_of_images))
     return DisplayController(driver=DummyDisplayDriver(), identifier=str(uuid4()),
-                             image_orientation=random.randint(0, 364), image_store=image_store,
-                             cycle_images=random.choice([True, False]), cycle_randomly=random.choice([True, False]),
-                             cycle_image_after_seconds=random.randint(1, 9999))
+                             image_orientation=random.randint(0, 364), image_store=image_store)
 
 
 def set_content_type_header(image: Image, headers: Optional[Dict] = None):

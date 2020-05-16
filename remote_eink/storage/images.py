@@ -1,7 +1,9 @@
 import hashlib
 import os
 from abc import abstractmethod, ABCMeta
-from typing import Dict, Optional, Iterable, List
+from collections import defaultdict
+from enum import Enum, auto, unique
+from typing import Dict, Optional, Iterable, List, Callable
 
 from remote_eink.models import Image, ImageDataReader
 from remote_eink.storage.manifests import Manifest, TinyDbManifest, ManifestRecord
@@ -206,3 +208,43 @@ class FileSystemImageStore(ManifestBasedImageStore):
         path = os.path.join(self.root_directory, storage_location)
         assert os.path.exists(path)
         os.remove(path)
+
+
+@unique
+class ImageStoreEvent(Enum):
+    """
+    TODO
+    """
+    ADD = auto()
+    REMOVE = auto()
+
+
+class ListenableImageStore(ImageStore):
+    """
+    TODO
+    """
+    def __init__(self, image_store: ImageStore):
+        super().__init__(())
+        self.image_store = image_store
+        self.listeners = defaultdict(set)
+
+    def add_event_listener(self, listener: Callable, listening_to_event: ImageStoreEvent):
+        self.listeners[listening_to_event].add(listener)
+
+    def get(self, image_id: str) -> Optional[Image]:
+        return self.image_store.get(image_id)
+
+    def list(self) -> List[Image]:
+        return self.image_store.list()
+
+    def add(self, image: Image):
+        self._call_listeners(ImageStoreEvent.ADD, image)
+        self.image_store.add(image)
+
+    def remove(self, image_id: str) -> bool:
+        self._call_listeners(ImageStoreEvent.REMOVE, image_id)
+        return self.image_store.remove(image_id)
+
+    def _call_listeners(self, event: ImageStoreEvent, *event_args, **event_kwargs):
+        for listener in self.listeners[event]:
+            listener(*event_args, **event_kwargs)

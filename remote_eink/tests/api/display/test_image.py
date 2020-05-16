@@ -15,7 +15,7 @@ class TestDisplayImage(TestBase):
                 controller = self.create_dummy_display_controller(number_of_images=number_of_images)
                 result = self.client.get(f"/display/{controller.identifier}/image")
                 self.assertEqual(HTTPStatus.OK, result.status_code)
-                self.assertCountEqual(({"id": image.identifier} for image in controller._image_store.list()),
+                self.assertCountEqual(({"id": image.identifier} for image in controller.image_store.list()),
                                       result.json)
 
     def test_list_when_display_does_not_exist(self):
@@ -27,11 +27,11 @@ class TestDisplayImage(TestBase):
             with self.subTest(image_type=image_type.name):
                 controller = self.create_dummy_display_controller()
                 image = create_image(image_type)
-                controller._image_store.add(image)
+                controller.image_store.add(image)
                 result = self.client.get(f"/display/{controller.identifier}/image/{image.identifier}")
                 self.assertEqual(HTTPStatus.OK, result.status_code)
                 self.assertEqual(ImageTypeToMimeType[image_type], result.mimetype)
-                self.assertEqual(controller._image_store.get(image.identifier).data, result.data)
+                self.assertEqual(controller.image_store.get(image.identifier).data, result.data)
 
     def test_get_when_does_not_exist(self):
         controller = self.create_dummy_display_controller()

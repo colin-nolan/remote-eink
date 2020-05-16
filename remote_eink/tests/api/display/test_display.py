@@ -25,12 +25,9 @@ class TestDisplayApi(TestBase):
         result = self.client.get(f"/display/{controller.identifier}")
         self.assertEqual(HTTPStatus.OK, result.status_code)
         self.assertEqual(controller.identifier, result.json["id"])
-        self.assertCountEqual((image.identifier for image in controller._image_store.list()),
+        self.assertCountEqual((image.identifier for image in controller.image_store.list()),
                               (image["id"] for image in result.json["images"]))
         self.assertEqual(controller.image_orientation, result.json["orientation"])
-        self.assertEqual(controller.cycle_images, result.json["cycleImages"])
-        self.assertEqual(controller.cycle_images_randomly, result.json["cycleRandomly"])
-        self.assertEqual(controller.cycle_image_after_seconds, result.json["cycleAfterSeconds"])
 
     def test_get_not_exist(self):
         result = self.client.get(f"/display/does-not-exist")
