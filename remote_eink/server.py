@@ -1,6 +1,6 @@
 import logging
 import time
-from threading import Thread, Lock, Condition, BoundedSemaphore, Semaphore
+from threading import Thread, Semaphore
 from typing import Optional, Callable
 
 import requests
