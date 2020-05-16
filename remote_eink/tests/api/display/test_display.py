@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 import unittest
 
-from remote_eink.tests.api._common import TestBase
+from remote_eink.tests._common import TestBase
 
 
 class TestDisplayApi(TestBase):

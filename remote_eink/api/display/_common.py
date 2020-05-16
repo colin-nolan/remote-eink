@@ -5,7 +5,7 @@ from bidict import bidict
 from marshmallow import Schema, fields
 
 from remote_eink.models import ImageType
-from remote_eink.web_api import get_display_controllers
+from remote_eink.app import get_display_controllers
 
 
 CONTENT_TYPE_HEADER = "Content-Type"

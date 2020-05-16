@@ -10,7 +10,7 @@ from remote_eink.display.controllers import DisplayController
 from remote_eink.display.drivers import DummyDisplayDriver
 from remote_eink.models import ImageType, Image
 from remote_eink.storage.images import InMemoryImageStore
-from remote_eink.web_api import create_app
+from remote_eink.app import create_app
 
 
 def create_image(image_type: Optional[ImageType] = None) -> Image:
