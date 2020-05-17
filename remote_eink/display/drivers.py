@@ -1,7 +1,20 @@
 from abc import ABCMeta, abstractmethod
+from enum import unique, Enum, auto
 from typing import Optional
 
+from remote_eink.events import EventListenerController
 from remote_eink.models import Image
+
+
+@unique
+class DisplayDriverEvent(Enum):
+    """
+    TODO
+    """
+    DISPLAY = auto()
+    CLEAR = auto()
+    SLEEP = auto()
+    WAKE = auto()
 
 
 class DisplayDriver(metaclass=ABCMeta):
@@ -21,6 +34,7 @@ class DisplayDriver(metaclass=ABCMeta):
         TODO
         :param sleeping:
         """
+        self.event_listeners = EventListenerController[DisplayDriverEvent]()
         self._sleeping = sleeping
         self._image = None
         if image:
@@ -36,6 +50,7 @@ class DisplayDriver(metaclass=ABCMeta):
             self.wake()
         self._display(image.data)
         self._image = image
+        self.event_listeners.call_listeners(DisplayDriverEvent.DISPLAY, [image])
 
     def clear(self):
         """
@@ -44,6 +59,7 @@ class DisplayDriver(metaclass=ABCMeta):
         """
         self._clear()
         self._image = None
+        self.event_listeners.call_listeners(DisplayDriverEvent.CLEAR)
 
     def sleep(self):
         """
@@ -53,6 +69,7 @@ class DisplayDriver(metaclass=ABCMeta):
         if not self.sleeping:
             self._sleep()
             self._sleeping = True
+        self.event_listeners.call_listeners(DisplayDriverEvent.SLEEP)
 
     def wake(self):
         """
@@ -62,6 +79,7 @@ class DisplayDriver(metaclass=ABCMeta):
         if self.sleeping:
             self._wake()
             self._sleeping = False
+        self.event_listeners.call_listeners(DisplayDriverEvent.WAKE)
 
     @abstractmethod
     def _display(self, image_data: bytes):

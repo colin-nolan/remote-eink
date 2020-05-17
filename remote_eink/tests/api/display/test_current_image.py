@@ -17,7 +17,7 @@ class TestDisplayCurrentImage(TestBase):
 
     def test_get_when_set(self):
         controller = self.create_dummy_display_controller()
-        controller.image_store.add_listener(EXAMPLE_IMAGE_1)
+        controller.image_store.add(EXAMPLE_IMAGE_1)
         controller.display(EXAMPLE_IMAGE_1.identifier)
         result = self.client.get(f"/display/{controller.identifier}/current-image")
         self.assertEqual(HTTPStatus.OK, result.status_code)
@@ -25,7 +25,7 @@ class TestDisplayCurrentImage(TestBase):
 
     def test_set_to_existing_image(self):
         controller = self.create_dummy_display_controller()
-        controller.image_store.add_listener(EXAMPLE_IMAGE_1)
+        controller.image_store.add(EXAMPLE_IMAGE_1)
         result = self.client.put(f"/display/{controller.identifier}/current-image",
                                  json={"id": EXAMPLE_IMAGE_1.identifier})
         self.assertEqual(HTTPStatus.OK, result.status_code)

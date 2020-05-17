@@ -10,7 +10,7 @@ class _DisplayControllerSchema(Schema):
     identifier = fields.Str(data_key="id")
     current_image = fields.Nested(ImageSchema, only=["identifier"], data_key="currentImage")
     images = fields.Function(lambda display_controller: ImageSchema(only=["identifier"]).dump(
-        display_controller.image_store.get_listeners(), many=True))
+        display_controller.image_store.list(), many=True))
     image_orientation = fields.Integer(data_key="orientation")
     cycle_images = fields.Bool(data_key="cycleImages")
     cycle_images_randomly = fields.Bool(data_key="cycleRandomly")

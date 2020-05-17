@@ -41,14 +41,14 @@ class TestCyclableDisplayController(unittest.TestCase):
         display_controller = CyclableDisplayController(self.driver, image_store)
         self.assertEqual(EXAMPLE_IMAGE_1, display_controller.display_next_image())
         self.assertEqual(EXAMPLE_IMAGE_1, display_controller.current_image)
-        display_controller.image_store.remove_listener(EXAMPLE_IMAGE_1.identifier)
+        display_controller.image_store.remove(EXAMPLE_IMAGE_1.identifier)
         self.assertIsNone(display_controller.current_image)
 
     def test_display_next_image_when_image_removed_and_some_left(self):
         image_store = InMemoryImageStore([EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2])
         display_controller = CyclableDisplayController(self.driver, image_store)
         first_image = display_controller.display_next_image()
-        display_controller.image_store.remove_listener(first_image.identifier)
+        display_controller.image_store.remove(first_image.identifier)
         self.assertIsNotNone(display_controller.current_image)
         self.assertNotEqual(first_image, display_controller.current_image)
 
@@ -56,7 +56,7 @@ class TestCyclableDisplayController(unittest.TestCase):
         image_store = InMemoryImageStore([EXAMPLE_IMAGE_1])
         display_controller = CyclableDisplayController(self.driver, image_store)
         display_controller.display_next_image()
-        display_controller.image_store.add_listener(EXAMPLE_IMAGE_2)
+        display_controller.image_store.add(EXAMPLE_IMAGE_2)
         display_controller.display_next_image()
         self.assertEqual(EXAMPLE_IMAGE_2, display_controller.current_image)
 
