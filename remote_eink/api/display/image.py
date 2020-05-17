@@ -10,7 +10,7 @@ from remote_eink.storage.images import ImageAlreadyExistsError
 
 @display_id_handler
 def search(display_controller: DisplayController):
-    images = display_controller.image_store.list()
+    images = display_controller.image_store.get_listeners()
     return ImageSchema(only=["identifier"]).dump(images, many=True), HTTPStatus.OK
 
 
@@ -38,7 +38,7 @@ def post(display_controller: DisplayController, imageId: str, body: bytes):
 
     image = Image(imageId, lambda: body, image_type)
     try:
-        display_controller.image_store.add(image)
+        display_controller.image_store.add_listener(image)
     except ImageAlreadyExistsError:
         return f"Image with same ID already exists: {imageId}", HTTPStatus.CONFLICT
 
@@ -47,7 +47,7 @@ def post(display_controller: DisplayController, imageId: str, body: bytes):
 
 @display_id_handler
 def delete(display_controller: DisplayController, imageId: str):
-    deleted = display_controller.image_store.remove(imageId)
+    deleted = display_controller.image_store.remove_listener(imageId)
     if not deleted:
         return f"Image not found: {imageId}", HTTPStatus.NOT_FOUND
     return f"Deleted: {imageId}", HTTPStatus.OK

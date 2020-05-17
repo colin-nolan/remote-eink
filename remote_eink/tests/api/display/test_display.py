@@ -25,7 +25,7 @@ class TestDisplayApi(TestBase):
         result = self.client.get(f"/display/{controller.identifier}")
         self.assertEqual(HTTPStatus.OK, result.status_code)
         self.assertEqual(controller.identifier, result.json["id"])
-        self.assertCountEqual((image.identifier for image in controller.image_store.list()),
+        self.assertCountEqual((image.identifier for image in controller.image_store.get_listeners()),
                               (image["id"] for image in result.json["images"]))
         self.assertEqual(controller.image_orientation, result.json["orientation"])
 

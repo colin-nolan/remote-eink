@@ -25,6 +25,7 @@ marshmallow_enum = "^1.5.1"
 tinydb = "^4.1.1"
 python = "^3.6"
 dataclasses = { version = "^0.7", python = ">=3.6, <3.7" }
+apscheduler = "^3.6.3"
 
 # Optional production web-server
 cheroot = { version = "^8.3.0", optional = true }

@@ -5,6 +5,7 @@ from collections import defaultdict
 from enum import Enum, auto, unique
 from typing import Dict, Optional, Iterable, List, Callable
 
+from remote_eink.events import EventListenerController
 from remote_eink.models import Image, ImageDataReader
 from remote_eink.storage.manifests import Manifest, TinyDbManifest, ManifestRecord
 
@@ -228,10 +229,7 @@ class ListenableImageStore(ImageStore):
     def __init__(self, image_store: ImageStore):
         super().__init__(())
         self.image_store = image_store
-        self.listeners = defaultdict(set)
-
-    def add_event_listener(self, listener: Callable, listening_to_event: ImageStoreEvent):
-        self.listeners[listening_to_event].add(listener)
+        self.event_listeners = EventListenerController[ImageStoreEvent]()
 
     def get(self, image_id: str) -> Optional[Image]:
         return self.image_store.get(image_id)
@@ -241,13 +239,9 @@ class ListenableImageStore(ImageStore):
 
     def add(self, image: Image):
         self.image_store.add(image)
-        self._call_listeners(ImageStoreEvent.ADD, image)
+        self.event_listeners.call_listeners(ImageStoreEvent.ADD, [image])
 
     def remove(self, image_id: str) -> bool:
         removed = self.image_store.remove(image_id)
-        self._call_listeners(ImageStoreEvent.REMOVE, image_id)
+        self.event_listeners.call_listeners(ImageStoreEvent.REMOVE, [image_id])
         return removed
-
-    def _call_listeners(self, event: ImageStoreEvent, *event_args, **event_kwargs):
-        for listener in self.listeners[event]:
-            listener(*event_args, **event_kwargs)

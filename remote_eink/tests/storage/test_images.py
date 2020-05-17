@@ -113,7 +113,7 @@ class TestListenableImageStore(_TestImageStore[ListenableImageStore]):
             nonlocal added
             added = image
 
-        self.image_store.add_event_listener(add_listener, ImageStoreEvent.ADD)
+        self.image_store.event_listeners.add_listener(add_listener, ImageStoreEvent.ADD)
         self.image_store.add(EXAMPLE_IMAGE_1)
         self.assertEqual(added, EXAMPLE_IMAGE_1)
 
@@ -124,7 +124,7 @@ class TestListenableImageStore(_TestImageStore[ListenableImageStore]):
             nonlocal removed
             removed = image_id
 
-        self.image_store.add_event_listener(remove_listener, ImageStoreEvent.REMOVE)
+        self.image_store.event_listeners.add_listener(remove_listener, ImageStoreEvent.REMOVE)
         self.image_store.remove(EXAMPLE_IMAGE_1.identifier)
         self.assertEqual(removed, EXAMPLE_IMAGE_1.identifier)
 
