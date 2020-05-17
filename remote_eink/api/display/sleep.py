@@ -9,8 +9,8 @@ def search(display_controller: DisplayController):
 @display_id_handler
 def put(display_controller: DisplayController, body: bytes):
     if body and not display_controller.sleeping:
-        display_controller.sleep()
+        display_controller.driver.sleep()
     elif not body and display_controller.sleeping:
-        display_controller.wake()
+        display_controller.driver.wake()
     assert display_controller.sleeping == body
     return True, HTTPStatus.OK
