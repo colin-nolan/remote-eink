@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional
 from uuid import uuid4
 
 from remote_eink.display.drivers import DisplayDriver
@@ -28,8 +28,8 @@ class DisplayController:
     def current_image(self) -> Image:
         return self._current_image
 
-    def __init__(self, driver: DisplayDriver, identifier: Optional[str] = None,
-                 image_store: Optional[ImageStore] = None, image_orientation: int = 0):
+    def __init__(self, driver: DisplayDriver, image_store: ImageStore, identifier: Optional[str] = None,
+                 image_orientation: int = 0):
         """
         TODO
         :param driver:
@@ -45,7 +45,6 @@ class DisplayController:
 
         self.image_store.add_event_listener(lambda image_id: self._on_remove_image(image_id), ImageStoreEvent.REMOVE)
 
-    # FIXME
     def display(self, image_id: str):
         """
         TODO
@@ -94,32 +93,58 @@ class CyclingDisplayController(DisplayController):
     """
     TODO
     """
-    def __init__(self, driver: DisplayDriver, cycle_images: bool = True, cycle_randomly: bool = False,
-                 cycle_image_after_seconds: int = DEFAULT_SECONDS_BETWEEN_CYCLE):
-        super().__init__(driver)
+    def __init__(self, driver: DisplayDriver, image_store: Optional[ImageStore],
+                 identifier: Optional[str] = None, image_orientation: int = 0,
+                 cycle_images: bool = True, cycle_image_after_seconds: int = DEFAULT_SECONDS_BETWEEN_CYCLE):
+        """
+        TODO
+        :param driver:
+        :param image_store:
+        :param identifier:
+        :param image_orientation:
+        :param cycle_images:
+        :param cycle_image_after_seconds:
+        """
+        super().__init__(driver, image_store, identifier, image_orientation)
         self.cycle_images = cycle_images
-        self.cycle_images_randomly = cycle_randomly
         self.cycle_image_after_seconds = cycle_image_after_seconds
+        self._image_queue = []
+        self.image_store.add_event_listener(lambda image: self._add_to_queue(image.identifier), ImageStoreEvent.ADD)
+        for image in self.image_store.list():
+            self._add_to_queue(image.identifier)
 
-    def next_image(self) -> Image:
+    def display_next_image(self) -> Optional[Image]:
         """
         TODO
         :return:
         """
-        # FIXME
+        if len(self._image_queue) == 0:
+            self.clear()
+            return None
 
-    def _on_remove_image(self, image_id: str):
+        image_id = self._image_queue.pop(0)
+        image = self.image_store.get(image_id)
+        if image is None:
+            return self.display_next_image()
+        self._image_queue.append(image_id)
+
+        if len(self._image_queue) == 1:
+            if self.current_image == image_id:
+                return self.current_image
+        elif self.current_image and image_id == self.current_image.identifier:
+            return self.display_next_image()
+
+        self.display(image_id)
+        return image
+
+    def _add_to_queue(self, image_id: str):
         """
         TODO
         :param image_id:
         :return:
         """
+        self._image_queue.append(image_id)
+
+    def _on_remove_image(self, image_id: str):
         if self.current_image and self.current_image.identifier == image_id:
-            self.next_image()
-
-
-
-
-
-
-
+            self.display_next_image()

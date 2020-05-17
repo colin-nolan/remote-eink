@@ -77,11 +77,13 @@ class InMemoryImageStore(ImageStore):
         return sorted(list(self._images.values()), key=lambda image: image.identifier)
 
     def add(self, image: Image):
+        assert isinstance(image, Image)
         if self.get(image.identifier) is not None:
             raise ImageAlreadyExistsError(image.identifier)
         self._images[image.identifier] = image
 
     def remove(self, image_id: str) -> bool:
+        assert isinstance(image_id, str)
         try:
             del self._images[image_id]
             return True
@@ -238,12 +240,13 @@ class ListenableImageStore(ImageStore):
         return self.image_store.list()
 
     def add(self, image: Image):
-        self._call_listeners(ImageStoreEvent.ADD, image)
         self.image_store.add(image)
+        self._call_listeners(ImageStoreEvent.ADD, image)
 
     def remove(self, image_id: str) -> bool:
+        removed = self.image_store.remove(image_id)
         self._call_listeners(ImageStoreEvent.REMOVE, image_id)
-        return self.image_store.remove(image_id)
+        return removed
 
     def _call_listeners(self, event: ImageStoreEvent, *event_args, **event_kwargs):
         for listener in self.listeners[event]:
