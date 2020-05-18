@@ -8,7 +8,7 @@ from remote_eink.display.drivers import DisplayDriver, ListenableDisplayDriver, 
 from remote_eink.models import Image
 from remote_eink.storage.images import ImageStore, ListenableImageStore, ImageStoreEvent
 
-DEFAULT_SECONDS_BETWEEN_CYCLE = 60 * 60
+DEFAULT_SECONDS_BETWEEN_CYCLE = float(60 * 60)
 
 
 class ImageNotFoundError(ValueError):
@@ -23,10 +23,6 @@ class DisplayController:
     """
     TODO
     """
-    @property
-    def sleeping(self) -> bool:
-        return self.driver.sleeping
-
     @property
     def current_image(self) -> Image:
         return self._current_image
@@ -59,9 +55,10 @@ class DisplayController:
         image = self.image_store.get(image_id)
         if image is None:
             raise ImageNotFoundError(image_id)
-        self.driver.display(image)
-        # Valid assertion only if event handlers are ran in same thread
-        assert self._current_image == image
+        if image != self.current_image:
+            self.driver.display(image)
+            # Valid assertion only if event handlers are ran in same thread
+            assert self._current_image == image
 
     def _on_remove_image(self, image_id: str):
         """
@@ -73,9 +70,11 @@ class DisplayController:
             self.driver.clear()
 
     def _on_clear(self):
+        assert self.driver.image is None
         self._current_image = None
 
     def _on_display(self, image: Image):
+        assert self.driver.image == image
         if self.image_store.get(image.identifier) is None:
             self.image_store.add(image)
         self._current_image = image
@@ -85,8 +84,8 @@ class CyclableDisplayController(DisplayController):
     """
     TODO
     """
-    def __init__(self, driver: DisplayDriver, image_store: Optional[ImageStore],
-                 identifier: Optional[str] = None, image_orientation: int = 0):
+    def __init__(self, driver: DisplayDriver, image_store: ImageStore, identifier: Optional[str] = None,
+                 image_orientation: int = 0):
         """
         TODO
         :param driver:
@@ -138,13 +137,13 @@ class CyclableDisplayController(DisplayController):
             self.display_next_image()
 
 
-class AutoCycleDisplayController(CyclableDisplayController):
+class AutoCyclingDisplayController(CyclableDisplayController):
     """
     TODO
     """
-    def __init__(self, driver: DisplayDriver, image_store: Optional[ImageStore],
+    def __init__(self, driver: DisplayDriver, image_store: ImageStore,
                  identifier: Optional[str] = None, image_orientation: int = 0,
-                 cycle_image_after_seconds: int = DEFAULT_SECONDS_BETWEEN_CYCLE):
+                 cycle_image_after_seconds: float = DEFAULT_SECONDS_BETWEEN_CYCLE):
         """
         TODO
         :param driver:
@@ -163,5 +162,5 @@ class AutoCycleDisplayController(CyclableDisplayController):
             self._scheduler.add_job(self.display_next_image, "interval", seconds=self.cycle_image_after_seconds)
 
     def stop(self):
-        self._scheduler.shutdown()
-
+        self._scheduler.remove_all_jobs()
+        self._scheduler.pause()

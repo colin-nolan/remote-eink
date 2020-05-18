@@ -1,9 +1,8 @@
 import hashlib
 import os
 from abc import abstractmethod, ABCMeta
-from collections import defaultdict
 from enum import Enum, auto, unique
-from typing import Dict, Optional, Iterable, List, Callable
+from typing import Dict, Optional, Iterable, List
 
 from remote_eink.events import EventListenerController
 from remote_eink.models import Image, ImageDataReader
