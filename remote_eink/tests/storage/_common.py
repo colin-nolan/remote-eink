@@ -1,4 +1,7 @@
-from remote_eink.models import Image, ImageType
+from pathlib import Path
 
-EXAMPLE_IMAGE_1 = Image("example-1", lambda: b"abc", ImageType.PNG)
-EXAMPLE_IMAGE_2 = Image("example-2", lambda: b"def", ImageType.JPG)
+from remote_eink.models import Image, ImageType
+from remote_eink.tests._resources import BLACK_IMAGE_LOCATION, WHITE_IMAGE_LOCATION
+
+WHITE_IMAGE = Image("example-1", lambda: Path(WHITE_IMAGE_LOCATION).read_bytes(), ImageType.JPG)
+BLACK_IMAGE = Image("example-2", lambda: Path(BLACK_IMAGE_LOCATION).read_bytes(), ImageType.PNG)

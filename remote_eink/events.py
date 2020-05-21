@@ -46,5 +46,6 @@ class EventListenerController(Generic[EventType]):
                 listener_return = listener(*event_args, **event_kwargs)
                 listener_return_map[listener] = partial(lambda x: x, listener_return)
             except Exception as e:
+                # TODO: log error
                 listener_return_map[listener] = partial(_raiser, e)
         return listener_return_map

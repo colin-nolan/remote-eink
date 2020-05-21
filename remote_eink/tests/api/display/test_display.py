@@ -27,7 +27,6 @@ class TestDisplayApi(TestBase):
         self.assertEqual(controller.identifier, result.json["id"])
         self.assertCountEqual((image.identifier for image in controller.image_store.list()),
                               (image["id"] for image in result.json["images"]))
-        self.assertEqual(controller.image_orientation, result.json["orientation"])
 
     def test_get_not_exist(self):
         result = self.client.get(f"/display/does-not-exist")

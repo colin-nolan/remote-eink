@@ -6,10 +6,10 @@ from abc import abstractmethod, ABCMeta
 from typing import TypeVar, Generic
 
 from remote_eink.storage.manifests import Manifest, InMemoryManifest, ManifestRecord, TinyDbManifest
-from remote_eink.tests.storage._common import EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2
+from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE
 
-_EXAMPLE_MANIFEST_RECORD_1 = ManifestRecord(EXAMPLE_IMAGE_1.identifier, EXAMPLE_IMAGE_1.type, "test/1.png")
-_EXAMPLE_MANIFEST_RECORD_2 = ManifestRecord(EXAMPLE_IMAGE_2.identifier, EXAMPLE_IMAGE_2.type, "2.png")
+_EXAMPLE_MANIFEST_RECORD_1 = ManifestRecord(WHITE_IMAGE.identifier, WHITE_IMAGE.type, "test/1.png")
+_EXAMPLE_MANIFEST_RECORD_2 = ManifestRecord(BLACK_IMAGE.identifier, BLACK_IMAGE.type, "2.png")
 
 _ManifestType = TypeVar("_ManifestType", bound=Manifest)
 

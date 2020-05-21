@@ -1,10 +1,11 @@
-from typing import Optional
+from typing import Optional, Iterable
 from uuid import uuid4
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.base import STATE_RUNNING
 
 from remote_eink.display.drivers import DisplayDriver, ListenableDisplayDriver, DisplayDriverEvent
+from remote_eink.transformers.common import ImageTransformer
 from remote_eink.models import Image
 from remote_eink.storage.images import ImageStore, ListenableImageStore, ImageStoreEvent
 
@@ -21,26 +22,26 @@ class ImageNotFoundError(ValueError):
 
 class DisplayController:
     """
-    TODO
+    Display controller.
     """
     @property
     def current_image(self) -> Image:
         return self._current_image
 
     def __init__(self, driver: DisplayDriver, image_store: ImageStore, identifier: Optional[str] = None,
-                 image_orientation: int = 0):
+                 image_transformers: Iterable[ImageTransformer] = ()):
         """
-        TODO
-        :param driver:
-        :param identifier:
-        :param image_store:
-        :param image_orientation:
+        Constructor.
+        :param driver: display driver
+        :param image_store: image store
+        :param identifier: driver identifier
+        :param image_transformers: image display transformers
         """
         self.identifier = identifier if identifier is not None else str(uuid4())
         self.driver = ListenableDisplayDriver(driver)
         self._current_image = None
         self.image_store = ListenableImageStore(image_store)
-        self.image_orientation = image_orientation
+        self.image_transformers = image_transformers
 
         self.image_store.event_listeners.add_listener(self._on_remove_image, ImageStoreEvent.REMOVE)
         self.driver.event_listeners.add_listener(self._on_clear, DisplayDriverEvent.CLEAR)

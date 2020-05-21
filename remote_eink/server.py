@@ -1,16 +1,21 @@
 import logging
 import time
 from threading import Thread, Semaphore
-from typing import Optional, Callable
+from typing import Optional
 
-import requests
-from cheroot import wsgi
-from connexion import FlaskApp
+_logger = logging.getLogger(__name__)
+
+try:
+    import requests
+    from cheroot import wsgi
+    from connexion import FlaskApp
+except ImportError:
+    _logger.error("\"webserver\" extra not installed")
+    raise
+
 
 _DEFAULT_START_TIMEOUT = 30.0
 _DEFAULT_STOP_TIMEOUT = 60.0
-
-_logger = logging.getLogger(__name__)
 
 
 class Server:
@@ -75,14 +80,13 @@ def start(app: FlaskApp, *, interface: str = "0.0.0.0", port: int = 8080) -> Ser
     thread.start()
     server.thread = thread
 
-    try:
-        server.server_set.acquire(timeout=_DEFAULT_START_TIMEOUT)
-        assert server.server is not None
-        _wait_until_responds(interface, port)
-    except TimeoutError:
+    acquired = server.server_set.acquire(timeout=_DEFAULT_START_TIMEOUT)
+    if not acquired:
         _logger.error("Timeout waiting for server - stopping server")
         server.stop()
         raise
+    assert server.server is not None
+    _wait_until_responds(interface, port)
 
     return server
 

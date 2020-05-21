@@ -7,7 +7,7 @@ from typing import TypeVar, Generic
 from remote_eink.models import Image
 from remote_eink.storage.images import ImageStore, InMemoryImageStore, ImageAlreadyExistsError, FileSystemImageStore, \
     ListenableImageStore, ImageStoreEvent
-from remote_eink.tests.storage._common import EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2
+from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE
 
 _ImageStoreType = TypeVar("_ImageStoreType", bound=ImageStore)
 
@@ -33,33 +33,33 @@ class _TestImageStore(unittest.TestCase, Generic[_ImageStoreType], metaclass=ABC
         self.assertIsNone(self.image_store.get("does-not-exist"))
 
     def test_list(self):
-        self.image_store.add(EXAMPLE_IMAGE_1)
-        self.image_store.add(EXAMPLE_IMAGE_2)
-        self.assertCountEqual((EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2), self.image_store.list())
+        self.image_store.add(WHITE_IMAGE)
+        self.image_store.add(BLACK_IMAGE)
+        self.assertCountEqual((WHITE_IMAGE, BLACK_IMAGE), self.image_store.list())
 
     def test_set(self):
-        self.image_store.add(EXAMPLE_IMAGE_1)
-        self.image_store.add(EXAMPLE_IMAGE_2)
-        self.assertEqual(EXAMPLE_IMAGE_1, self.image_store.get(EXAMPLE_IMAGE_1.identifier))
-        self.assertEqual(EXAMPLE_IMAGE_2, self.image_store.get(EXAMPLE_IMAGE_2.identifier))
+        self.image_store.add(WHITE_IMAGE)
+        self.image_store.add(BLACK_IMAGE)
+        self.assertEqual(WHITE_IMAGE, self.image_store.get(WHITE_IMAGE.identifier))
+        self.assertEqual(BLACK_IMAGE, self.image_store.get(BLACK_IMAGE.identifier))
 
     def test_set_with_same_identifier(self):
-        self.image_store.add(EXAMPLE_IMAGE_1)
-        self.assertRaises(ImageAlreadyExistsError, self.image_store.add, EXAMPLE_IMAGE_1)
+        self.image_store.add(WHITE_IMAGE)
+        self.assertRaises(ImageAlreadyExistsError, self.image_store.add, WHITE_IMAGE)
 
     def test_set_with_same_image_data(self):
-        self.image_store.add(EXAMPLE_IMAGE_1)
-        image_1_copy = Image(EXAMPLE_IMAGE_2.identifier, lambda: EXAMPLE_IMAGE_1.data, EXAMPLE_IMAGE_1.type)
+        self.image_store.add(WHITE_IMAGE)
+        image_1_copy = Image(BLACK_IMAGE.identifier, lambda: WHITE_IMAGE.data, WHITE_IMAGE.type)
         self.image_store.add(image_1_copy)
-        self.assertEqual(EXAMPLE_IMAGE_1, self.image_store.get(EXAMPLE_IMAGE_1.identifier))
+        self.assertEqual(WHITE_IMAGE, self.image_store.get(WHITE_IMAGE.identifier))
         self.assertEqual(image_1_copy, self.image_store.get(image_1_copy.identifier))
 
     def test_remove(self):
-        self.image_store.add(EXAMPLE_IMAGE_1)
-        self.image_store.add(EXAMPLE_IMAGE_2)
-        self.assertTrue(self.image_store.remove(EXAMPLE_IMAGE_1.identifier))
-        self.assertCountEqual([EXAMPLE_IMAGE_2], self.image_store.list())
-        self.assertTrue(self.image_store.remove(EXAMPLE_IMAGE_2.identifier))
+        self.image_store.add(WHITE_IMAGE)
+        self.image_store.add(BLACK_IMAGE)
+        self.assertTrue(self.image_store.remove(WHITE_IMAGE.identifier))
+        self.assertCountEqual([BLACK_IMAGE], self.image_store.list())
+        self.assertTrue(self.image_store.remove(BLACK_IMAGE.identifier))
         self.assertCountEqual([], self.image_store.list())
 
     def test_remove_non_existent(self):
@@ -71,8 +71,8 @@ class TestInMemoryImageStore(_TestImageStore[InMemoryImageStore]):
     Tests `InMemoryImageStore`.
     """
     def test_init_with_images(self):
-        image_store = self.create_image_store([EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2])
-        self.assertCountEqual((EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2), image_store.list())
+        image_store = self.create_image_store([WHITE_IMAGE, BLACK_IMAGE])
+        self.assertCountEqual((WHITE_IMAGE, BLACK_IMAGE), image_store.list())
 
     def create_image_store(self, *args, **kwargs) -> InMemoryImageStore:
         return InMemoryImageStore(*args, **kwargs)
@@ -83,8 +83,8 @@ class TestFileSystemImageStore(_TestImageStore[InMemoryImageStore]):
     Tests `FileSystemImageStore`.
     """
     def test_init_with_images(self):
-        image_store = self.create_image_store([EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2])
-        self.assertCountEqual((EXAMPLE_IMAGE_1, EXAMPLE_IMAGE_2), image_store.list())
+        image_store = self.create_image_store([WHITE_IMAGE, BLACK_IMAGE])
+        self.assertCountEqual((WHITE_IMAGE, BLACK_IMAGE), image_store.list())
 
     def setUp(self):
         self._temp_directories = []
@@ -114,8 +114,8 @@ class TestListenableImageStore(_TestImageStore[ListenableImageStore]):
             added = image
 
         self.image_store.event_listeners.add_listener(add_listener, ImageStoreEvent.ADD)
-        self.image_store.add(EXAMPLE_IMAGE_1)
-        self.assertEqual(added, EXAMPLE_IMAGE_1)
+        self.image_store.add(WHITE_IMAGE)
+        self.assertEqual(added, WHITE_IMAGE)
 
     def test_remove_listener(self):
         removed = None
@@ -125,8 +125,8 @@ class TestListenableImageStore(_TestImageStore[ListenableImageStore]):
             removed = image_id
 
         self.image_store.event_listeners.add_listener(remove_listener, ImageStoreEvent.REMOVE)
-        self.image_store.remove(EXAMPLE_IMAGE_1.identifier)
-        self.assertEqual(removed, EXAMPLE_IMAGE_1.identifier)
+        self.image_store.remove(WHITE_IMAGE.identifier)
+        self.assertEqual(removed, WHITE_IMAGE.identifier)
 
     def create_image_store(self, *args, **kwargs) -> ListenableImageStore:
         inner_image_store = InMemoryImageStore()
