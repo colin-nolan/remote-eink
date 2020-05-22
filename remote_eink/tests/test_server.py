@@ -9,14 +9,14 @@ except ImportError:
     WEBSERVER_INSTALLED = True
 
 from remote_eink.app import create_app
-from remote_eink.tests._common import TestBase, create_dummy_display_controller
+from remote_eink.tests._common import AppTestBase, create_dummy_display_controller
 
 # Note: `get-port` is hard-coded to use this interface
 _TEST_INTERFACE = "0.0.0.0"
 
 
 @unittest.skipIf(WEBSERVER_INSTALLED, "Optional `webserver` not installed")
-class TestRun(TestBase):
+class TestRun(AppTestBase):
     """
     Test for `run`.
     """

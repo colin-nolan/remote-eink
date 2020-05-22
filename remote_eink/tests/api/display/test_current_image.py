@@ -2,11 +2,11 @@ from http import HTTPStatus
 
 import unittest
 
-from remote_eink.tests._common import TestBase
+from remote_eink.tests._common import AppTestBase
 from remote_eink.tests.storage._common import WHITE_IMAGE
 
 
-class TestDisplayCurrentImage(TestBase):
+class TestDisplayCurrentImage(AppTestBase):
     """
     Tests for the `/display/{displayId}/current-image` endpoint.
     """

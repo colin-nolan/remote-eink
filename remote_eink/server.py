@@ -56,7 +56,6 @@ def run(app: FlaskApp, server: Server = None, *, interface: str = "0.0.0.0", por
     :param server: server model to update with information about the underlying WSGI server
     :param interface: interface to bind on
     :param port: port to use
-    :return:
     """
     wsgi_server = wsgi.Server((interface, port), app)
 

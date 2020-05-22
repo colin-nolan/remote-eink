@@ -1,4 +1,4 @@
-from typing import Optional, Iterable
+from typing import Optional, Sequence
 from uuid import uuid4
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -29,7 +29,7 @@ class DisplayController:
         return self._current_image
 
     def __init__(self, driver: DisplayDriver, image_store: ImageStore, identifier: Optional[str] = None,
-                 image_transformers: Iterable[ImageTransformer] = ()):
+                 image_transformers: Sequence[ImageTransformer] = ()):
         """
         Constructor.
         :param driver: display driver
@@ -42,6 +42,7 @@ class DisplayController:
         self._current_image = None
         self.image_store = ListenableImageStore(image_store)
         self.image_transformers = image_transformers
+        self._display_requested = False
 
         self.image_store.event_listeners.add_listener(self._on_remove_image, ImageStoreEvent.REMOVE)
         self.driver.event_listeners.add_listener(self._on_clear, DisplayDriverEvent.CLEAR)
@@ -57,9 +58,25 @@ class DisplayController:
         if image is None:
             raise ImageNotFoundError(image_id)
         if image != self.current_image:
-            self.driver.display(image)
-            # Valid assertion only if event handlers are ran in same thread
-            assert self._current_image == image
+            transformed_image = self.apply_image_transforms(image)
+            self._display_requested = True
+            try:
+                self.driver.display(transformed_image)
+            finally:
+                self._display_requested = False
+            self._current_image = image
+
+    def apply_image_transforms(self, image: Image) -> Image:
+        """
+        TODO
+        :param image:
+        :return:
+        """
+        # TODO: sort transformers some way as order matters?
+        for transformer in self.image_transformers:
+            if transformer.active:
+                image = transformer.transform(image)
+        return image
 
     def _on_remove_image(self, image_id: str):
         """
@@ -76,9 +93,11 @@ class DisplayController:
 
     def _on_display(self, image: Image):
         assert self.driver.image == image
-        if self.image_store.get(image.identifier) is None:
-            self.image_store.add(image)
-        self._current_image = image
+        if not self._display_requested:
+            # Driver has been used directly to update - cope with it
+            if self.image_store.get(image.identifier) is None:
+                self.image_store.add(image)
+            self._current_image = image
 
 
 class CyclableDisplayController(DisplayController):
@@ -86,15 +105,15 @@ class CyclableDisplayController(DisplayController):
     TODO
     """
     def __init__(self, driver: DisplayDriver, image_store: ImageStore, identifier: Optional[str] = None,
-                 image_orientation: int = 0):
+                 image_transformers: Sequence[ImageTransformer] = ()):
         """
         TODO
         :param driver:
         :param image_store:
         :param identifier:
-        :param image_orientation:
+        :param image_transformers:
         """
-        super().__init__(driver, image_store, identifier, image_orientation)
+        super().__init__(driver, image_store, identifier, image_transformers)
         self._image_queue = []
         self.image_store.event_listeners.add_listener(
             lambda image: self._add_to_queue(image.identifier), ImageStoreEvent.ADD)
@@ -143,17 +162,17 @@ class AutoCyclingDisplayController(CyclableDisplayController):
     TODO
     """
     def __init__(self, driver: DisplayDriver, image_store: ImageStore,
-                 identifier: Optional[str] = None, image_orientation: int = 0,
+                 identifier: Optional[str] = None, image_transformers: Sequence[ImageTransformer] = (),
                  cycle_image_after_seconds: float = DEFAULT_SECONDS_BETWEEN_CYCLE):
         """
         TODO
         :param driver:
         :param image_store:
         :param identifier:
-        :param image_orientation:
+        :param image_transformers:
         :param cycle_image_after_seconds:
         """
-        super().__init__(driver, image_store, identifier, image_orientation)
+        super().__init__(driver, image_store, identifier, image_transformers)
         self.cycle_image_after_seconds = cycle_image_after_seconds
         self._scheduler = BackgroundScheduler()
 

@@ -1,8 +1,7 @@
 from collections import defaultdict
-from copy import copy
 from functools import partial
 from types import MappingProxyType
-from typing import Any, TypeVar, Generic, Callable, Set, Sequence, Dict, List
+from typing import Any, TypeVar, Generic, Callable, Set, Sequence, Dict
 
 EventType = TypeVar("EventType")
 Listener = Callable[..., Any]

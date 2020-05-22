@@ -1,5 +1,6 @@
 import unittest
 from abc import ABCMeta, abstractmethod
+from functools import partial
 from threading import Semaphore
 from time import sleep
 from typing import TypeVar, Generic, Optional
@@ -9,6 +10,7 @@ from remote_eink.display.controllers import CyclableDisplayController, AutoCycli
 from remote_eink.display.drivers import DummyDisplayDriver, DisplayDriverEvent
 from remote_eink.models import Image
 from remote_eink.storage.images import InMemoryImageStore, ImageStore
+from remote_eink.tests._common import DummyImageTransformer
 from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE
 
 _DisplayControllerType = TypeVar("_DisplayControllerType", bound=DisplayController)
@@ -56,6 +58,56 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
         self.display_controller.driver.event_listeners.add_listener(display_listener, DisplayDriverEvent.DISPLAY)
         self.display_controller.display(WHITE_IMAGE.identifier)
         self.assertFalse(display_listener.called)
+
+    def test_display_applies_transforms(self):
+        display_semaphore = Semaphore(0)
+        displayed_image = None
+
+        def on_display(image: Image):
+            nonlocal displayed_image, display_semaphore
+            displayed_image = image
+            display_semaphore.release()
+
+        transformer = DummyImageTransformer(lambda _: BLACK_IMAGE)
+        self.display_controller.driver.event_listeners.add_listener(on_display, DisplayDriverEvent.DISPLAY)
+        self.display_controller.image_transformers = [transformer]
+
+        self.display_controller.image_store.add(WHITE_IMAGE)
+        self.display_controller.display(WHITE_IMAGE.identifier)
+        self.assertTrue(display_semaphore.acquire(timeout=15))
+
+        self.assertEqual(WHITE_IMAGE, self.display_controller.current_image)
+        self.assertEqual(BLACK_IMAGE, displayed_image)
+
+    def test_image_transforms_when_none_defined(self):
+        self.assertEqual(WHITE_IMAGE, self.display_controller.apply_image_transforms(WHITE_IMAGE))
+
+    def test_image_transform(self):
+        transformer = DummyImageTransformer(lambda _: BLACK_IMAGE)
+        self.display_controller.image_transformers = [transformer]
+        self.assertEqual(BLACK_IMAGE, self.display_controller.apply_image_transforms(WHITE_IMAGE))
+
+    def test_image_transform_when_not_active(self):
+        transformer = DummyImageTransformer(lambda _: BLACK_IMAGE, active=False)
+        self.display_controller.image_transformers = [transformer]
+        self.assertEqual(WHITE_IMAGE, self.display_controller.apply_image_transforms(WHITE_IMAGE))
+
+    def test_image_transform_multi_transformers(self):
+        call_order = []
+
+        def transform(transformer_id: int, image: Image) -> Image:
+            call_order.append(transformer_id)
+            return image
+
+        transformers = []
+        for i in range(16):
+            transformer = DummyImageTransformer(partial(transform, i), active=i % 4 != 0)
+            transformers.append(transformer)
+
+        self.display_controller.image_transformers = transformers
+        self.display_controller.apply_image_transforms(WHITE_IMAGE)
+        self.assertEqual([i for i, transformer in enumerate(transformers) if transformer.active], call_order)
+
 
 
 class TestCyclableDisplayController(_TestDisplayController[CyclableDisplayController]):

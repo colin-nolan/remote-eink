@@ -22,7 +22,7 @@ class RotateImageTransformer(ImageTransformer):
         return "rotate"
 
     @staticmethod
-    def _transform(image: Image, angle: float, expand: bool, fill_color) -> bytes:
+    def _rotate(image: Image, angle: float, expand: bool, fill_color) -> bytes:
         """
         TODO
         :param image:
@@ -53,7 +53,7 @@ class RotateImageTransformer(ImageTransformer):
         self.expand = expand
         self.fill_color = fill_color
 
-    def transform(self, image: Image) -> Image:
+    def _transform(self, image: Image) -> Image:
         return Image(image.identifier,
-                     lambda: RotateImageTransformer._transform(image, self.angle, self.expand, self.fill_color),
+                     lambda: RotateImageTransformer._rotate(image, self.angle, self.expand, self.fill_color),
                      image.type, cache_data=True)

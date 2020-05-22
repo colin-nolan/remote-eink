@@ -2,10 +2,10 @@ from http import HTTPStatus
 
 import unittest
 
-from remote_eink.tests._common import TestBase
+from remote_eink.tests._common import AppTestBase
 
 
-class TestDisplayApi(TestBase):
+class TestDisplayApi(AppTestBase):
     """
     Tests for the `/display` endpoint.
     """

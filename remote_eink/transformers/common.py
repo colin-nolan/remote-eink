@@ -20,6 +20,7 @@ class ImageTransformerEvent(Enum):
     TODO
     """
     ACTIVATE_STATE = auto()
+    TRANSFORM = auto()
 
 
 class ImageTransformer(metaclass=ABCMeta):
@@ -49,12 +50,23 @@ class ImageTransformer(metaclass=ABCMeta):
         :param active:
         """
         self._active = active
-        self.event_listeners = EventListenerController()
+        self.event_listeners = EventListenerController[ImageTransformerEvent]()
 
-    @abstractmethod
     def transform(self, image: Image) -> Image:
         """
         TODO
         :param image:
         :return:
         """
+        transformed_image = self._transform(image)
+        self.event_listeners.call_listeners(ImageTransformerEvent.TRANSFORM, [image, transformed_image])
+        return transformed_image
+
+    @abstractmethod
+    def _transform(self, image: Image) -> Image:
+        """
+        TODO
+        :param image:
+        :return:
+        """
+

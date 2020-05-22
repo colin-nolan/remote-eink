@@ -1,6 +1,6 @@
 import random
 from abc import ABCMeta
-from typing import Optional, Dict
+from typing import Optional, Dict, Callable
 from uuid import uuid4
 
 from flask_testing import TestCase
@@ -11,6 +11,7 @@ from remote_eink.display.drivers import DummyDisplayDriver
 from remote_eink.models import ImageType, Image
 from remote_eink.storage.images import InMemoryImageStore
 from remote_eink.app import create_app
+from remote_eink.transformers.common import ImageTransformer
 
 
 def create_image(image_type: Optional[ImageType] = None) -> Image:
@@ -47,7 +48,7 @@ def set_content_type_header(image: Image, headers: Optional[Dict] = None):
     return headers
 
 
-class TestBase(TestCase, metaclass=ABCMeta):
+class AppTestBase(TestCase, metaclass=ABCMeta):
     """
     Base class for tests against the Flask app.
     """
@@ -61,3 +62,21 @@ class TestBase(TestCase, metaclass=ABCMeta):
         controller = create_dummy_display_controller(**kwargs)
         self.display_controllers.append(controller)
         return controller
+
+
+class DummyImageTransformer(ImageTransformer):
+    """
+    Dummy `ImageTransformer` implementation
+    """
+    @staticmethod
+    def get_name() -> str:
+        return "dummy"
+
+    def __init__(self, tranformer: Optional[Callable[[Image], Image]] = None, active: bool = True):
+        super().__init__(active)
+        self.transformer = tranformer
+
+    def _transform(self, image: Image) -> Image:
+        if self.transformer is None:
+            return image
+        return self.transformer(image)

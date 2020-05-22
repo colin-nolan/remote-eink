@@ -1,9 +1,9 @@
 from http import HTTPStatus
 
-from remote_eink.tests._common import TestBase
+from remote_eink.tests._common import AppTestBase
 
 
-class TestDisplaySleep(TestBase):
+class TestDisplaySleep(AppTestBase):
     """
     Tests for the `/display/{displayId}/sleep` endpoint.
     """

@@ -10,7 +10,6 @@ from remote_eink.models import Image
 from remote_eink.tests.storage._common import WHITE_IMAGE
 from remote_eink.transformers.common import ImageTransformer
 
-
 try:
     from remote_eink.transformers.rotate import RotateImageTransformer
     from PIL import Image as PilImage
