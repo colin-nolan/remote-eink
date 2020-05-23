@@ -70,7 +70,7 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
 
         transformer = DummyImageTransformer(lambda _: BLACK_IMAGE)
         self.display_controller.driver.event_listeners.add_listener(on_display, DisplayDriverEvent.DISPLAY)
-        self.display_controller.image_transformers = [transformer]
+        self.display_controller.image_transformers.add(transformer)
 
         self.display_controller.image_store.add(WHITE_IMAGE)
         self.display_controller.display(WHITE_IMAGE.identifier)
@@ -84,12 +84,12 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
 
     def test_image_transform(self):
         transformer = DummyImageTransformer(lambda _: BLACK_IMAGE)
-        self.display_controller.image_transformers = [transformer]
+        self.display_controller.image_transformers.add(transformer)
         self.assertEqual(BLACK_IMAGE, self.display_controller.apply_image_transforms(WHITE_IMAGE))
 
     def test_image_transform_when_not_active(self):
         transformer = DummyImageTransformer(lambda _: BLACK_IMAGE, active=False)
-        self.display_controller.image_transformers = [transformer]
+        self.display_controller.image_transformers.add(transformer)
         self.assertEqual(WHITE_IMAGE, self.display_controller.apply_image_transforms(WHITE_IMAGE))
 
     def test_image_transform_multi_transformers(self):
@@ -103,11 +103,9 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
         for i in range(16):
             transformer = DummyImageTransformer(partial(transform, i), active=i % 4 != 0)
             transformers.append(transformer)
-
-        self.display_controller.image_transformers = transformers
+            self.display_controller.image_transformers.add(transformer)
         self.display_controller.apply_image_transforms(WHITE_IMAGE)
         self.assertEqual([i for i, transformer in enumerate(transformers) if transformer.active], call_order)
-
 
 
 class TestCyclableDisplayController(_TestDisplayController[CyclableDisplayController]):

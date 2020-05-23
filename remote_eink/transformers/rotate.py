@@ -1,8 +1,12 @@
+from enum import Enum, unique
+
+from typing import Dict, Any
+
 import logging
 from io import BytesIO
 
 from remote_eink.models import Image
-from remote_eink.transformers.common import ImageTransformer, ImageTypeToPillowFormat
+from remote_eink.transformers.transformers import ImageTransformer, ImageTypeToPillowFormat
 
 _logger = logging.getLogger(__name__)
 
@@ -13,14 +17,20 @@ except ImportError:
     raise
 
 
+@unique
+class ConfigurationParameter(Enum):
+    """
+    TODO
+    """
+    ANGLE = "angle"
+    EXPAND = "expand"
+    FILL_COLOR = "fill_color"
+
+
 class RotateImageTransformer(ImageTransformer):
     """
     TODO
     """
-    @staticmethod
-    def get_name() -> str:
-        return "rotate"
-
     @staticmethod
     def _rotate(image: Image, angle: float, expand: bool, fill_color) -> bytes:
         """
@@ -40,18 +50,44 @@ class RotateImageTransformer(ImageTransformer):
         image_data.save(byte_io, ImageTypeToPillowFormat[image.type])
         return byte_io.getvalue()
 
-    def __init__(self, active: bool = True, angle: float = 0.0, expand: bool = True, fill_color: str = "white"):
+    @property
+    def configuration(self) -> Dict[str, Any]:
+        return {
+            ConfigurationParameter.ANGLE.value: self.angle,
+            ConfigurationParameter.EXPAND.value: self.expand,
+            ConfigurationParameter.FILL_COLOR.value: self.fill_color
+        }
+
+    @property
+    def description(self) -> str:
         """
         TODO
+        :return: TODO
+        """
+        return f"Rotates an image (currently by {self.angle} degrees)"
+
+    def __init__(self, identifier: str = "rotate", active: bool = True, angle: float = 0.0, expand: bool = True,
+                 fill_color: str = "white"):
+        """
+        TODO
+        :param identifier:
         :param active:
         :param angle:
         :param expand:
         :param fill_color:
         """
-        super().__init__(active)
+        super().__init__(identifier, active)
         self.angle = angle
         self.expand = expand
         self.fill_color = fill_color
+
+    def load_configuration(self, configuration: Dict[str, Any]):
+        if ConfigurationParameter.ANGLE.value in configuration:
+            self.angle = configuration[ConfigurationParameter.ANGLE.value]
+        if ConfigurationParameter.EXPAND.value in configuration:
+            self.expand = configuration[ConfigurationParameter.EXPAND.value]
+        if ConfigurationParameter.FILL_COLOR.value in configuration:
+            self.fill_color = configuration[ConfigurationParameter.FILL_COLOR.value]
 
     def _transform(self, image: Image) -> Image:
         return Image(image.identifier,

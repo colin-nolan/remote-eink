@@ -5,19 +5,23 @@ from abc import ABCMeta
 from io import BytesIO
 from typing import Tuple
 
-from remote_eink.tests.transformers._common import TestImageTransformer
+from remote_eink.tests.transformers.test_transformers import TestImageTransformer
 from remote_eink.models import Image
 from remote_eink.tests.storage._common import WHITE_IMAGE
-from remote_eink.transformers.common import ImageTransformer
+from remote_eink.transformers.transformers import ImageTransformer
 
 try:
-    from remote_eink.transformers.rotate import RotateImageTransformer
+    from remote_eink.transformers.rotate import RotateImageTransformer, ConfigurationParameter
     from PIL import Image as PilImage
     IMAGE_TOOLS_INSTALLED = True
 except ImportError:
     class RotateImageTransformer(ImageTransformer, metaclass=ABCMeta):
         """ Please the type checker """
     IMAGE_TOOLS_INSTALLED = False
+
+EXAMPLE_ANGLE = 10
+EXAMPLE_EXPAND = False
+EXAMPLE_FILL_COLOR = "silver"
 
 
 @unittest.skipIf(not IMAGE_TOOLS_INSTALLED, "Optional `image-tools` not installed")
@@ -47,7 +51,7 @@ class TestRotateImageTransformer(TestImageTransformer[RotateImageTransformer]):
         return int(new_width), int(new_height)
 
     def create_image_transformer(self) -> RotateImageTransformer:
-        return RotateImageTransformer()
+        return RotateImageTransformer(angle=EXAMPLE_ANGLE, expand=EXAMPLE_EXPAND, fill_color=EXAMPLE_FILL_COLOR)
 
     def test_rotate(self):
         self.transformer.expand = True
@@ -76,6 +80,30 @@ class TestRotateImageTransformer(TestImageTransformer[RotateImageTransformer]):
         new_colours = PilImage.open(BytesIO(image.data)).getcolors()
         two_primary_colours = list(itertools.islice(sorted(new_colours, key=lambda y: y[0], reverse=True), 2))
         self.assertCountEqual(((0, 0, 0), (255, 255, 255)), (x[1] for x in two_primary_colours))
+
+    def test_configuration(self):
+        self.assertEqual(
+            {ConfigurationParameter.ANGLE.value: EXAMPLE_ANGLE, ConfigurationParameter.EXPAND.value: EXAMPLE_EXPAND,
+             ConfigurationParameter.FILL_COLOR.value: EXAMPLE_FILL_COLOR}, self.transformer.configuration)
+
+    def test_load_configuration(self):
+        transformer = RotateImageTransformer()
+        assert transformer.angle != EXAMPLE_ANGLE and transformer.expand != EXAMPLE_EXPAND \
+               and transformer.fill_color != EXAMPLE_FILL_COLOR
+        assert transformer.configuration != self.transformer.configuration
+        transformer.load_configuration(self.transformer.configuration)
+        self.assertEqual(self.transformer.configuration, transformer.configuration)
+
+    def test_load_partial_configuration(self):
+        transformer = RotateImageTransformer(angle=EXAMPLE_ANGLE)
+        assert transformer.expand != EXAMPLE_EXPAND and transformer.fill_color != EXAMPLE_FILL_COLOR
+        transformer.load_configuration({ConfigurationParameter.EXPAND.value: EXAMPLE_EXPAND,
+                                        ConfigurationParameter.FILL_COLOR.value: EXAMPLE_FILL_COLOR})
+        self.assertEqual(
+            {ConfigurationParameter.ANGLE.value: EXAMPLE_ANGLE, ConfigurationParameter.EXPAND.value: EXAMPLE_EXPAND,
+             ConfigurationParameter.FILL_COLOR.value: EXAMPLE_FILL_COLOR}, transformer.configuration)
+
+
 
 
 del TestImageTransformer

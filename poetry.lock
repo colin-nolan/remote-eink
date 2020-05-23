@@ -476,7 +476,7 @@ image-tools = ["Pillow"]
 webserver = ["cheroot", "requests"]
 
 [metadata]
-content-hash = "3f1e7a2f44647b4b872c32281d742b447adbdcafb9a374600117ef7f6796e7cc"
+content-hash = "0fee6ac25ae62203867afd7942d7a0d310294e4dc9c9006abd238b7d33caf569"
 python-versions = "^3.6"
 
 [metadata.files]

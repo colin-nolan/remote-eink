@@ -1,6 +1,6 @@
 import random
 from abc import ABCMeta
-from typing import Optional, Dict, Callable
+from typing import Optional, Dict, Any, Callable
 from uuid import uuid4
 
 from flask_testing import TestCase
@@ -11,7 +11,7 @@ from remote_eink.display.drivers import DummyDisplayDriver
 from remote_eink.models import ImageType, Image
 from remote_eink.storage.images import InMemoryImageStore
 from remote_eink.app import create_app
-from remote_eink.transformers.common import ImageTransformer
+from remote_eink.transformers import ImageTransformer
 
 
 def create_image(image_type: Optional[ImageType] = None) -> Image:
@@ -25,14 +25,15 @@ def create_image(image_type: Optional[ImageType] = None) -> Image:
     return Image(identifier, lambda: f"data-{identifier}".encode(), image_type)
 
 
-def create_dummy_display_controller(*, number_of_images: int = 0) -> DisplayController:
+def create_dummy_display_controller(*, number_of_images: int = 0, **kwargs) -> DisplayController:
     """
     Creates a dummy display controller.
     :param number_of_images: number of images in the display controller's image store
+    :param kwargs: key-word arguments to pass to `DisplayController`
     :return: the dummy display controller
     """
     image_store = InMemoryImageStore(create_image() for _ in range(number_of_images))
-    return DisplayController(driver=DummyDisplayDriver(), image_store=image_store)
+    return DisplayController(driver=DummyDisplayDriver(), image_store=image_store, **kwargs)
 
 
 def set_content_type_header(image: Image, headers: Optional[Dict] = None):
@@ -65,18 +66,23 @@ class AppTestBase(TestCase, metaclass=ABCMeta):
 
 
 class DummyImageTransformer(ImageTransformer):
-    """
-    Dummy `ImageTransformer` implementation
-    """
-    @staticmethod
-    def get_name() -> str:
-        return "dummy"
+    @property
+    def configuration(self) -> Dict[str, Any]:
+        return self.dummy_configuration
 
-    def __init__(self, tranformer: Optional[Callable[[Image], Image]] = None, active: bool = True):
-        super().__init__(active)
-        self.transformer = tranformer
+    @property
+    def description(self) -> str:
+        return self.dummy_description
+
+    def __init__(self, transformer: Optional[Callable[[Image], Image]] = None, active: bool = True,
+                 configuration: Optional[Any] = None, description: Optional[str] = None, identifier: str = None):
+        super().__init__(identifier if identifier is not None else str(uuid4()), active)
+        self.dummy_transformer = transformer if transformer is not None else lambda image: image
+        self.dummy_configuration = configuration if configuration is not None else {}
+        self.dummy_description = description if description is not None else ""
+
+    def load_configuration(self, configuration: Dict[str, Any]):
+        self.dummy_configuration = configuration
 
     def _transform(self, image: Image) -> Image:
-        if self.transformer is None:
-            return image
-        return self.transformer(image)
+        return self.dummy_transformer(image)

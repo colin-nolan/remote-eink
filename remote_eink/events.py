@@ -25,16 +25,26 @@ class EventListenerController(Generic[EventType]):
     def get_events(self) -> Set[EventType]:
         return set(self._event_listeners.keys())
 
+    def add(self, listener: Listener, event: EventType):
+        return self.add_listener(listener, event)
+
     def add_listener(self, listener: Listener, event: EventType):
         if listener in self._event_listeners[event]:
             raise ValueError("Listener already listening to event")
         self._event_listeners[event].add(listener)
+
+    def remove(self, listener: Listener, event: EventType):
+        return self.remove_listener(listener, event)
 
     def remove_listener(self, listener: Listener, event: EventType):
         try:
             self._event_listeners[event].remove(listener)
         except KeyError:
             pass
+
+    def call(self, event: EventType, event_args: Sequence[Any] = (),
+             event_kwargs: Dict[str, Any] = MappingProxyType({})) -> Dict[Listener, ListenerReturn]:
+        return self.call_listeners(event, event_args, event_kwargs)
 
     def call_listeners(self, event: EventType, event_args: Sequence[Any] = (),
                        event_kwargs: Dict[str, Any] = MappingProxyType({})) -> Dict[Listener, ListenerReturn]:

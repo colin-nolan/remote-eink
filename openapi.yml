@@ -38,6 +38,34 @@ paths:
         404:
           description: Display not found.
 
+  /display/{displayId}/image-transformer:
+    get:
+      summary: Gets an list of image transformer IDs
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+      responses:
+        200:
+          description: List of image transformer IDs.
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/ResourceId"
+
+  /display/{displayId}/image-transformer/{imageTransformerId}:
+    get:
+      summary: Gets details about a display image transformer
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+        - $ref: "#/components/parameters/imageTransformerId"
+      responses:
+        200:
+          description: Details about the image transformer.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImageTransformer"
+
   /display/{displayId}/current-image:
     get:
       summary: Get ID of the image currently being displayed
@@ -50,20 +78,20 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: "#/components/schemas/ImageId"
+                  $ref: "#/components/schemas/ResourceId"
         404:
           description: No current image set.
 
     put:
       summary: Puts the image onto the display.
       parameters:
-          - $ref: "#/components/parameters/displayId"
+        - $ref: "#/components/parameters/displayId"
       requestBody:
         content:
           application/json:
             schema:
               items:
-                $ref: "#/components/schemas/ImageId"
+                $ref: "#/components/schemas/ResourceId"
       responses:
         200:
           description: Set device's sleep status as instructed.
@@ -89,7 +117,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ImageId"
+                  $ref: "#/components/schemas/ResourceId"
 
   /display/{displayId}/image/{imageId}:
     get:
@@ -125,7 +153,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ImageId"
+                  $ref: "#/components/schemas/ResourceId"
 
     delete:
       summary: Delete an image from the device
@@ -178,14 +206,40 @@ components:
       schema:
         type: string
       description: ID of the image.
+    imageTransformerId:
+      name: imageTransformerId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: ID of the image transformer.
 
   schemas:
-    ImageId:
+    ResourceId:
       type: object
       properties:
         id:
           type: string
-          description: ID of image.
+          description: ID of the resource.
+
+    ImageTransformer:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID of the image transformer
+        description:
+          type: string
+          description: Description of what the image transformer does
+        active:
+          type: boolean
+          description: Whether the image transformer is active
+        position:
+          type: integer
+          description: Position in image processing pipeline, where `1` is first.
+        configuration:
+          type: object
+          description: Transformer configuration (transformer specific content)
 
     Display:
       type: object
@@ -193,11 +247,11 @@ components:
         id:
           type: string
         currentImage:
-          $ref: "#/components/schemas/ImageId"
+          $ref: "#/components/schemas/ResourceId"
         images:
           type: array
           items:
-            $ref: "#/components/schemas/ImageId"
+            $ref: "#/components/schemas/ResourceId"
         orientation:
           type: integer
         cycleImages:
