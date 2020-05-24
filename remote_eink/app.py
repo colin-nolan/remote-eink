@@ -36,4 +36,3 @@ def get_display_controllers() -> Dict[str, DisplayController]:
     :return: display controllers, mapped by the controllers identifiers
     """
     return {controller.identifier: controller for controller in current_app.config[_DISPLAY_CONTROLLERS_CONFIG_KEY]}
-

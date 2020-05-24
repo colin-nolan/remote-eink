@@ -14,7 +14,7 @@ def _raiser(exception: Exception):
 
 class EventListenerController(Generic[EventType]):
     """
-    TODO
+    Controller that links events to listeners.
     """
     def __init__(self):
         self._event_listeners = defaultdict(set)

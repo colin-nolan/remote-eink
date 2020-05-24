@@ -1,4 +1,4 @@
-from typing import Dict, Any, Iterable, Collection, Sequence, Iterator, Tuple, Optional
+from typing import Dict, Any, Sequence, Iterator, Tuple, Optional
 
 import logging
 from abc import abstractmethod, ABCMeta
@@ -10,25 +10,15 @@ from remote_eink.models import Image, ImageType
 _logger = logging.getLogger(__name__)
 
 ImageTypeToPillowFormat = {
+    ImageType.BMP: "BMP",
     ImageType.JPG: "JPEG",
     ImageType.PNG: "PNG",
+    ImageType.WEBP: "WEBP"
 }
-# TODO: assert all captured
-
-
-@unique
-class ImageTransformerEvent(Enum):
-    """
-    TODO
-    """
-    ACTIVATE_STATE = auto()
-    TRANSFORM = auto()
+assert len(ImageTypeToPillowFormat) == len(ImageType)
 
 
 class InvalidConfigurationError(ValueError):
-    """
-    TODO
-    """
     def __init__(self, configuration: Any, details: str = ""):
         if details != "":
             details = f" ({details})"
@@ -37,9 +27,6 @@ class InvalidConfigurationError(ValueError):
 
 
 class InvalidPositionError(ValueError):
-    """
-    TODO
-    """
     def __init__(self, position: Any):
         super().__init__(f"Invalid position: {position}")
         self.position = position
@@ -47,8 +34,13 @@ class InvalidPositionError(ValueError):
 
 class ImageTransformer(metaclass=ABCMeta):
     """
-    TODO
+    Image transformer.
     """
+    @unique
+    class Event(Enum):
+        ACTIVATE_STATE = auto()
+        TRANSFORM = auto()
+
     @property
     @abstractmethod
     def configuration(self) -> Dict[str, Any]:
@@ -61,8 +53,8 @@ class ImageTransformer(metaclass=ABCMeta):
     @abstractmethod
     def description(self) -> str:
         """
-        TODO
-        :return: TODO
+        Description of the transformer
+        :return: description
         """
 
     @abstractmethod
@@ -92,42 +84,38 @@ class ImageTransformer(metaclass=ABCMeta):
     @active.setter
     def active(self, active: bool):
         self._active = active
-        self.event_listeners.call_listeners(ImageTransformerEvent.ACTIVATE_STATE, [active])
+        self.event_listeners.call_listeners(ImageTransformer.Event.ACTIVATE_STATE, [active])
 
     def __init__(self, identifier: str, active: bool = True):
         """
-        TODO
-        :param identifier:
-        :param active:
+        Constructor
+        :param identifier: transformer identifier
+        :param active: whether the transformer is active
         """
         self._identifier = identifier
         self._active = active
-        self.event_listeners = EventListenerController[ImageTransformerEvent]()
+        self.event_listeners = EventListenerController[ImageTransformer.Event]()
 
     def transform(self, image: Image) -> Image:
         """
-        TODO
-        :param image:
-        :return:
+        Applies transformation to the given image.
+        :param image: image to transform (not modified)
+        :return: new image with the transform
         """
         transformed_image = self._transform(image)
-        self.event_listeners.call_listeners(ImageTransformerEvent.TRANSFORM, [image, transformed_image])
+        self.event_listeners.call_listeners(ImageTransformer.Event.TRANSFORM, [image, transformed_image])
         return transformed_image
-
-
-@unique
-class ImageTransformerCollectionEvent(Enum):
-    """
-    TODO
-    """
-    ADD = auto()
-    REMOVE = auto()
 
 
 class ImageTransformerSequence(Sequence):
     """
-    TODO
+    Sequence of image transformers.
     """
+    @unique
+    class Event(Enum):
+        ADD = auto()
+        REMOVE = auto()
+
     def __init__(self, image_transformers: Sequence[ImageTransformer]):
         self._image_transformers = list(image_transformers)
         self.event_listeners = EventListenerController[ImageTransformer]()
@@ -136,10 +124,6 @@ class ImageTransformerSequence(Sequence):
         return len(self._image_transformers)
 
     def __iter__(self) -> Iterator[ImageTransformer]:
-        """
-        TODO: ordering
-        :return:
-        """
         return iter(self._image_transformers)
 
     def __contains__(self, x: object) -> bool:
@@ -152,9 +136,10 @@ class ImageTransformerSequence(Sequence):
 
     def get_by_id(self, image_transformer_id: str) -> Optional[Tuple[ImageTransformer, int]]:
         """
-        TODO
-        :param image_transformer_id:
-        :return:
+        Gets an image transformer in the sequence by ID.
+        :param image_transformer_id: the ID of the image transformer
+        :return: tuple where the first element is the matched image transformer and the second is its position in the
+        sequence. If an image transformer with the given ID does not exist in the sequenece, `None` will be returned
         """
         for i, image_transformer in enumerate(self._image_transformers):
             if image_transformer.identifier == image_transformer_id:
@@ -163,10 +148,10 @@ class ImageTransformerSequence(Sequence):
 
     def get_position(self, image_transformer: ImageTransformer) -> int:
         """
-        TODO
-        :param image_transformer:
-        :return:
-        :raises KeyError:
+        Gets the position of the given image transformer.
+        :param image_transformer: the image transformer in the sequence
+        :return: position of the image transformer
+        :raises KeyError: when the image transformer is not in the sequence
         """
         for i in range(len(self._image_transformers)):
             if self._image_transformers[i] == image_transformer:
@@ -179,9 +164,11 @@ class ImageTransformerSequence(Sequence):
         :param image_transformer: image transformer that must be in the sequence (use `add` if it's not)
         :param position: position in sequence, where 0 is the start. If the position is larger than the size of the
         sequence, the image transformer will be put in the last position
+        :raises InvalidPositionError: when the position is invalid
+        :raises KeyError: when the image transformer is not in the sequence
         """
         if image_transformer not in self._image_transformers:
-            raise ValueError(f"Image transformer not in sequence: {image_transformer}")
+            raise KeyError(f"Image transformer not in sequence: {image_transformer}")
         if position < 0:
             raise InvalidPositionError(f"Position must be at least 0: {position}")
         self._image_transformers.remove(image_transformer)
@@ -199,9 +186,9 @@ class ImageTransformerSequence(Sequence):
         if position is None:
             position = len(self._image_transformers)
         if position < 0:
-            raise ValueError("Position must be >= 0")
+            raise InvalidPositionError("Position must be >= 0")
         self._image_transformers.insert(position, image_transformer)
-        self.event_listeners.call_listeners(ImageTransformerCollectionEvent.ADD, [image_transformer, position])
+        self.event_listeners.call_listeners(ImageTransformerSequence.Event.ADD, [image_transformer, position])
 
     def remove(self, image_transformer: ImageTransformer) -> bool:
         """
@@ -215,5 +202,5 @@ class ImageTransformerSequence(Sequence):
             removed = True
         except ValueError:
             pass
-        self.event_listeners.call_listeners(ImageTransformerCollectionEvent.REMOVE, [image_transformer, removed])
+        self.event_listeners.call_listeners(ImageTransformerSequence.Event.REMOVE, [image_transformer, removed])
         return removed

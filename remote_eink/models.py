@@ -17,7 +17,7 @@ class ImageType(Enum):
 
 class Image:
     """
-    Image that can be displayed.
+    Immutable model of an image.
     """
     @property
     def identifier(self) -> str:
@@ -42,6 +42,10 @@ class Image:
             self._cached = data
         return data
 
+    @property
+    def type(self) -> ImageType:
+        return self._type
+
     def __init__(self, identifier: str, data_reader: ImageDataReader, image_type: ImageType,
                  cache_data: bool = True):
         """
@@ -53,7 +57,7 @@ class Image:
         """
         self._identifier = identifier
         self._data_reader = data_reader
-        self.type = image_type
+        self._type = image_type
         self._cache_data = cache_data
         self._cached = None
 

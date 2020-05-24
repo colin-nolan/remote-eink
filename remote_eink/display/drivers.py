@@ -162,21 +162,16 @@ class DummyDisplayDriver(BaseDisplayDriver):
         pass
 
 
-@unique
-class DisplayDriverEvent(Enum):
-    """
-    TODO
-    """
-    DISPLAY = auto()
-    CLEAR = auto()
-    SLEEP = auto()
-    WAKE = auto()
-
-
 class ListenableDisplayDriver(DisplayDriver):
     """
     TODO
     """
+    @unique
+    class Event(Enum):
+        DISPLAY = auto()
+        CLEAR = auto()
+        SLEEP = auto()
+        WAKE = auto()
 
     @property
     def sleeping(self) -> bool:
@@ -192,20 +187,20 @@ class ListenableDisplayDriver(DisplayDriver):
         :param display_driver:
         """
         self._display_driver = display_driver
-        self.event_listeners = EventListenerController[DisplayDriverEvent]()
+        self.event_listeners = EventListenerController[ListenableDisplayDriver.Event]()
 
     def display(self, image: Image):
         self._display_driver.display(image)
-        self.event_listeners.call_listeners(DisplayDriverEvent.DISPLAY, [image])
+        self.event_listeners.call_listeners(ListenableDisplayDriver.Event.DISPLAY, [image])
 
     def clear(self):
         self._display_driver.clear()
-        self.event_listeners.call_listeners(DisplayDriverEvent.CLEAR)
+        self.event_listeners.call_listeners(ListenableDisplayDriver.Event.CLEAR)
 
     def sleep(self):
         self._display_driver.sleep()
-        self.event_listeners.call_listeners(DisplayDriverEvent.SLEEP)
+        self.event_listeners.call_listeners(ListenableDisplayDriver.Event.SLEEP)
 
     def wake(self):
         self._display_driver.wake()
-        self.event_listeners.call_listeners(DisplayDriverEvent.WAKE)
+        self.event_listeners.call_listeners(ListenableDisplayDriver.Event.WAKE)

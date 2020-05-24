@@ -4,7 +4,7 @@ from uuid import uuid4
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.base import STATE_RUNNING
 
-from remote_eink.display.drivers import DisplayDriver, ListenableDisplayDriver, DisplayDriverEvent
+from remote_eink.display.drivers import DisplayDriver, ListenableDisplayDriver
 from remote_eink.transformers.transformers import ImageTransformer, ImageTransformerSequence
 from remote_eink.models import Image
 from remote_eink.storage.images import ImageStore, ListenableImageStore, ImageStoreEvent
@@ -57,14 +57,13 @@ class DisplayController:
         self._display_requested = False
 
         self._image_store.event_listeners.add_listener(self._on_remove_image, ImageStoreEvent.REMOVE)
-        self._driver.event_listeners.add_listener(self._on_clear, DisplayDriverEvent.CLEAR)
-        self._driver.event_listeners.add_listener(self._on_display, DisplayDriverEvent.DISPLAY)
+        self._driver.event_listeners.add_listener(self._on_clear, ListenableDisplayDriver.Event.CLEAR)
+        self._driver.event_listeners.add_listener(self._on_display, ListenableDisplayDriver.Event.DISPLAY)
 
     def display(self, image_id: str):
         """
-        TODO
-        :param image_id:
-        :return:
+        Displays the image with the given ID.
+        :param image_id: ID of stored image
         """
         image = self.image_store.get(image_id)
         if image is None:
@@ -78,13 +77,18 @@ class DisplayController:
                 self._display_requested = False
             self._current_image = image
 
+    def clear(self):
+        """
+        Clears the display.
+        """
+        self.driver.clear()
+
     def apply_image_transforms(self, image: Image) -> Image:
         """
-        TODO
-        :param image:
-        :return:
+        Apply image transforms (defined by the image transformers sequence) to the given image.
+        :param image: image to apply transforms (not modified)
+        :return: new, transformed image
         """
-        # TODO: sort transformers some way as order matters?
         for transformer in self.image_transformers:
             if transformer.active:
                 image = transformer.transform(image)
@@ -92,18 +96,24 @@ class DisplayController:
 
     def _on_remove_image(self, image_id: str):
         """
-        TODO
-        :param image_id:
-        :return:
+        Handler for when an image has been removed from the image store.
+        :param image_id: ID of the image that has been removed
         """
         if self.current_image and self.current_image.identifier == image_id:
             self.driver.clear()
 
     def _on_clear(self):
+        """
+        Handler for when the display is cleared via the driver.
+        """
         assert self.driver.image is None
         self._current_image = None
 
     def _on_display(self, image: Image):
+        """
+        Handler for when an image is displayed via the driver.
+        :param image: the image that has been displayed
+        """
         assert self.driver.image == image
         if not self._display_requested:
             # Driver has been used directly to update - cope with it

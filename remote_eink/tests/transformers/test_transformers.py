@@ -3,8 +3,8 @@ from threading import Semaphore
 from typing import TypeVar, Generic
 
 from remote_eink.tests._common import DummyImageTransformer
-from remote_eink.transformers.transformers import ImageTransformer, ImageTransformerEvent, ImageTransformerSequence, \
-    ImageTransformerCollectionEvent, InvalidConfigurationError, InvalidPositionError
+from remote_eink.transformers.transformers import ImageTransformer, ImageTransformerSequence, \
+    InvalidConfigurationError, InvalidPositionError
 
 ImageTransformerType = TypeVar("ImageTransformerType", bound=ImageTransformer)
 
@@ -30,7 +30,7 @@ class TestImageTransformer(unittest.TestCase, Generic[ImageTransformerType]):
             changed.release()
 
         self.image_transformer.active = False
-        self.image_transformer.event_listeners.add_listener(on_change, ImageTransformerEvent.ACTIVATE_STATE)
+        self.image_transformer.event_listeners.add_listener(on_change, ImageTransformer.Event.ACTIVATE_STATE)
         self.image_transformer.active = True
         self.assertTrue(changed.acquire(timeout=15))
 
@@ -97,7 +97,7 @@ class TestImageTransformerSequence(unittest.TestCase):
         self.assertEqual(len(self.image_transformers) - 1, self.image_transformers.get_position(image_transformer))
 
     def test_set_position_when_image_transformer_not_in_sequence(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(KeyError):
              self.image_transformers.set_position( DummyImageTransformer(), 0)
 
     def test_set_position_less_than_zero(self):
@@ -139,7 +139,7 @@ class TestImageTransformerSequence(unittest.TestCase):
             callback_position = position
             semaphore.release()
 
-        self.image_transformers.event_listeners.add_listener(callback, ImageTransformerCollectionEvent.ADD)
+        self.image_transformers.event_listeners.add_listener(callback, ImageTransformerSequence.Event.ADD)
         image_transformer = DummyImageTransformer()
         self.image_transformers.add(image_transformer)
         self.assertTrue(semaphore.acquire(timeout=15))
@@ -157,7 +157,7 @@ class TestImageTransformerSequence(unittest.TestCase):
             callback_removed = removed
             semaphore.release()
 
-        self.image_transformers.event_listeners.add_listener(callback, ImageTransformerCollectionEvent.REMOVE)
+        self.image_transformers.event_listeners.add_listener(callback, ImageTransformerSequence.Event.REMOVE)
         image_transformer = DummyImageTransformer()
         self.image_transformers.remove(image_transformer)
         self.assertTrue(semaphore.acquire(timeout=15))
