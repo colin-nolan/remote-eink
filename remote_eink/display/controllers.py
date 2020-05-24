@@ -5,7 +5,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.base import STATE_RUNNING
 
 from remote_eink.display.drivers import DisplayDriver, ListenableDisplayDriver, DisplayDriverEvent
-from remote_eink.transformers.transformers import ImageTransformer, ImageTransformerCollection
+from remote_eink.transformers.transformers import ImageTransformer, ImageTransformerSequence
 from remote_eink.models import Image
 from remote_eink.storage.images import ImageStore, ListenableImageStore, ImageStoreEvent
 
@@ -37,7 +37,7 @@ class DisplayController:
         return self._image_store
 
     @property
-    def image_transformers(self) -> ImageTransformerCollection:
+    def image_transformers(self) -> ImageTransformerSequence:
         return self._image_transformers
 
     def __init__(self, driver: DisplayDriver, image_store: ImageStore, identifier: Optional[str] = None,
@@ -53,7 +53,7 @@ class DisplayController:
         self._driver = ListenableDisplayDriver(driver)
         self._current_image = None
         self._image_store = ListenableImageStore(image_store)
-        self._image_transformers = ImageTransformerCollection(image_transformers)
+        self._image_transformers = ImageTransformerSequence(image_transformers)
         self._display_requested = False
 
         self._image_store.event_listeners.add_listener(self._on_remove_image, ImageStoreEvent.REMOVE)

@@ -36,6 +36,15 @@ class InvalidConfigurationError(ValueError):
         self.configuration = configuration
 
 
+class InvalidPositionError(ValueError):
+    """
+    TODO
+    """
+    def __init__(self, position: Any):
+        super().__init__(f"Invalid position: {position}")
+        self.position = position
+
+
 class ImageTransformer(metaclass=ABCMeta):
     """
     TODO
@@ -57,11 +66,10 @@ class ImageTransformer(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def load_configuration(self, configuration: Dict[str, Any]):
+    def modify_configuration(self, configuration: Dict[str, Any]):
         """
-        Loads the given configuration, where the configuration is in the same form as available through the
-        `configuration` property
-        :param configuration: configuration to load
+        Modifies the current configuration using the given configuration.
+        :param configuration: configuration in the same form as available through the `configuration` property
         :raises InvalidConfigurationError: raised if the configuration is invalid
         """
 
@@ -116,7 +124,7 @@ class ImageTransformerCollectionEvent(Enum):
     REMOVE = auto()
 
 
-class ImageTransformerCollection(Sequence):
+class ImageTransformerSequence(Sequence):
     """
     TODO
     """
@@ -164,6 +172,20 @@ class ImageTransformerCollection(Sequence):
             if self._image_transformers[i] == image_transformer:
                 return i
         raise KeyError(f"Image transformer not in collection: {image_transformer}")
+
+    def set_position(self, image_transformer: ImageTransformer, position: int):
+        """
+        Sets the position of the given image transformer in the sequence.
+        :param image_transformer: image transformer that must be in the sequence (use `add` if it's not)
+        :param position: position in sequence, where 0 is the start. If the position is larger than the size of the
+        sequence, the image transformer will be put in the last position
+        """
+        if image_transformer not in self._image_transformers:
+            raise ValueError(f"Image transformer not in sequence: {image_transformer}")
+        if position < 0:
+            raise InvalidPositionError(f"Position must be at least 0: {position}")
+        self._image_transformers.remove(image_transformer)
+        self._image_transformers.insert(position, image_transformer)
 
     def add(self, image_transformer: ImageTransformer, position: Optional[int] = None):
         """

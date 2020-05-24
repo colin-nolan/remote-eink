@@ -6,7 +6,7 @@ import logging
 from io import BytesIO
 
 from remote_eink.models import Image
-from remote_eink.transformers.transformers import ImageTransformer, ImageTypeToPillowFormat
+from remote_eink.transformers.transformers import ImageTransformer, ImageTypeToPillowFormat, InvalidConfigurationError
 
 _logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ except ImportError:
 
 
 @unique
-class ConfigurationParameter(Enum):
+class RotateConfigurationParameter(Enum):
     """
     TODO
     """
@@ -53,9 +53,9 @@ class RotateImageTransformer(ImageTransformer):
     @property
     def configuration(self) -> Dict[str, Any]:
         return {
-            ConfigurationParameter.ANGLE.value: self.angle,
-            ConfigurationParameter.EXPAND.value: self.expand,
-            ConfigurationParameter.FILL_COLOR.value: self.fill_color
+            RotateConfigurationParameter.ANGLE.value: self.angle,
+            RotateConfigurationParameter.EXPAND.value: self.expand,
+            RotateConfigurationParameter.FILL_COLOR.value: self.fill_color
         }
 
     @property
@@ -81,13 +81,16 @@ class RotateImageTransformer(ImageTransformer):
         self.expand = expand
         self.fill_color = fill_color
 
-    def load_configuration(self, configuration: Dict[str, Any]):
-        if ConfigurationParameter.ANGLE.value in configuration:
-            self.angle = configuration[ConfigurationParameter.ANGLE.value]
-        if ConfigurationParameter.EXPAND.value in configuration:
-            self.expand = configuration[ConfigurationParameter.EXPAND.value]
-        if ConfigurationParameter.FILL_COLOR.value in configuration:
-            self.fill_color = configuration[ConfigurationParameter.FILL_COLOR.value]
+    def modify_configuration(self, configuration: Dict[str, Any]):
+        for key, value in configuration.items():
+            if key == RotateConfigurationParameter.ANGLE.value:
+                self.angle = float(value)
+            elif key == RotateConfigurationParameter.EXPAND.value:
+                self.expand = value
+            elif key == RotateConfigurationParameter.FILL_COLOR.value:
+                self.fill_color = value
+            else:
+                raise InvalidConfigurationError(configuration, f"unknown property: {key}")
 
     def _transform(self, image: Image) -> Image:
         return Image(image.identifier,

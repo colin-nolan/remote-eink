@@ -12,6 +12,7 @@ from remote_eink.models import ImageType, Image
 from remote_eink.storage.images import InMemoryImageStore
 from remote_eink.app import create_app
 from remote_eink.transformers import ImageTransformer
+from remote_eink.transformers.transformers import InvalidConfigurationError
 
 
 def create_image(image_type: Optional[ImageType] = None) -> Image:
@@ -81,7 +82,9 @@ class DummyImageTransformer(ImageTransformer):
         self.dummy_configuration = configuration if configuration is not None else {}
         self.dummy_description = description if description is not None else ""
 
-    def load_configuration(self, configuration: Dict[str, Any]):
+    def modify_configuration(self, configuration: Dict[str, Any]):
+        if "invalid-config-property" in configuration:
+            raise InvalidConfigurationError(configuration)
         self.dummy_configuration = configuration
 
     def _transform(self, image: Image) -> Image:

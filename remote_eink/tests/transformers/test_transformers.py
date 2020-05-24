@@ -1,12 +1,10 @@
-from unittest.mock import MagicMock
-
 import unittest
 from threading import Semaphore
 from typing import TypeVar, Generic
 
 from remote_eink.tests._common import DummyImageTransformer
-from remote_eink.transformers.transformers import ImageTransformer, ImageTransformerEvent, ImageTransformerCollection, \
-    ImageTransformerCollectionEvent
+from remote_eink.transformers.transformers import ImageTransformer, ImageTransformerEvent, ImageTransformerSequence, \
+    ImageTransformerCollectionEvent, InvalidConfigurationError, InvalidPositionError
 
 ImageTransformerType = TypeVar("ImageTransformerType", bound=ImageTransformer)
 
@@ -16,12 +14,12 @@ class TestImageTransformer(unittest.TestCase, Generic[ImageTransformerType]):
     Tests for `ImageTransformer`.
     """
     def setUp(self):
-        self.transformer = self.create_image_transformer()
+        self.image_transformer = self.create_image_transformer()
 
     def test_active(self):
-        current_active = self.transformer.active
-        self.transformer.active = not current_active
-        self.assertNotEqual(current_active, self.transformer.active)
+        current_active = self.image_transformer.active
+        self.image_transformer.active = not current_active
+        self.assertNotEqual(current_active, self.image_transformer.active)
 
     def test_listen_to_active_change(self):
         changed = Semaphore(0)
@@ -31,26 +29,30 @@ class TestImageTransformer(unittest.TestCase, Generic[ImageTransformerType]):
             self.assertTrue(active)
             changed.release()
 
-        self.transformer.active = False
-        self.transformer.event_listeners.add_listener(on_change, ImageTransformerEvent.ACTIVATE_STATE)
-        self.transformer.active = True
+        self.image_transformer.active = False
+        self.image_transformer.event_listeners.add_listener(on_change, ImageTransformerEvent.ACTIVATE_STATE)
+        self.image_transformer.active = True
         self.assertTrue(changed.acquire(timeout=15))
+
+    def test_modify_configuration_with_invalid_configuration_parameters(self):
+        with self.assertRaises(InvalidConfigurationError):
+            self.image_transformer.modify_configuration({"invalid-config-property": True})
 
     def create_image_transformer(self) -> ImageTransformerType:
         """
-        TODO
-        :return:
+        Create an image transformer to test.
+        :return: the created image transformer
         """
         return DummyImageTransformer()
 
 
-class TestImageTransformerCollection(unittest.TestCase):
+class TestImageTransformerSequence(unittest.TestCase):
     """
-    TODO
+    Tests for `ImageTransformerSequence`.
     """
     def setUp(self):
         self.image_transformers_list = [DummyImageTransformer(), DummyImageTransformer(), DummyImageTransformer()]
-        self.image_transformers = ImageTransformerCollection(self.image_transformers_list)
+        self.image_transformers = ImageTransformerSequence(self.image_transformers_list)
 
     def test_len(self):
         self.assertEqual(len(self.image_transformers_list), len(self.image_transformers))
@@ -81,6 +83,26 @@ class TestImageTransformerCollection(unittest.TestCase):
     def test_get_position_when_does_not_exist(self):
         with self.assertRaises(KeyError):
             self.image_transformers.get_position(DummyImageTransformer())
+
+    def test_set_position(self):
+        image_transformer = self.image_transformers[1]
+        assert self.image_transformers.get_position(image_transformer) == 1
+        self.image_transformers.set_position(image_transformer, 0)
+        self.assertEqual(0, self.image_transformers.get_position(image_transformer))
+
+    def test_set_position_beyond_end(self):
+        image_transformer = self.image_transformers[1]
+        assert len(self.image_transformers) < 10
+        self.image_transformers.set_position(image_transformer, 10)
+        self.assertEqual(len(self.image_transformers) - 1, self.image_transformers.get_position(image_transformer))
+
+    def test_set_position_when_image_transformer_not_in_sequence(self):
+        with self.assertRaises(ValueError):
+             self.image_transformers.set_position( DummyImageTransformer(), 0)
+
+    def test_set_position_less_than_zero(self):
+        with self.assertRaises(InvalidPositionError):
+             self.image_transformers.set_position(self.image_transformers[0], -1)
 
     def test_add(self):
         image_transformer = DummyImageTransformer()
