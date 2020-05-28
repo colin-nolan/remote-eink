@@ -1,4 +1,4 @@
-from typing import Dict, Any, Sequence, Iterator, Tuple, Optional
+from typing import Dict, Any, Sequence, Iterator, Tuple, Optional, Union
 
 import logging
 from abc import abstractmethod, ABCMeta
@@ -106,8 +106,20 @@ class ImageTransformer(metaclass=ABCMeta):
         self.event_listeners.call_listeners(ImageTransformer.Event.TRANSFORM, [image, transformed_image])
         return transformed_image
 
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+        other: ImageTransformer
+        if other.identifier != self.identifier:
+            return False
+        if other.configuration != self.configuration:
+            return False
+        if other.active != self.active:
+            return False
+        return True
 
-class ImageTransformerSequence(Sequence):
+
+class ImageTransformerSequence(Sequence[ImageTransformer]):
     """
     Sequence of image transformers.
     """
@@ -146,16 +158,18 @@ class ImageTransformerSequence(Sequence):
                 return image_transformer, i
         return None
 
-    def get_position(self, image_transformer: ImageTransformer) -> int:
+    def get_position(self, image_transformer: Union[ImageTransformer, str]) -> int:
         """
         Gets the position of the given image transformer.
-        :param image_transformer: the image transformer in the sequence
+        :param image_transformer: the image transformer in the sequence or its ID
         :return: position of the image transformer
         :raises KeyError: when the image transformer is not in the sequence
         """
+        identifier = image_transformer if isinstance(image_transformer, str) else image_transformer.identifier
         for i in range(len(self._image_transformers)):
-            if self._image_transformers[i] == image_transformer:
+            if self._image_transformers[i].identifier == identifier:
                 return i
+
         raise KeyError(f"Image transformer not in collection: {image_transformer}")
 
     def set_position(self, image_transformer: ImageTransformer, position: int):

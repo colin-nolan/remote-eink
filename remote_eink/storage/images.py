@@ -2,7 +2,7 @@ import hashlib
 import os
 from abc import abstractmethod, ABCMeta
 from enum import Enum, auto, unique
-from typing import Dict, Optional, Iterable, List
+from typing import Dict, Optional, Iterable, List, Collection, Iterator, Any
 
 from remote_eink.events import EventListenerController
 from remote_eink.models import Image, ImageDataReader
@@ -17,12 +17,12 @@ class ImageAlreadyExistsError(ValueError):
         super().__init__(f"Image with the same ID already exists: {image_id}")
 
 
-class ImageStore(metaclass=ABCMeta):
+class ImageStore(Collection, metaclass=ABCMeta):
     """
     Store of images.
     """
     @abstractmethod
-    def get(self, image_id: str) -> Optional[Image]:
+    def _get(self, image_id: str) -> Optional[Image]:
         """
         Retrieves the image with the given ID.
         :param image_id: ID of the image to retrieve
@@ -30,7 +30,7 @@ class ImageStore(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def list(self) -> List[Image]:
+    def _list(self) -> List[Image]:
         """
         List of stored images.
 
@@ -39,14 +39,14 @@ class ImageStore(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def add(self, image: Image):
+    def _add(self, image: Image):
         """
         Saves the given image.
         :param image: image to save
         """
 
     @abstractmethod
-    def remove(self, image_id: str) -> bool:
+    def _remove(self, image_id: str) -> bool:
         """
         Deletes the image with the given ID.
         :param image_id: ID of the image to delete.
@@ -58,8 +58,33 @@ class ImageStore(metaclass=ABCMeta):
         Constructor.
         :param images: images to save
         """
+        self.event_listeners = EventListenerController[ImageStoreEvent]()
         for image in images:
             self.add(image)
+
+    def __len__(self) -> int:
+        return len(self.list())
+
+    def __iter__(self) -> Iterator[Image]:
+        return iter(self.list())
+
+    def __contains__(self, x: Any) -> bool:
+        return x in self.list()
+
+    def get(self, image_id: str) -> Optional[Image]:
+        return self._get(image_id)
+
+    def list(self) -> List[Image]:
+        return self._list()
+
+    def add(self, image: Image):
+        self._add(image)
+        self.event_listeners.call_listeners(ImageStoreEvent.ADD, [image])
+
+    def remove(self, image_id: str) -> bool:
+        removed = self._remove(image_id)
+        self.event_listeners.call_listeners(ImageStoreEvent.REMOVE, [image_id])
+        return removed
 
 
 class InMemoryImageStore(ImageStore):
@@ -70,19 +95,19 @@ class InMemoryImageStore(ImageStore):
         self._images: Dict[str, Image] = {}
         super().__init__(images)
 
-    def get(self, image_id: str) -> Optional[Image]:
+    def _get(self, image_id: str) -> Optional[Image]:
         return self._images.get(image_id)
 
-    def list(self) -> List[Image]:
+    def _list(self) -> List[Image]:
         return sorted(list(self._images.values()), key=lambda image: image.identifier)
 
-    def add(self, image: Image):
+    def _add(self, image: Image):
         assert isinstance(image, Image)
         if self.get(image.identifier) is not None:
             raise ImageAlreadyExistsError(image.identifier)
         self._images[image.identifier] = image
 
-    def remove(self, image_id: str) -> bool:
+    def _remove(self, image_id: str) -> bool:
         assert isinstance(image_id, str)
         try:
             del self._images[image_id]
@@ -133,22 +158,22 @@ class ManifestBasedImageStore(ImageStore, metaclass=ABCMeta):
         self.cache_data = cache_data
         super().__init__(images)
 
-    def get(self, image_id: str) -> Optional[Image]:
+    def _get(self, image_id: str) -> Optional[Image]:
         manifest_record = self._manifest.get_by_image_id(image_id)
         if manifest_record is None:
             return None
         return self._get_image(manifest_record)
 
-    def list(self) -> List[Image]:
+    def _list(self) -> List[Image]:
         return [self._get_image(manifest_record) for manifest_record in self._manifest.list()]
 
-    def add(self, image: Image):
+    def _add(self, image: Image):
         if self._manifest.get_by_image_id(image.identifier) is not None:
             raise ImageAlreadyExistsError(image.identifier)
         storage_location = self._add_to_storage_location(image)
         self._manifest.add(image.identifier, image.type, storage_location)
 
-    def remove(self, image_id: str) -> bool:
+    def _remove(self, image_id: str) -> bool:
         manifest_record = self._manifest.get_by_image_id(image_id)
         if not manifest_record:
             return False
@@ -219,28 +244,3 @@ class ImageStoreEvent(Enum):
     """
     ADD = auto()
     REMOVE = auto()
-
-
-class ListenableImageStore(ImageStore):
-    """
-    TODO
-    """
-    def __init__(self, image_store: ImageStore):
-        super().__init__(())
-        self.image_store = image_store
-        self.event_listeners = EventListenerController[ImageStoreEvent]()
-
-    def get(self, image_id: str) -> Optional[Image]:
-        return self.image_store.get(image_id)
-
-    def list(self) -> List[Image]:
-        return self.image_store.list()
-
-    def add(self, image: Image):
-        self.image_store.add(image)
-        self.event_listeners.call_listeners(ImageStoreEvent.ADD, [image])
-
-    def remove(self, image_id: str) -> bool:
-        removed = self.image_store.remove(image_id)
-        self.event_listeners.call_listeners(ImageStoreEvent.REMOVE, [image_id])
-        return removed

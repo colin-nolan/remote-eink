@@ -149,6 +149,17 @@ version = "0.7"
 
 [[package]]
 category = "main"
+description = "serialize all of python"
+name = "dill"
+optional = false
+python-versions = ">=2.6, !=3.0.*"
+version = "0.3.1.1"
+
+[package.extras]
+graph = ["objgraph (>=1.7.2)"]
+
+[[package]]
+category = "main"
 description = "A simple framework for building complex web applications."
 name = "flask"
 optional = false
@@ -331,6 +342,20 @@ version = "8.3.0"
 
 [[package]]
 category = "main"
+description = "A friendly fork of multiprocessing which uses dill instead of pickle"
+name = "multiprocessing-on-dill"
+optional = false
+python-versions = "*"
+version = "3.5.0a4"
+
+[package.dependencies]
+dill = "*"
+
+[package.extras]
+dev = ["check-manifest", "wheel"]
+
+[[package]]
+category = "main"
 description = ""
 name = "openapi-spec-validator"
 optional = false
@@ -476,7 +501,7 @@ image-tools = ["Pillow"]
 webserver = ["cheroot", "requests"]
 
 [metadata]
-content-hash = "0fee6ac25ae62203867afd7942d7a0d310294e4dc9c9006abd238b7d33caf569"
+content-hash = "513f498812b26f8a05a5b9a04fd585894a3e7e3747046c7cb841fa38921d0517"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -519,6 +544,9 @@ connexion = [
 dataclasses = [
     {file = "dataclasses-0.7-py3-none-any.whl", hash = "sha256:3459118f7ede7c8bea0fe795bff7c6c2ce287d01dd226202f7c9ebc0610a7836"},
     {file = "dataclasses-0.7.tar.gz", hash = "sha256:494a6dcae3b8bcf80848eea2ef64c0cc5cd307ffc263e17cdf42f3e5420808e6"},
+]
+dill = [
+    {file = "dill-0.3.1.1.tar.gz", hash = "sha256:42d8ef819367516592a825746a18073ced42ca169ab1f5f4044134703e7a049c"},
 ]
 flask = [
     {file = "Flask-1.1.2-py2.py3-none-any.whl", hash = "sha256:8a4fdd8936eba2512e9c85df320a37e694c93945b33ef33c89946a340a238557"},
@@ -608,6 +636,9 @@ marshmallow-enum = [
 more-itertools = [
     {file = "more-itertools-8.3.0.tar.gz", hash = "sha256:558bb897a2232f5e4f8e2399089e35aecb746e1f9191b6584a151647e89267be"},
     {file = "more_itertools-8.3.0-py3-none-any.whl", hash = "sha256:7818f596b1e87be009031c7653d01acc46ed422e6656b394b0f765ce66ed4982"},
+]
+multiprocessing-on-dill = [
+    {file = "multiprocessing_on_dill-3.5.0a4.tar.gz", hash = "sha256:d6d50c300ff4bd408bb71eb78725e60231039ee9b3d0d9bb7697b9d0e15045e7"},
 ]
 openapi-spec-validator = [
     {file = "openapi-spec-validator-0.2.8.tar.gz", hash = "sha256:e489c7a273284bc78277ac22791482e8058d323b4a265015e9fcddf6a8045bcd"},

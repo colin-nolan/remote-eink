@@ -1,6 +1,8 @@
 import random
+from contextlib import contextmanager
+
 from abc import ABCMeta
-from typing import Optional, Dict, Any, Callable
+from typing import Optional, Dict, Any, Callable, ContextManager
 from uuid import uuid4
 
 from flask_testing import TestCase
@@ -10,7 +12,7 @@ from remote_eink.display.controllers import DisplayController
 from remote_eink.display.drivers import DummyDisplayDriver
 from remote_eink.models import ImageType, Image
 from remote_eink.storage.images import InMemoryImageStore
-from remote_eink.app import create_app
+from remote_eink.app import create_app, get_synchronised_app_storage
 from remote_eink.transformers import ImageTransformer
 from remote_eink.transformers.transformers import InvalidConfigurationError
 
@@ -26,15 +28,27 @@ def create_image(image_type: Optional[ImageType] = None) -> Image:
     return Image(identifier, lambda: f"data-{identifier}".encode(), image_type)
 
 
-def create_dummy_display_controller(*, number_of_images: int = 0, **kwargs) -> DisplayController:
+def create_dummy_display_controller(*, number_of_images: int = 0, number_of_image_transformers: int = 0, **kwargs) \
+        -> DisplayController:
     """
     Creates a dummy display controller.
     :param number_of_images: number of images in the display controller's image store
+    :param number_of_image_transformers: number of image transformers to create
     :param kwargs: key-word arguments to pass to `DisplayController`
     :return: the dummy display controller
     """
-    image_store = InMemoryImageStore(create_image() for _ in range(number_of_images))
-    return DisplayController(driver=DummyDisplayDriver(), image_store=image_store, **kwargs)
+    if number_of_images != 0 and "image_store" in kwargs:
+        raise ValueError("Cannot specify number of images to create in an image store and pass in image store")
+    if "image_store" not in kwargs:
+        kwargs["image_store"] = InMemoryImageStore(create_image() for _ in range(number_of_images))
+
+    if number_of_image_transformers != 0:
+        if "image_transformers" in kwargs:
+            raise ValueError("Cannot specify a number of image transformers to be created in addition to passing in "
+                             "image transformers")
+        kwargs["image_transformers"] = [DummyImageTransformer() for _ in range(number_of_image_transformers)]
+
+    return DisplayController(driver=DummyDisplayDriver(), **kwargs)
 
 
 def set_content_type_header(image: Image, headers: Optional[Dict] = None):
@@ -54,16 +68,35 @@ class AppTestBase(TestCase, metaclass=ABCMeta):
     """
     Base class for tests against the Flask app.
     """
+    @property
+    def display_controller(self) -> DisplayController:
+        return self.display_controllers[0]
+
     def create_app(self):
         self.display_controllers = []
-        app = create_app(self.display_controllers).app
-        app.config["TESTING"] = True
-        return app
+        self._app = create_app(self.display_controllers).app
+        self._app.config["TESTING"] = True
+        return self._app
 
-    def create_dummy_display_controller(self, **kwargs) -> DisplayController:
-        controller = create_dummy_display_controller(**kwargs)
-        self.display_controllers.append(controller)
-        return controller
+    def create_display_controller(self, **kwargs):
+        display_controller = create_dummy_display_controller(**kwargs)
+        with get_synchronised_app_storage(app=self._app).update_display_controllers() as display_controllers:
+            display_controllers[display_controller.identifier] = display_controller
+        self.display_controllers.append(display_controller)
+        return display_controller
+
+    @contextmanager
+    def create_and_update_display_controller(self, **kwargs) -> ContextManager[DisplayController]:
+        display_controller = create_dummy_display_controller(**kwargs)
+        self.display_controllers.append(display_controller)
+        try:
+            yield display_controller
+        finally:
+            with get_synchronised_app_storage(app=self._app).update_display_controllers() as display_controllers:
+                display_controllers[display_controller.identifier] = display_controller
+
+    def synchronise_display_controllers(self):
+        self.display_controllers = list(get_synchronised_app_storage(app=self._app).get_display_controllers())
 
 
 class DummyImageTransformer(ImageTransformer):

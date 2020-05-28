@@ -7,7 +7,7 @@ from apscheduler.schedulers.base import STATE_RUNNING
 from remote_eink.display.drivers import DisplayDriver, ListenableDisplayDriver
 from remote_eink.transformers.transformers import ImageTransformer, ImageTransformerSequence
 from remote_eink.models import Image
-from remote_eink.storage.images import ImageStore, ListenableImageStore, ImageStoreEvent
+from remote_eink.storage.images import ImageStore, ImageStoreEvent
 
 DEFAULT_SECONDS_BETWEEN_CYCLE = float(60 * 60)
 
@@ -33,7 +33,7 @@ class DisplayController:
         return self._driver
 
     @property
-    def image_store(self) -> ListenableImageStore:
+    def image_store(self) -> ImageStore:
         return self._image_store
 
     @property
@@ -52,7 +52,7 @@ class DisplayController:
         self.identifier = identifier if identifier is not None else str(uuid4())
         self._driver = ListenableDisplayDriver(driver)
         self._current_image = None
-        self._image_store = ListenableImageStore(image_store)
+        self._image_store = image_store
         self._image_transformers = ImageTransformerSequence(image_transformers)
         self._display_requested = False
 

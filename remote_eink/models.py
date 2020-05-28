@@ -47,7 +47,7 @@ class Image:
         return self._type
 
     def __init__(self, identifier: str, data_reader: ImageDataReader, image_type: ImageType,
-                 cache_data: bool = True):
+                 cache_data: bool = False):
         """
         Constructor.
         :param identifier: image identifier

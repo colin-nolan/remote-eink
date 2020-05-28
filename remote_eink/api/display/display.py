@@ -1,8 +1,8 @@
 from http import HTTPStatus
 
 from remote_eink.api.display._common import display_id_handler, ImageSchema
+from remote_eink.app import get_synchronised_app_storage
 from remote_eink.display.controllers import DisplayController
-from remote_eink.app import get_display_controllers
 from marshmallow import Schema, fields
 
 
@@ -18,8 +18,8 @@ class _DisplayControllerSchema(Schema):
 
 
 def search():
-    return _DisplayControllerSchema(only=["identifier"], many=True) \
-               .dump(get_display_controllers().values()), HTTPStatus.OK
+    return [{"id": identifier} for identifier in get_synchronised_app_storage().get_display_controller_ids()], \
+           HTTPStatus.OK
 
 
 @display_id_handler

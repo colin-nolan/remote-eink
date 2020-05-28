@@ -49,13 +49,13 @@ class Server:
                 self.thread.join(timeout_in_seconds)
 
 
-def run(app: FlaskApp, server: Server = None, *, interface: str = "0.0.0.0", port: int = 8080):
+def run(app: FlaskApp, *, interface: str = "0.0.0.0", port: int = 8080, server: Server = None):
     """
     Runs the given app in a production WSGI server.
     :param app: app to run on the server
-    :param server: server model to update with information about the underlying WSGI server
     :param interface: interface to bind on
     :param port: port to use
+    :param server: server model to update with information about the underlying WSGI server
     """
     wsgi_server = wsgi.Server((interface, port), app)
 

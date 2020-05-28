@@ -84,6 +84,10 @@ class TestImageTransformerSequence(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.image_transformers.get_position(DummyImageTransformer())
 
+    def test_get_position_using_id(self):
+        for i, image_transformer in enumerate(self.image_transformers):
+            self.assertEqual(i, self.image_transformers.get_position(image_transformer.identifier))
+
     def test_set_position(self):
         image_transformer = self.image_transformers[1]
         assert self.image_transformers.get_position(image_transformer) == 1

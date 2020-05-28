@@ -4,8 +4,8 @@ from typing import Callable
 from bidict import bidict
 from marshmallow import Schema, fields
 
+from remote_eink.app import InvalidDisplayControllerError, get_synchronised_app_storage
 from remote_eink.models import ImageType
-from remote_eink.app import get_display_controllers
 
 
 CONTENT_TYPE_HEADER = "Content-Type"
@@ -31,9 +31,10 @@ def display_id_handler(wrappable: Callable) -> Callable:
              to the handler
     """
     def wrapped(displayId: str, *args, **kwargs):
-        display_controller = get_display_controllers().get(displayId)
-        if display_controller is None:
+        try:
+            with get_synchronised_app_storage().use_display_controller(displayId) as display_controller:
+                return wrappable(display_controller, *args, **kwargs)
+        except InvalidDisplayControllerError:
             return f"Display not found: {displayId}", HTTPStatus.NOT_FOUND
-        return wrappable(display_controller, *args, **kwargs)
 
     return wrapped

@@ -8,7 +8,7 @@ from typing import Tuple
 from remote_eink.tests.transformers.test_transformers import TestImageTransformer
 from remote_eink.models import Image
 from remote_eink.tests.storage._common import WHITE_IMAGE
-from remote_eink.transformers.transformers import ImageTransformer, InvalidConfigurationError
+from remote_eink.transformers.transformers import ImageTransformer
 
 try:
     from remote_eink.transformers.rotate import RotateImageTransformer, RotateConfigurationParameter
