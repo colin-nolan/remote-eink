@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from remote_eink.app import get_synchronised_app_storage
+from remote_eink.app import get_app_storage
 from remote_eink.tests._common import AppTestBase, DummyImageTransformer
 from remote_eink.transformers.rotate import RotateImageTransformer, RotateConfigurationParameter
 
@@ -46,7 +46,7 @@ class TestImageTransformer(AppTestBase):
         self.assertEqual(HTTPStatus.NOT_FOUND, result.status_code)
 
     def test_put(self):
-        with get_synchronised_app_storage().update_display_controller(self.display_controller.identifier) \
+        with get_app_storage().update_display_controller(self.display_controller.identifier) \
                 as display_controller:
             image_transformer = RotateImageTransformer(angle=0.0, expand=False, fill_color="green")
             display_controller.image_transformers.add(image_transformer)
@@ -61,8 +61,8 @@ class TestImageTransformer(AppTestBase):
             }})
 
         self.assertEqual(HTTPStatus.OK, result.status_code)
-        display_controller = get_synchronised_app_storage().get_display_controller(display_controller.identifier)
-        image_transformer = display_controller.image_transformers.get_by_id(image_transformer.identifier)[0]
+        self.synchronise_display_controllers()
+        image_transformer = self.display_controller.image_transformers.get_by_id(image_transformer.identifier)[0]
         self.assertEqual(90.0, image_transformer.angle)
         self.assertEqual(True, image_transformer.expand)
         self.assertEqual("silver", image_transformer.fill_color)
@@ -112,9 +112,9 @@ class TestImageTransformer(AppTestBase):
             f"/display/{self.display_controller.identifier}/image-transformer/{image_transformer_id}",
             json={"position": len(self.display_controller.image_transformers) + 10})
         self.assertEqual(HTTPStatus.OK, result.status_code)
-        display_controller = get_synchronised_app_storage().get_display_controller(self.display_controller.identifier)
-        self.assertEqual(len(display_controller.image_transformers) - 1,
-                         display_controller.image_transformers.get_position(image_transformer_id))
+        self.synchronise_display_controllers()
+        self.assertEqual(len(self.display_controller.image_transformers) - 1,
+                         self.display_controller.image_transformers.get_position(image_transformer_id))
 
     def test_put_position_before_start(self):
         result = self.client.put(

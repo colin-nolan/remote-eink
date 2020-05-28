@@ -8,11 +8,12 @@ from uuid import uuid4
 from flask_testing import TestCase
 
 from remote_eink.api.display._common import CONTENT_TYPE_HEADER, ImageTypeToMimeType
+from remote_eink.app_storage import NonSynchronisedAppStorage
 from remote_eink.display.controllers import DisplayController
 from remote_eink.display.drivers import DummyDisplayDriver
 from remote_eink.models import ImageType, Image
 from remote_eink.storage.images import InMemoryImageStore
-from remote_eink.app import create_app, get_synchronised_app_storage
+from remote_eink.app import create_app, get_app_storage
 from remote_eink.transformers import ImageTransformer
 from remote_eink.transformers.transformers import InvalidConfigurationError
 
@@ -70,33 +71,38 @@ class AppTestBase(TestCase, metaclass=ABCMeta):
     """
     @property
     def display_controller(self) -> DisplayController:
-        return self.display_controllers[0]
+        return self._display_controllers[0]
+
+    @property
+    def display_controllers(self) -> Dict[str, DisplayController]:
+        return {x.identifier: x for x in self._display_controllers}
 
     def create_app(self):
-        self.display_controllers = []
-        self._app = create_app(self.display_controllers).app
+        self._display_controllers = []
+        # Note: use of `NonSynchronisedAppStorage` makes the tests a lot faster
+        self._app = create_app(self._display_controllers, NonSynchronisedAppStorage).app
         self._app.config["TESTING"] = True
         return self._app
 
     def create_display_controller(self, **kwargs):
         display_controller = create_dummy_display_controller(**kwargs)
-        with get_synchronised_app_storage(app=self._app).update_display_controllers() as display_controllers:
+        with get_app_storage(app=self._app).update_display_controllers() as display_controllers:
             display_controllers[display_controller.identifier] = display_controller
-        self.display_controllers.append(display_controller)
+        self._display_controllers.append(display_controller)
         return display_controller
 
     @contextmanager
     def create_and_update_display_controller(self, **kwargs) -> ContextManager[DisplayController]:
         display_controller = create_dummy_display_controller(**kwargs)
-        self.display_controllers.append(display_controller)
+        self._display_controllers.append(display_controller)
         try:
             yield display_controller
         finally:
-            with get_synchronised_app_storage(app=self._app).update_display_controllers() as display_controllers:
+            with get_app_storage(app=self._app).update_display_controllers() as display_controllers:
                 display_controllers[display_controller.identifier] = display_controller
 
     def synchronise_display_controllers(self):
-        self.display_controllers = list(get_synchronised_app_storage(app=self._app).get_display_controllers())
+        self._display_controllers = list(get_app_storage(app=self._app).display_controllers.values())
 
 
 class DummyImageTransformer(ImageTransformer):

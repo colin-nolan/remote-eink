@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from remote_eink.app import get_synchronised_app_storage
+from remote_eink.app import get_app_storage
 from remote_eink.display.controllers import DisplayController
 from remote_eink.tests._common import AppTestBase
 
@@ -20,8 +20,7 @@ class TestDisplaySleep(AppTestBase):
         self.assertFalse(result.json)
 
     def test_get_when_sleeping(self):
-        with get_synchronised_app_storage().use_display_controller(self.display_controller.identifier) \
-                as display_controller:
+        with get_app_storage().update_display_controller(self.display_controller.identifier) as display_controller:
             display_controller.driver.sleep()
         result = self.client.get(f"/display/{self.display_controller.identifier}/sleep")
         self.assertEqual(HTTPStatus.OK, result.status_code)
@@ -47,7 +46,7 @@ class TestDisplaySleep(AppTestBase):
         self.assertFalse(self.display_controller.driver.sleeping)
 
     def test_put_wake_when_sleeping(self):
-        with get_synchronised_app_storage().use_display_controller(self.display_controller.identifier) \
+        with get_app_storage().use_display_controller(self.display_controller.identifier) \
                 as display_controller:
             display_controller.driver.sleep()
         result = self.client.put(f"/display/{self.display_controller.identifier}/sleep", json=False)
