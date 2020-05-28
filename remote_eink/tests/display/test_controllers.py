@@ -170,11 +170,22 @@ class TestAutoCyclingDisplayController(_TestDisplayController[AutoCyclingDisplay
     """
     Test for `AutoCyclingDisplayController`.
     """
+    def setUp(self):
+        self._display_controllers = []
+        super().setUp()
+
+    def tearDown(self):
+        for display_controller in self._display_controllers:
+            display_controller.stop()
+        super().tearDown()
+
     def create_display_controller(self, image_store: Optional[ImageStore] = None, *args, **kwargs) \
             -> AutoCyclingDisplayController:
-        return AutoCyclingDisplayController(
+        display_controller = AutoCyclingDisplayController(
             DummyDisplayDriver(), image_store if image_store is not None else InMemoryImageStore(),
             cycle_image_after_seconds=0.001)
+        self._display_controllers.append(display_controller)
+        return display_controller
 
     def test_start(self):
         display_controller = self.create_display_controller(InMemoryImageStore([WHITE_IMAGE, BLACK_IMAGE]))

@@ -17,8 +17,7 @@ _apps = {}
 
 
 def create_app(display_controllers: Collection[DisplayController],
-               app_storage_class: Type[AppStorage] = SynchronisedAppStorage) \
-        -> FlaskApp:
+               app_storage_class: Type[AppStorage] = SynchronisedAppStorage) -> Flask:
     """
     Creates the Flask app.
     :param display_controllers:
@@ -44,6 +43,17 @@ def create_app(display_controllers: Collection[DisplayController],
             {display_controller.identifier: display_controller for display_controller in display_controllers})
 
     return app
+
+
+def destroy_app(app: Flask):
+    """
+    TODO
+    :param app:
+    :return:
+    """
+    with app.app_context():
+        identifier = app.config["identifier"]
+    del _apps[identifier]
 
 
 def get_app_storage(app: Optional[Flask] = None) -> SynchronisedAppStorage:

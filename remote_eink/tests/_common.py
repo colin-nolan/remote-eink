@@ -13,7 +13,7 @@ from remote_eink.display.controllers import DisplayController
 from remote_eink.display.drivers import DummyDisplayDriver
 from remote_eink.models import ImageType, Image
 from remote_eink.storage.images import InMemoryImageStore
-from remote_eink.app import create_app, get_app_storage
+from remote_eink.app import create_app, get_app_storage, destroy_app
 from remote_eink.transformers import ImageTransformer
 from remote_eink.transformers.transformers import InvalidConfigurationError
 
@@ -77,6 +77,11 @@ class AppTestBase(TestCase, metaclass=ABCMeta):
     def display_controllers(self) -> Dict[str, DisplayController]:
         return {x.identifier: x for x in self._display_controllers}
 
+    def tearDown(self):
+        if self._app:
+            destroy_app(self._app)
+
+    # Required to satisfy the super class' interface
     def create_app(self):
         self._display_controllers = []
         # Note: use of `NonSynchronisedAppStorage` makes the tests a lot faster

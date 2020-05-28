@@ -5,13 +5,8 @@ from typing import Dict, ContextManager
 
 from multiprocessing_on_dill.managers import SyncManager
 
-from remote_eink.common import InvalidDisplayControllerError
+from remote_eink.common import DisplayControllerNotFoundError
 from remote_eink.display.controllers import DisplayController
-
-#
-# _sync_manager = SyncManager()
-# _sync_manager_lock = Lock()
-# _sync_manager_started = False
 
 
 class AppStorage(metaclass=ABCMeta):
@@ -70,7 +65,7 @@ class NonSynchronisedAppStorage(AppStorage):
         try:
             display_controller = self._display_controllers[identifier]
         except KeyError as e:
-            raise InvalidDisplayControllerError(identifier) from e
+            raise DisplayControllerNotFoundError(identifier) from e
         yield display_controller
         self._display_controllers[display_controller] = display_controller
 
@@ -166,7 +161,7 @@ class SynchronisedAppStorage(AppStorage):
 
         try:
             if identifier not in self._display_controllers:
-                raise InvalidDisplayControllerError(identifier)
+                raise DisplayControllerNotFoundError(identifier)
 
             if not read_only:
                 # The existence of the lock is checked and assigned under a global lock to ensure that everyone is

@@ -7,7 +7,7 @@ from multiprocessing import Event
 
 import unittest
 
-from remote_eink.app import create_app, get_app_storage
+from remote_eink.app import create_app, get_app_storage, destroy_app
 from remote_eink.app_storage import SynchronisedAppStorage
 from remote_eink.display.controllers import DisplayController
 from remote_eink.display.drivers import DummyDisplayDriver
@@ -47,6 +47,9 @@ class TestApp(unittest.TestCase):
         self._display_controller_id = display_controller.identifier
         self.app = create_app([display_controller], SynchronisedAppStorage).app
         self.app_storage = get_app_storage(app=self.app)
+
+    def tearDown(self):
+        destroy_app(self.app)
 
     def test_setup_display_controller(self):
         display_controller = create_dummy_display_controller(number_of_images=10, number_of_image_transformers=10)

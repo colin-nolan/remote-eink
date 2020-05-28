@@ -1,6 +1,7 @@
 from typing import Optional, Sequence
 from uuid import uuid4
 
+from apscheduler.schedulers import SchedulerNotRunningError
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.base import STATE_RUNNING
 
@@ -205,4 +206,7 @@ class AutoCyclingDisplayController(CyclableDisplayController):
 
     def stop(self):
         self._scheduler.remove_all_jobs()
-        self._scheduler.pause()
+        try:
+            self._scheduler.pause()
+        except SchedulerNotRunningError:
+            pass
