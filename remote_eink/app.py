@@ -3,12 +3,11 @@ from typing import Collection, Optional, Type
 from uuid import uuid4
 
 import connexion
-from connexion import FlaskApp
 from flask import Flask, current_app
 from flask_cors import CORS
 
 from remote_eink.app_storage import AppStorage, SynchronisedAppStorage
-from remote_eink.display.controllers import DisplayController
+from remote_eink.controllers import DisplayController
 from remote_eink.resolver import CustomRestResolver
 
 OPEN_API_LOCATION = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../openapi.yml")

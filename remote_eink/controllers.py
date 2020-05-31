@@ -5,8 +5,8 @@ from apscheduler.schedulers import SchedulerNotRunningError
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.base import STATE_RUNNING
 
-from remote_eink.display.drivers import DisplayDriver, ListenableDisplayDriver
-from remote_eink.transformers.transformers import ImageTransformer, ImageTransformerSequence
+from remote_eink.drivers.base import DisplayDriver, ListenableDisplayDriver
+from remote_eink.transformers.base import ImageTransformer, ImageTransformerSequence
 from remote_eink.models import Image
 from remote_eink.storage.images import ImageStore, ImageStoreEvent
 

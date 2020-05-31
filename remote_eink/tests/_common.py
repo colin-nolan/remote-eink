@@ -9,13 +9,13 @@ from flask_testing import TestCase
 
 from remote_eink.api.display._common import CONTENT_TYPE_HEADER, ImageTypeToMimeType
 from remote_eink.app_storage import NonSynchronisedAppStorage
-from remote_eink.display.controllers import DisplayController
-from remote_eink.display.drivers import DummyDisplayDriver
+from remote_eink.controllers import DisplayController
+from remote_eink.drivers.base import DummyDisplayDriver
 from remote_eink.models import ImageType, Image
 from remote_eink.storage.images import InMemoryImageStore
 from remote_eink.app import create_app, get_app_storage, destroy_app
 from remote_eink.transformers import ImageTransformer
-from remote_eink.transformers.transformers import InvalidConfigurationError
+from remote_eink.transformers.base import InvalidConfigurationError
 
 
 def create_image(image_type: Optional[ImageType] = None) -> Image:

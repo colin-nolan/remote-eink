@@ -1,4 +1,4 @@
-from enum import unique, Enum, auto
+from enum import unique, Enum
 from http import HTTPStatus
 
 from typing import Dict, Callable
@@ -6,9 +6,9 @@ from typing import Dict, Callable
 from marshmallow import Schema, fields
 
 from remote_eink.api.display._common import display_id_handler
-from remote_eink.display.controllers import DisplayController
+from remote_eink.controllers import DisplayController
 from remote_eink.transformers import ImageTransformer
-from remote_eink.transformers.transformers import InvalidConfigurationError, InvalidPositionError
+from remote_eink.transformers.base import InvalidConfigurationError, InvalidPositionError
 
 
 @unique

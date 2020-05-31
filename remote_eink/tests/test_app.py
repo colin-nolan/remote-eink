@@ -9,8 +9,8 @@ import unittest
 
 from remote_eink.app import create_app, get_app_storage, destroy_app
 from remote_eink.app_storage import SynchronisedAppStorage
-from remote_eink.display.controllers import DisplayController
-from remote_eink.display.drivers import DummyDisplayDriver
+from remote_eink.controllers import DisplayController
+from remote_eink.drivers.base import DummyDisplayDriver
 from remote_eink.storage.images import InMemoryImageStore
 from remote_eink.tests._common import create_dummy_display_controller
 from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE

@@ -3,7 +3,7 @@ from threading import Semaphore
 from typing import TypeVar, Generic
 
 from remote_eink.tests._common import DummyImageTransformer
-from remote_eink.transformers.transformers import ImageTransformer, ImageTransformerSequence, \
+from remote_eink.transformers.base import ImageTransformer, ImageTransformerSequence, \
     InvalidConfigurationError, InvalidPositionError
 
 ImageTransformerType = TypeVar("ImageTransformerType", bound=ImageTransformer)

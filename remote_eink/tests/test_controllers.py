@@ -6,8 +6,8 @@ from time import sleep
 from typing import TypeVar, Generic, Optional
 from unittest.mock import MagicMock
 
-from remote_eink.display.controllers import CyclableDisplayController, AutoCyclingDisplayController, DisplayController
-from remote_eink.display.drivers import DummyDisplayDriver, ListenableDisplayDriver
+from remote_eink.controllers import CyclableDisplayController, AutoCyclingDisplayController, DisplayController
+from remote_eink.drivers.base import DummyDisplayDriver, ListenableDisplayDriver
 from remote_eink.models import Image
 from remote_eink.storage.images import InMemoryImageStore, ImageStore
 from remote_eink.tests._common import DummyImageTransformer

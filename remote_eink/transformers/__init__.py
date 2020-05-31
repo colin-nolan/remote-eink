@@ -1,1 +1,1 @@
-from remote_eink.transformers.transformers import ImageTransformer, ImageTypeToPillowFormat, ImageTransformerSequence
+from remote_eink.transformers.base import ImageTransformer, ImageTypeToPillowFormat, ImageTransformerSequence

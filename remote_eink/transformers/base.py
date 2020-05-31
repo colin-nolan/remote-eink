@@ -7,7 +7,7 @@ from enum import unique, Enum, auto
 from remote_eink.events import EventListenerController
 from remote_eink.models import Image, ImageType
 
-_logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 ImageTypeToPillowFormat = {
     ImageType.BMP: "BMP",

@@ -6,7 +6,7 @@ from typing import Dict, ContextManager
 from multiprocessing_on_dill.managers import SyncManager
 
 from remote_eink.common import DisplayControllerNotFoundError
-from remote_eink.display.controllers import DisplayController
+from remote_eink.controllers import DisplayController
 
 
 class AppStorage(metaclass=ABCMeta):

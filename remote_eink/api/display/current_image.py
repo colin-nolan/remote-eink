@@ -2,7 +2,7 @@ from http import HTTPStatus
 from typing import Dict
 
 from remote_eink.api.display._common import display_id_handler, ImageSchema
-from remote_eink.display.controllers import DisplayController
+from remote_eink.controllers import DisplayController
 
 
 @display_id_handler

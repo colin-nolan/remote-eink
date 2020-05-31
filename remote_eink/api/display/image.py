@@ -2,7 +2,7 @@ from http import HTTPStatus
 from flask import make_response, request
 
 from remote_eink.api.display._common import ImageTypeToMimeType, CONTENT_TYPE_HEADER, display_id_handler, ImageSchema
-from remote_eink.display.controllers import DisplayController
+from remote_eink.controllers import DisplayController
 from remote_eink.models import Image
 from remote_eink.storage.images import ImageAlreadyExistsError
 

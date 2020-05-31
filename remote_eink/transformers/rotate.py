@@ -6,7 +6,7 @@ import logging
 from io import BytesIO
 
 from remote_eink.models import Image
-from remote_eink.transformers.transformers import ImageTransformer, ImageTypeToPillowFormat, InvalidConfigurationError
+from remote_eink.transformers.base import ImageTransformer, ImageTypeToPillowFormat, InvalidConfigurationError
 
 _logger = logging.getLogger(__name__)
 
