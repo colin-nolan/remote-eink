@@ -9,7 +9,7 @@ import unittest
 
 from remote_eink.app import create_app, get_app_storage, destroy_app
 from remote_eink.app_storage import SynchronisedAppStorage
-from remote_eink.controllers import DisplayController
+from remote_eink.controllers import BaseDisplayController
 from remote_eink.drivers.base import DummyDisplayDriver
 from remote_eink.storage.images import InMemoryImageStore
 from remote_eink.tests._common import create_dummy_display_controller
@@ -43,7 +43,7 @@ class TestApp(unittest.TestCase):
         return self.app_storage.display_controllers[self._display_controller_id]
 
     def setUp(self):
-        display_controller = DisplayController(DummyDisplayDriver(), InMemoryImageStore([]))
+        display_controller = BaseDisplayController(DummyDisplayDriver(), InMemoryImageStore([]))
         self._display_controller_id = display_controller.identifier
         self.app = create_app([display_controller], SynchronisedAppStorage).app
         self.app_storage = get_app_storage(app=self.app)
@@ -80,7 +80,7 @@ class TestApp(unittest.TestCase):
 
     def test_add_new_display_controller(self):
         updated = Event()
-        new_display_controller = DisplayController(DummyDisplayDriver(), InMemoryImageStore([]))
+        new_display_controller = BaseDisplayController(DummyDisplayDriver(), InMemoryImageStore([]))
 
         def updater():
             nonlocal self, updated, new_display_controller

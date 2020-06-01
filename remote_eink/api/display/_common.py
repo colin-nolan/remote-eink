@@ -2,6 +2,7 @@ from http import HTTPStatus
 from typing import Callable
 
 from bidict import bidict
+from flask import current_app
 from marshmallow import Schema, fields
 
 from remote_eink.app import get_app_storage
@@ -32,6 +33,7 @@ def display_id_handler(wrappable: Callable) -> Callable:
              to the handler
     """
     def wrapped(displayId: str, *args, **kwargs):
+        temp()
         try:
             with get_app_storage().update_display_controller(displayId) as display_controller:
                 return wrappable(display_controller, *args, **kwargs)
@@ -39,3 +41,8 @@ def display_id_handler(wrappable: Callable) -> Callable:
             return f"Display not found: {displayId}", HTTPStatus.NOT_FOUND
 
     return wrapped
+
+
+def temp():
+    with current_app.app_context():
+        print(current_app.config["DISPLAY_DRIVER_CONTROLLER_RECEIVER"])

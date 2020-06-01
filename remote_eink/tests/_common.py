@@ -9,7 +9,7 @@ from flask_testing import TestCase
 
 from remote_eink.api.display._common import CONTENT_TYPE_HEADER, ImageTypeToMimeType
 from remote_eink.app_storage import NonSynchronisedAppStorage
-from remote_eink.controllers import DisplayController
+from remote_eink.controllers import DisplayController, BaseDisplayController
 from remote_eink.drivers.base import DummyDisplayDriver
 from remote_eink.models import ImageType, Image
 from remote_eink.storage.images import InMemoryImageStore
@@ -49,7 +49,7 @@ def create_dummy_display_controller(*, number_of_images: int = 0, number_of_imag
                              "image transformers")
         kwargs["image_transformers"] = [DummyImageTransformer() for _ in range(number_of_image_transformers)]
 
-    return DisplayController(driver=DummyDisplayDriver(), **kwargs)
+    return BaseDisplayController(driver=DummyDisplayDriver(), **kwargs)
 
 
 def set_content_type_header(image: Image, headers: Optional[Dict] = None):

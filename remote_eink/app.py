@@ -8,6 +8,7 @@ from flask_cors import CORS
 
 from remote_eink.app_storage import AppStorage, SynchronisedAppStorage
 from remote_eink.controllers import DisplayController
+from remote_eink.multiprocess import MultiprocessDisplayController, MultiprocessDisplayControllerReceiver
 from remote_eink.resolver import CustomRestResolver
 
 OPEN_API_LOCATION = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../openapi.yml")
@@ -30,6 +31,9 @@ def create_app(display_controllers: Collection[DisplayController],
     app_identifier = str(uuid4())
     with app.app.app_context():
         app.app.config["identifier"] = app_identifier
+        app.app.config["DISPLAY_DRIVER_CONTROLLER_RECEIVER"] = {
+            display_controllers.identifier: MultiprocessDisplayControllerReceiver(display_driver)
+            for display_driver in display_controllers}
 
     # Using external storage (opposed to Flask based) to guarantee process-safe synchronisation and locking
     global _apps

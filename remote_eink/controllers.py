@@ -1,3 +1,4 @@
+from abc import abstractmethod, ABCMeta
 from threading import Timer
 from typing import Optional, Sequence
 from uuid import uuid4
@@ -6,7 +7,7 @@ from apscheduler.schedulers import SchedulerNotRunningError
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.base import STATE_RUNNING
 
-from remote_eink.drivers.base import DisplayDriver
+from remote_eink.drivers.base import DisplayDriver, BaseDisplayDriver
 from remote_eink.transformers.base import ImageTransformer, ImageTransformerSequence
 from remote_eink.models import Image
 from remote_eink.storage.images import ImageStore, ImageStoreEvent
@@ -22,16 +23,86 @@ class ImageNotFoundError(ValueError):
         super().__init__(f"Image cannot be found: {image_id}")
 
 
-class DisplayController:
+class DisplayController(metaclass=ABCMeta):
     """
     Display controller.
     """
+    @property
+    @abstractmethod
+    def identifier(self) -> str:
+        """
+        TODO
+        :return:
+        """
+
+    @property
+    @abstractmethod
+    def current_image(self) -> Image:
+        """
+        TODO
+        :return:
+        """
+
+    @property
+    @abstractmethod
+    def driver(self) -> BaseDisplayDriver:
+        """
+        TODO
+        :return:
+        """
+
+    @property
+    @abstractmethod
+    def image_store(self) -> ImageStore:
+        """
+        TODO
+        :return:
+        """
+
+    @property
+    @abstractmethod
+    def image_transformers(self) -> ImageTransformerSequence:
+        """
+        TODO
+        :return:
+        """
+
+    @abstractmethod
+    def display(self, image_id: str):
+        """
+        Displays the image with the given ID.
+        :param image_id: ID of stored image
+        """
+
+    @abstractmethod
+    def clear(self):
+        """
+        Clears the display.
+        """
+
+    @abstractmethod
+    def apply_image_transforms(self, image: Image) -> Image:
+        """
+        Apply image transforms (defined by the image transformers sequence) to the given image.
+        :param image: image to apply transforms (not modified)
+        :return: new, transformed image
+        """
+
+
+class BaseDisplayController(DisplayController):
+    """
+    Display controller.
+    """
+    @property
+    def identifier(self) -> str:
+        return self._identifier
+
     @property
     def current_image(self) -> Image:
         return self._current_image
 
     @property
-    def driver(self) -> DisplayDriver:
+    def driver(self) -> BaseDisplayDriver:
         return self._driver
 
     @property
@@ -42,7 +113,7 @@ class DisplayController:
     def image_transformers(self) -> ImageTransformerSequence:
         return self._image_transformers
 
-    def __init__(self, driver: DisplayDriver, image_store: ImageStore, identifier: Optional[str] = None,
+    def __init__(self, driver: BaseDisplayDriver, image_store: ImageStore, identifier: Optional[str] = None,
                  image_transformers: Sequence[ImageTransformer] = (), sleep_after_seconds: float = 300):
         """
         Constructor.
@@ -51,7 +122,7 @@ class DisplayController:
         :param identifier: driver identifier
         :param image_transformers: image display transformers
         """
-        self.identifier = identifier if identifier is not None else str(uuid4())
+        self._identifier = identifier if identifier is not None else str(uuid4())
         self.sleep_after_seconds = sleep_after_seconds
         self._driver = driver
         self._current_image = None
@@ -61,8 +132,8 @@ class DisplayController:
         self._sleep_timer: Optional[Timer] = None
 
         self._image_store.event_listeners.add_listener(self._on_remove_image, ImageStoreEvent.REMOVE)
-        self._driver.event_listeners.add_listener(self._on_clear, DisplayDriver.Event.CLEAR)
-        self._driver.event_listeners.add_listener(self._on_display, DisplayDriver.Event.DISPLAY)
+        self._driver.event_listeners.add_listener(self._on_clear, BaseDisplayDriver.Event.CLEAR)
+        self._driver.event_listeners.add_listener(self._on_display, BaseDisplayDriver.Event.DISPLAY)
 
     def display(self, image_id: str):
         """
@@ -135,11 +206,11 @@ class DisplayController:
             self._sleep_timer.start()
 
 
-class CyclableDisplayController(DisplayController):
+class CyclableDisplayController(BaseDisplayController):
     """
     TODO
     """
-    def __init__(self, driver: DisplayDriver, image_store: ImageStore, identifier: Optional[str] = None,
+    def __init__(self, driver: BaseDisplayDriver, image_store: ImageStore, identifier: Optional[str] = None,
                  image_transformers: Sequence[ImageTransformer] = ()):
         """
         TODO

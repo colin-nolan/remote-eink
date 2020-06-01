@@ -10,6 +10,56 @@ class DisplayDriver(metaclass=ABCMeta):
     """
     TODO
     """
+    @property
+    @abstractmethod
+    def sleeping(self) -> bool:
+        """
+        TODO
+        :return:
+        """
+
+    @property
+    @abstractmethod
+    def image(self) -> Optional[Image]:
+        """
+        TODO
+        :return:
+        """
+
+    @abstractmethod
+    def display(self, image: Image):
+        """
+        TODO
+        :param image:
+        :return:
+        """
+
+    @abstractmethod
+    def clear(self):
+        """
+        TODO
+        :return:
+        """
+
+    @abstractmethod
+    def sleep(self):
+        """
+        TODO
+        :return:
+        """
+
+    @abstractmethod
+    def wake(self):
+        """
+        TODO
+        :return:
+        """
+
+
+class BaseDisplayDriver(DisplayDriver, metaclass=ABCMeta):
+    """
+    TODO
+    """
     @unique
     class Event(Enum):
         DISPLAY = auto()
@@ -31,7 +81,7 @@ class DisplayDriver(metaclass=ABCMeta):
         TODO
         :param sleeping:
         """
-        self.event_listeners = EventListenerController[DisplayDriver.Event]()
+        self.event_listeners = EventListenerController[BaseDisplayDriver.Event]()
         self._sleeping = sleeping
         self._image = None
         if image:
@@ -47,7 +97,7 @@ class DisplayDriver(metaclass=ABCMeta):
             self.wake()
         self._display(image.data)
         self._image = image
-        self.event_listeners.call_listeners(DisplayDriver.Event.DISPLAY, [image])
+        self.event_listeners.call_listeners(BaseDisplayDriver.Event.DISPLAY, [image])
 
     def clear(self):
         """
@@ -56,7 +106,7 @@ class DisplayDriver(metaclass=ABCMeta):
         """
         self._clear()
         self._image = None
-        self.event_listeners.call_listeners(DisplayDriver.Event.CLEAR)
+        self.event_listeners.call_listeners(BaseDisplayDriver.Event.CLEAR)
 
     def sleep(self):
         """
@@ -66,7 +116,7 @@ class DisplayDriver(metaclass=ABCMeta):
         if not self.sleeping:
             self._sleep()
             self._sleeping = True
-            self.event_listeners.call_listeners(DisplayDriver.Event.SLEEP)
+            self.event_listeners.call_listeners(BaseDisplayDriver.Event.SLEEP)
 
     def wake(self):
         """
@@ -76,7 +126,7 @@ class DisplayDriver(metaclass=ABCMeta):
         if self.sleeping:
             self._wake()
             self._sleeping = False
-            self.event_listeners.call_listeners(DisplayDriver.Event.WAKE)
+            self.event_listeners.call_listeners(BaseDisplayDriver.Event.WAKE)
 
     @abstractmethod
     def _display(self, image_data: bytes):
@@ -108,7 +158,7 @@ class DisplayDriver(metaclass=ABCMeta):
         """
 
 
-class DummyDisplayDriver(DisplayDriver):
+class DummyDisplayDriver(BaseDisplayDriver):
     """
     TODO
     """

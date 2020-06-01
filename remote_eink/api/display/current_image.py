@@ -14,8 +14,7 @@ def search(display_controller: DisplayController):
 
 @display_id_handler
 def delete(display_controller: DisplayController):
-    # TODO: should `clear` be on controller, given it has `display`?
-    display_controller.driver.clear()
+    display_controller.clear()
     return "Image cleared", HTTPStatus.OK
 
 
