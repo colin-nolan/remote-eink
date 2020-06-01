@@ -1,12 +1,10 @@
+import logging
 from enum import Enum, unique
-
+from io import BytesIO
 from typing import Dict, Any
 
-import logging
-from io import BytesIO
-
 from remote_eink.models import Image
-from remote_eink.transformers.base import ImageTransformer, ImageTypeToPillowFormat, InvalidConfigurationError
+from remote_eink.transformers.base import ImageTypeToPillowFormat, InvalidConfigurationError, BaseImageTransformer
 
 _logger = logging.getLogger(__name__)
 
@@ -27,7 +25,7 @@ class RotateConfigurationParameter(Enum):
     FILL_COLOR = "fill_color"
 
 
-class RotateImageTransformer(ImageTransformer):
+class RotateImageTransformer(BaseImageTransformer):
     """
     TODO
     """

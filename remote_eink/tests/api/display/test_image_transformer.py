@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
-from remote_eink.app import get_app_storage
 from remote_eink.tests._common import AppTestBase, DummyImageTransformer
+from remote_eink.transformers import ImageTransformer
 from remote_eink.transformers.rotate import RotateImageTransformer, RotateConfigurationParameter
 
 
@@ -9,6 +9,10 @@ class TestImageTransformer(AppTestBase):
     """
     Tests for the `/display/{displayId}/image-transformer` endpoint.
     """
+    @property
+    def image_transformer(self) -> ImageTransformer:
+        return self.image_transformers[0]
+
     def setUp(self):
         self.image_transformers = []
         for i in range(3):
@@ -19,8 +23,8 @@ class TestImageTransformer(AppTestBase):
     def test_list(self):
         result = self.client.get(f"/display/{self.display_controller.identifier}/image-transformer")
         self.assertEqual(HTTPStatus.OK, result.status_code)
-        self.assertCountEqual(({"id": transformer.identifier} for transformer in self.display_controller.image_transformers),
-                              result.json)
+        self.assertCountEqual(
+            ({"id": transformer.identifier} for transformer in self.display_controller.image_transformers), result.json)
 
     def test_list_when_display_does_not_exist(self):
         result = self.client.get(f"/display/does-not-exist/image")
@@ -46,11 +50,9 @@ class TestImageTransformer(AppTestBase):
         self.assertEqual(HTTPStatus.NOT_FOUND, result.status_code)
 
     def test_put(self):
-        with get_app_storage().update_display_controller(self.display_controller.identifier) \
-                as display_controller:
-            image_transformer = RotateImageTransformer(angle=0.0, expand=False, fill_color="green")
-            display_controller.image_transformers.add(image_transformer)
-            assert image_transformer in display_controller.image_transformers
+        image_transformer = RotateImageTransformer(angle=0.0, expand=False, fill_color="green")
+        self.display_controller.image_transformers.add(image_transformer)
+        assert image_transformer in self.display_controller.image_transformers
 
         result = self.client.put(
             f"/display/{self.display_controller.identifier}/image-transformer/{image_transformer.identifier}",
@@ -61,21 +63,20 @@ class TestImageTransformer(AppTestBase):
             }})
 
         self.assertEqual(HTTPStatus.OK, result.status_code)
-        self.synchronise_display_controllers()
-        image_transformer = self.display_controller.image_transformers.get_by_id(image_transformer.identifier)[0]
+        image_transformer = self.display_controller.image_transformers.get_by_id(image_transformer.identifier)
         self.assertEqual(90.0, image_transformer.angle)
         self.assertEqual(True, image_transformer.expand)
         self.assertEqual("silver", image_transformer.fill_color)
 
     def test_put_with_invalid_parameter(self):
         result = self.client.put(
-            f"/display/{self.display_controller.identifier}/image-transformer/{self.image_transformers[0].identifier}",
+            f"/display/{self.display_controller.identifier}/image-transformer/{self.image_transformer.identifier}",
             json={"invalid-config-property": True})
         self.assertEqual(HTTPStatus.BAD_REQUEST, result.status_code)
 
     def test_put_with_invalid_configuration_parameters(self):
         result = self.client.put(
-            f"/display/{self.display_controller.identifier}/image-transformer/{self.image_transformers[0].identifier}",
+            f"/display/{self.display_controller.identifier}/image-transformer/{self.image_transformer.identifier}",
             json={"configuration": {"invalid-config-property": True}})
         self.assertEqual(HTTPStatus.BAD_REQUEST, result.status_code)
 
@@ -95,7 +96,6 @@ class TestImageTransformer(AppTestBase):
         result = self.client.put(
             f"/display/{self.display_controller.identifier}/image-transformer/{first.identifier}", json={"position": 2})
         self.assertEqual(HTTPStatus.OK, result.status_code)
-        self.synchronise_display_controllers()
         self.assertEqual(2, self.display_controller.image_transformers.get_position(first))
 
     def test_put_position_no_change(self):
@@ -112,7 +112,6 @@ class TestImageTransformer(AppTestBase):
             f"/display/{self.display_controller.identifier}/image-transformer/{image_transformer_id}",
             json={"position": len(self.display_controller.image_transformers) + 10})
         self.assertEqual(HTTPStatus.OK, result.status_code)
-        self.synchronise_display_controllers()
         self.assertEqual(len(self.display_controller.image_transformers) - 1,
                          self.display_controller.image_transformers.get_position(image_transformer_id))
 

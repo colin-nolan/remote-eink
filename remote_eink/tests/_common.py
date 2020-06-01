@@ -1,21 +1,20 @@
 import random
-from contextlib import contextmanager
-
 from abc import ABCMeta
-from typing import Optional, Dict, Any, Callable, ContextManager
+from typing import Optional, Dict, Any, Callable
 from uuid import uuid4
 
+from flask import current_app
 from flask_testing import TestCase
 
 from remote_eink.api.display._common import CONTENT_TYPE_HEADER, ImageTypeToMimeType
-from remote_eink.app_storage import NonSynchronisedAppStorage
-from remote_eink.controllers import DisplayController
+from remote_eink.app import create_app, destroy_app, add_display_controller
+from remote_eink.controllers import DisplayController, BaseDisplayController
 from remote_eink.drivers.base import DummyDisplayDriver
 from remote_eink.models import ImageType, Image
+from remote_eink.multiprocess import kill
 from remote_eink.storage.images import InMemoryImageStore
-from remote_eink.app import create_app, get_app_storage, destroy_app
-from remote_eink.transformers import ImageTransformer
-from remote_eink.transformers.base import InvalidConfigurationError
+from remote_eink.tests.storage._common import WHITE_IMAGE
+from remote_eink.transformers.base import InvalidConfigurationError, BaseImageTransformer, ListenableImageTransformer
 
 
 def create_image(image_type: Optional[ImageType] = None) -> Image:
@@ -26,7 +25,7 @@ def create_image(image_type: Optional[ImageType] = None) -> Image:
     if image_type is None:
         image_type = random.choice(list(ImageType))
     identifier = str(uuid4())
-    return Image(identifier, lambda: f"data-{identifier}".encode(), image_type)
+    return Image(identifier, lambda: WHITE_IMAGE.data, image_type)
 
 
 def create_dummy_display_controller(*, number_of_images: int = 0, number_of_image_transformers: int = 0, **kwargs) \
@@ -49,7 +48,7 @@ def create_dummy_display_controller(*, number_of_images: int = 0, number_of_imag
                              "image transformers")
         kwargs["image_transformers"] = [DummyImageTransformer() for _ in range(number_of_image_transformers)]
 
-    return DisplayController(driver=DummyDisplayDriver(), **kwargs)
+    return BaseDisplayController(driver=DummyDisplayDriver(), **kwargs)
 
 
 def set_content_type_header(image: Image, headers: Optional[Dict] = None):
@@ -77,40 +76,31 @@ class AppTestBase(TestCase, metaclass=ABCMeta):
     def display_controllers(self) -> Dict[str, DisplayController]:
         return {x.identifier: x for x in self._display_controllers}
 
+    def setUp(self):
+        self._display_controllers.append(self.create_display_controller())
+
     def tearDown(self):
         if self._app:
+            # FIXME
+            with current_app.app_context():
+                for display_controller_receiver in current_app.config["DISPLAY_CONTROLLER_RECEIVER"].values():
+                    kill(display_controller_receiver)
             destroy_app(self._app)
 
     # Required to satisfy the super class' interface
     def create_app(self):
         self._display_controllers = []
-        # Note: use of `NonSynchronisedAppStorage` makes the tests a lot faster
-        self._app = create_app(self._display_controllers, NonSynchronisedAppStorage).app
-        self._app.config["TESTING"] = True
+        self._app = create_app(self._display_controllers)
         return self._app
 
     def create_display_controller(self, **kwargs):
         display_controller = create_dummy_display_controller(**kwargs)
-        with get_app_storage(app=self._app).update_display_controllers() as display_controllers:
-            display_controllers[display_controller.identifier] = display_controller
+        add_display_controller(display_controller, self._app)
         self._display_controllers.append(display_controller)
         return display_controller
 
-    @contextmanager
-    def create_and_update_display_controller(self, **kwargs) -> ContextManager[DisplayController]:
-        display_controller = create_dummy_display_controller(**kwargs)
-        self._display_controllers.append(display_controller)
-        try:
-            yield display_controller
-        finally:
-            with get_app_storage(app=self._app).update_display_controllers() as display_controllers:
-                display_controllers[display_controller.identifier] = display_controller
 
-    def synchronise_display_controllers(self):
-        self._display_controllers = list(get_app_storage(app=self._app).display_controllers.values())
-
-
-class DummyImageTransformer(ImageTransformer):
+class DummyImageTransformer(BaseImageTransformer):
     @property
     def configuration(self) -> Dict[str, Any]:
         return self.dummy_configuration

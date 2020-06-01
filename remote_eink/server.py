@@ -3,6 +3,10 @@ import time
 from threading import Thread, Semaphore
 from typing import Optional
 
+from flask import Flask
+
+from remote_eink.app import destroy_app
+
 _logger = logging.getLogger(__name__)
 
 try:
@@ -26,12 +30,14 @@ class Server:
     def url(self) -> str:
         return f"http://{self.interface}:{self.port}"
 
-    def __init__(self, interface: str, port: int):
+    def __init__(self, app: Flask, interface: str, port: int, ):
         """
         Constructor.
+        :param app: copy of app ran on the server
         :param interface: interface server is bound to
         :param port: port the server is using
         """
+        self.app: Optional[Flask] = app
         self.interface = interface
         self.port = port
         self.server_set = Semaphore(0)
@@ -45,6 +51,8 @@ class Server:
         """
         if self.server:
             self.server.stop()
+            if self.app:
+                destroy_app(self.app)
             if self.thread:
                 self.thread.join(timeout_in_seconds)
 
@@ -74,7 +82,7 @@ def start(app: FlaskApp, *, interface: str = "0.0.0.0", port: int = 8080) -> Ser
     :param port: port to use
     :return: model of the running server
     """
-    server = Server(interface, port)
+    server = Server(app, interface, port)
     thread = Thread(target=run, kwargs=dict(app=app, server=server, interface=interface, port=port))
     thread.start()
     server.thread = thread
