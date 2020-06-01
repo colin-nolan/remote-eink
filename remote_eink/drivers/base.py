@@ -10,56 +10,14 @@ class DisplayDriver(metaclass=ABCMeta):
     """
     TODO
     """
-    @property
-    @abstractmethod
-    def sleeping(self) -> bool:
-        """
-        TODO
-        :return:
-        """
+    @unique
+    class Event(Enum):
+        DISPLAY = auto()
+        CLEAR = auto()
+        SLEEP = auto()
+        WAKE = auto()
+        RESET_SLEEP_TIMER = auto()
 
-    @property
-    @abstractmethod
-    def image(self) -> Optional[Image]:
-        """
-        TODO
-        :return:
-        """
-
-    @abstractmethod
-    def display(self, image: Image):
-        """
-        TODO
-        :param image:
-        :return:
-        """
-
-    @abstractmethod
-    def clear(self):
-        """
-        TODO
-        :return:
-        """
-
-    @abstractmethod
-    def sleep(self):
-        """
-        TODO
-        :return:
-        """
-
-    @abstractmethod
-    def wake(self):
-        """
-        TODO
-        :return:
-        """
-
-
-class BaseDisplayDriver(DisplayDriver, metaclass=ABCMeta):
-    """
-    TODO
-    """
     @property
     def sleeping(self) -> bool:
         return self._sleeping
@@ -73,6 +31,7 @@ class BaseDisplayDriver(DisplayDriver, metaclass=ABCMeta):
         TODO
         :param sleeping:
         """
+        self.event_listeners = EventListenerController[DisplayDriver.Event]()
         self._sleeping = sleeping
         self._image = None
         if image:
@@ -88,6 +47,7 @@ class BaseDisplayDriver(DisplayDriver, metaclass=ABCMeta):
             self.wake()
         self._display(image.data)
         self._image = image
+        self.event_listeners.call_listeners(DisplayDriver.Event.DISPLAY, [image])
 
     def clear(self):
         """
@@ -96,6 +56,7 @@ class BaseDisplayDriver(DisplayDriver, metaclass=ABCMeta):
         """
         self._clear()
         self._image = None
+        self.event_listeners.call_listeners(DisplayDriver.Event.CLEAR)
 
     def sleep(self):
         """
@@ -105,6 +66,7 @@ class BaseDisplayDriver(DisplayDriver, metaclass=ABCMeta):
         if not self.sleeping:
             self._sleep()
             self._sleeping = True
+            self.event_listeners.call_listeners(DisplayDriver.Event.SLEEP)
 
     def wake(self):
         """
@@ -114,6 +76,7 @@ class BaseDisplayDriver(DisplayDriver, metaclass=ABCMeta):
         if self.sleeping:
             self._wake()
             self._sleeping = False
+            self.event_listeners.call_listeners(DisplayDriver.Event.WAKE)
 
     @abstractmethod
     def _display(self, image_data: bytes):
@@ -145,7 +108,7 @@ class BaseDisplayDriver(DisplayDriver, metaclass=ABCMeta):
         """
 
 
-class DummyDisplayDriver(BaseDisplayDriver):
+class DummyDisplayDriver(DisplayDriver):
     """
     TODO
     """
@@ -160,47 +123,3 @@ class DummyDisplayDriver(BaseDisplayDriver):
 
     def _wake(self):
         pass
-
-
-class ListenableDisplayDriver(DisplayDriver):
-    """
-    TODO
-    """
-    @unique
-    class Event(Enum):
-        DISPLAY = auto()
-        CLEAR = auto()
-        SLEEP = auto()
-        WAKE = auto()
-
-    @property
-    def sleeping(self) -> bool:
-        return self._display_driver.sleeping
-
-    @property
-    def image(self) -> Optional[Image]:
-        return self._display_driver.image
-
-    def __init__(self, display_driver: DisplayDriver):
-        """
-        TODO
-        :param display_driver:
-        """
-        self._display_driver = display_driver
-        self.event_listeners = EventListenerController[ListenableDisplayDriver.Event]()
-
-    def display(self, image: Image):
-        self._display_driver.display(image)
-        self.event_listeners.call_listeners(ListenableDisplayDriver.Event.DISPLAY, [image])
-
-    def clear(self):
-        self._display_driver.clear()
-        self.event_listeners.call_listeners(ListenableDisplayDriver.Event.CLEAR)
-
-    def sleep(self):
-        self._display_driver.sleep()
-        self.event_listeners.call_listeners(ListenableDisplayDriver.Event.SLEEP)
-
-    def wake(self):
-        self._display_driver.wake()
-        self.event_listeners.call_listeners(ListenableDisplayDriver.Event.WAKE)

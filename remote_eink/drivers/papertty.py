@@ -1,7 +1,7 @@
 import logging
 from io import BytesIO
 
-from remote_eink.drivers.base import BaseDisplayDriver
+from remote_eink.drivers.base import DisplayDriver
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ except ImportError:
     raise
 
 
-class PaperTtyDriver(BaseDisplayDriver):
+class PaperTtyDriver(DisplayDriver):
     """
     PaperTTY-based device driver.
     """
@@ -27,11 +27,9 @@ class PaperTtyDriver(BaseDisplayDriver):
         self._papertty: PaperTTY = None
 
     def _display(self, image_data: bytes):
-        self._wake()
         display_image(self._device_driver, BytesIO(image_data))
 
     def _clear(self):
-        self._wake()
         self._papertty.clear()
 
     def _sleep(self):

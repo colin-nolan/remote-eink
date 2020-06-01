@@ -6,7 +6,7 @@ from apscheduler.schedulers import SchedulerNotRunningError
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.base import STATE_RUNNING
 
-from remote_eink.drivers.base import DisplayDriver, ListenableDisplayDriver
+from remote_eink.drivers.base import DisplayDriver
 from remote_eink.transformers.base import ImageTransformer, ImageTransformerSequence
 from remote_eink.models import Image
 from remote_eink.storage.images import ImageStore, ImageStoreEvent
@@ -31,7 +31,7 @@ class DisplayController:
         return self._current_image
 
     @property
-    def driver(self) -> ListenableDisplayDriver:
+    def driver(self) -> DisplayDriver:
         return self._driver
 
     @property
@@ -53,7 +53,7 @@ class DisplayController:
         """
         self.identifier = identifier if identifier is not None else str(uuid4())
         self.sleep_after_seconds = sleep_after_seconds
-        self._driver = ListenableDisplayDriver(driver)
+        self._driver = driver
         self._current_image = None
         self._image_store = image_store
         self._image_transformers = ImageTransformerSequence(image_transformers)
@@ -61,8 +61,8 @@ class DisplayController:
         self._sleep_timer: Optional[Timer] = None
 
         self._image_store.event_listeners.add_listener(self._on_remove_image, ImageStoreEvent.REMOVE)
-        self._driver.event_listeners.add_listener(self._on_clear, ListenableDisplayDriver.Event.CLEAR)
-        self._driver.event_listeners.add_listener(self._on_display, ListenableDisplayDriver.Event.DISPLAY)
+        self._driver.event_listeners.add_listener(self._on_clear, DisplayDriver.Event.CLEAR)
+        self._driver.event_listeners.add_listener(self._on_display, DisplayDriver.Event.DISPLAY)
 
     def display(self, image_id: str):
         """
