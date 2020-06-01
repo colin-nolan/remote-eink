@@ -1,3 +1,4 @@
+from threading import Timer
 from typing import Optional, Sequence
 from uuid import uuid4
 
@@ -42,7 +43,7 @@ class DisplayController:
         return self._image_transformers
 
     def __init__(self, driver: DisplayDriver, image_store: ImageStore, identifier: Optional[str] = None,
-                 image_transformers: Sequence[ImageTransformer] = ()):
+                 image_transformers: Sequence[ImageTransformer] = (), sleep_after_seconds: float = 300):
         """
         Constructor.
         :param driver: display driver
@@ -51,11 +52,13 @@ class DisplayController:
         :param image_transformers: image display transformers
         """
         self.identifier = identifier if identifier is not None else str(uuid4())
+        self.sleep_after_seconds = sleep_after_seconds
         self._driver = ListenableDisplayDriver(driver)
         self._current_image = None
         self._image_store = image_store
         self._image_transformers = ImageTransformerSequence(image_transformers)
         self._display_requested = False
+        self._sleep_timer: Optional[Timer] = None
 
         self._image_store.event_listeners.add_listener(self._on_remove_image, ImageStoreEvent.REMOVE)
         self._driver.event_listeners.add_listener(self._on_clear, ListenableDisplayDriver.Event.CLEAR)
@@ -108,6 +111,7 @@ class DisplayController:
         Handler for when the display is cleared via the driver.
         """
         assert self.driver.image is None
+        self._restart_sleep_timer()
         self._current_image = None
 
     def _on_display(self, image: Image):
@@ -116,11 +120,19 @@ class DisplayController:
         :param image: the image that has been displayed
         """
         assert self.driver.image == image
+        self._restart_sleep_timer()
         if not self._display_requested:
             # Driver has been used directly to update - cope with it
             if self.image_store.get(image.identifier) is None:
                 self.image_store.add(image)
             self._current_image = image
+
+    def _restart_sleep_timer(self):
+        if self._sleep_timer != 0:
+            if self._sleep_timer is not None:
+                self._sleep_timer.cancel()
+            self._sleep_timer = Timer(self.sleep_after_seconds, self.driver.sleep)
+            self._sleep_timer.start()
 
 
 class CyclableDisplayController(DisplayController):

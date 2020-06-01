@@ -24,11 +24,11 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
     def create_display_controller(self, image_store: Optional[ImageStore] = None, *args, **kwargs) \
             -> _DisplayControllerType:
         """
-        TODO
-        :param image_store:
-        :param args:
-        :param kwargs:
-        :return:
+        Creates display controller to test.
+        :param image_store: image store that the display controller is to have
+        :param args: positional arguments to pass to the display controller
+        :param kwargs: keyword arguments to pass to the display controller
+        :return: created display controller
         """
 
     def setUp(self):
@@ -108,6 +108,10 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
             self.display_controller.image_transformers.add(transformer)
         self.display_controller.apply_image_transforms(WHITE_IMAGE)
         self.assertEqual([i for i, transformer in enumerate(transformers) if transformer.active], call_order)
+
+    # TODO
+    def test_sleep_after_no_use(self):
+        pass
 
 
 class TestCyclableDisplayController(_TestDisplayController[CyclableDisplayController]):
