@@ -6,7 +6,7 @@ from typing import TypeVar, Generic
 
 from remote_eink.models import Image
 from remote_eink.storage.images import ImageStore, InMemoryImageStore, ImageAlreadyExistsError, FileSystemImageStore, \
-    ImageStoreEvent
+    ListenableImageStore
 from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE
 
 _ImageStoreType = TypeVar("_ImageStoreType", bound=ImageStore)
@@ -80,28 +80,6 @@ class _TestImageStore(unittest.TestCase, Generic[_ImageStoreType], metaclass=ABC
     def test_remove_non_existent(self):
         self.assertFalse(self.image_store.remove("does-not-exist"))
 
-    def test_add_listener(self):
-        added = None
-
-        def add_listener(image):
-            nonlocal added
-            added = image
-
-        self.image_store.event_listeners.add_listener(add_listener, ImageStoreEvent.ADD)
-        self.image_store.add(WHITE_IMAGE)
-        self.assertEqual(added, WHITE_IMAGE)
-
-    def test_remove_listener(self):
-        removed = None
-
-        def remove_listener(image_id):
-            nonlocal removed
-            removed = image_id
-
-        self.image_store.event_listeners.add_listener(remove_listener, ImageStoreEvent.REMOVE)
-        self.image_store.remove(WHITE_IMAGE.identifier)
-        self.assertEqual(removed, WHITE_IMAGE.identifier)
-
 
 class TestInMemoryImageStore(_TestImageStore[InMemoryImageStore]):
     """
@@ -137,6 +115,36 @@ class TestFileSystemImageStore(_TestImageStore[InMemoryImageStore]):
         temp_directory = tempfile.mkdtemp()
         self._temp_directories.append(temp_directory)
         return FileSystemImageStore(temp_directory, *args, **kwargs)
+
+
+class TestListenableImageStore(_TestImageStore[ListenableImageStore]):
+    """
+    Tests `ListenableImageStore`.
+    """
+    def test_add_listener(self):
+        added = None
+
+        def add_listener(image):
+            nonlocal added
+            added = image
+
+        self.image_store.event_listeners.add_listener(add_listener, ListenableImageStore.Event.ADD)
+        self.image_store.add(WHITE_IMAGE)
+        self.assertEqual(added, WHITE_IMAGE)
+
+    def test_remove_listener(self):
+        removed = None
+
+        def remove_listener(image_id):
+            nonlocal removed
+            removed = image_id
+
+        self.image_store.event_listeners.add_listener(remove_listener, ListenableImageStore.Event.REMOVE)
+        self.image_store.remove(WHITE_IMAGE.identifier)
+        self.assertEqual(removed, WHITE_IMAGE.identifier)
+
+    def create_image_store(self, *args, **kwargs) -> ListenableImageStore:
+        return ListenableImageStore(InMemoryImageStore(*args, **kwargs))
 
 
 del _TestImageStore

@@ -94,7 +94,7 @@ class SimpleImageStore(ImageStore):
         Constructor.
         :param images: images to save
         """
-        self.event_listeners = EventListenerController[ImageStoreEvent]()
+        super().__init__()
         for image in images:
             self.add(image)
 
@@ -115,11 +115,9 @@ class SimpleImageStore(ImageStore):
 
     def add(self, image: Image):
         self._add(image)
-        self.event_listeners.call_listeners(ImageStoreEvent.ADD, [image])
 
     def remove(self, image_id: str) -> bool:
         removed = self._remove(image_id)
-        self.event_listeners.call_listeners(ImageStoreEvent.REMOVE, [image_id])
         return removed
 
 
@@ -273,11 +271,46 @@ class FileSystemImageStore(ManifestBasedImageStore):
         os.remove(path)
 
 
-# TODO: unify this into listenable image store?
-@unique
-class ImageStoreEvent(Enum):
+class ListenableImageStore(ImageStore):
     """
     TODO
     """
-    ADD = auto()
-    REMOVE = auto()
+    @unique
+    class Event(Enum):
+        """
+        TODO
+        """
+        ADD = auto()
+        REMOVE = auto()
+
+    def __len__(self) -> int:
+        return self._image_store.__len__()
+
+    def __init__(self, image_store: ImageStore):
+        """
+        Constructor.
+        :image_store: underlying image store to make listenable via this interface
+        """
+        self._image_store = image_store
+        self.event_listeners = EventListenerController["ListenableImageStore.Event"]()
+
+    def __iter__(self) -> Iterator[Image]:
+        return self._image_store.__iter__()
+
+    def __contains__(self, x: object) -> bool:
+        return self._image_store.__contains__(x)
+
+    def get(self, image_id: str) -> Optional[Image]:
+        return self._image_store.get(image_id)
+
+    def list(self) -> List[Image]:
+        return self._image_store.list()
+
+    def add(self, image: Image):
+        self._image_store.add(image)
+        self.event_listeners.call_listeners(ListenableImageStore.Event.ADD, [image])
+
+    def remove(self, image_id: str) -> bool:
+        removed = self._image_store.remove(image_id)
+        self.event_listeners.call_listeners(ListenableImageStore.Event.REMOVE, [image_id])
+        return removed

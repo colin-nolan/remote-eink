@@ -4,18 +4,14 @@ from typing import Any, Callable
 from uuid import uuid4
 
 from multiprocessing_on_dill.context import Process
-from multiprocessing import Event
 
 import unittest
-
-from multiprocessing_on_dill.process import current_process
 
 from remote_eink.app import create_app, destroy_app, get_display_controller, add_display_controller, \
     get_display_controllers
 from remote_eink.controllers import BaseDisplayController
-from remote_eink.drivers.base import DummyDisplayDriver
+from remote_eink.tests.drivers._common import DummyBaseDisplayDriver
 from remote_eink.storage.images import InMemoryImageStore
-from remote_eink.tests._common import create_dummy_display_controller
 from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE
 
 
@@ -48,7 +44,7 @@ class TestApp(unittest.TestCase):
         return get_display_controller(self._display_controller_id, self.app)
 
     def setUp(self):
-        display_controller = BaseDisplayController(DummyDisplayDriver(), InMemoryImageStore([]))
+        display_controller = BaseDisplayController(DummyBaseDisplayDriver(), InMemoryImageStore([]))
         self._display_controller_id = display_controller.identifier
         self.app = create_app([display_controller])
 
@@ -76,7 +72,7 @@ class TestApp(unittest.TestCase):
         ids = [self.display_controller.identifier]
         for _ in range(10):
             identifier = str(uuid4())
-            display_controller = BaseDisplayController(DummyDisplayDriver(), InMemoryImageStore([]),
+            display_controller = BaseDisplayController(DummyBaseDisplayDriver(), InMemoryImageStore([]),
                                                        identifier=identifier)
             add_display_controller(display_controller, self.app)
             ids.append(identifier)

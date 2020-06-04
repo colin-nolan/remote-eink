@@ -9,12 +9,12 @@ from flask_testing import TestCase
 from remote_eink.api.display._common import CONTENT_TYPE_HEADER, ImageTypeToMimeType
 from remote_eink.app import create_app, destroy_app, add_display_controller
 from remote_eink.controllers import DisplayController, BaseDisplayController
-from remote_eink.drivers.base import DummyDisplayDriver
+from remote_eink.tests.drivers._common import DummyBaseDisplayDriver
 from remote_eink.models import ImageType, Image
 from remote_eink.multiprocess import kill
 from remote_eink.storage.images import InMemoryImageStore
 from remote_eink.tests.storage._common import WHITE_IMAGE
-from remote_eink.transformers.base import InvalidConfigurationError, BaseImageTransformer, ListenableImageTransformer
+from remote_eink.transformers.base import InvalidConfigurationError, BaseImageTransformer
 
 
 def create_image(image_type: Optional[ImageType] = None) -> Image:
@@ -48,7 +48,7 @@ def create_dummy_display_controller(*, number_of_images: int = 0, number_of_imag
                              "image transformers")
         kwargs["image_transformers"] = [DummyImageTransformer() for _ in range(number_of_image_transformers)]
 
-    return BaseDisplayController(driver=DummyDisplayDriver(), **kwargs)
+    return BaseDisplayController(driver=DummyBaseDisplayDriver(), **kwargs)
 
 
 def set_content_type_header(image: Image, headers: Optional[Dict] = None):

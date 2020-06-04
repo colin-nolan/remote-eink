@@ -1,19 +1,15 @@
 import inspect
 from abc import ABCMeta
 from multiprocessing import RLock
+from typing import Any, Optional, List, Iterator, Dict, Union, Tuple, Callable
 
 from multiprocessing_on_dill.connection import Connection, Pipe
-from types import MappingProxyType
-from typing import Any, Optional, List, Iterator, Dict, Sequence, Union, Tuple, Callable
 
 from remote_eink.controllers import DisplayController
 from remote_eink.drivers.base import DisplayDriver
 from remote_eink.models import Image
 from remote_eink.storage.images import ImageStore
 from remote_eink.transformers import ImageTransformerSequence, ImageTransformer
-
-
-# FIXME: pipe locking!
 
 
 class MultiprocessConnection:
@@ -289,73 +285,6 @@ class MultiprocessDisplayControllerReceiver:
             except Exception as e:
                 result = e, True
             self._parent_connection.send(result)
-
-
-            # obj = self._display_controller
-            # raised = False
-            # call_stack = call_string.split(".")
-            # for i, method_name in enumerate(call_stack):
-            #     if "(" in method_name:
-            #         method_name, other = method_name.split("(")
-            #         if other[-1] != ")":
-            #             value, raised = ValueError(f"Expected to parse (*args, **kwargs) in call string: {other}"), True
-            #             break
-            #         print(other)
-            #         # _parse_args_kwargs
-            #         pass
-            #
-            #     is_last = i == (len(call_stack) - 1)
-            #     if not is_last:
-            #         value, raised = execute(obj, method_name)
-            #         if raised:
-            #             break
-            #         obj = value
-            #     else:
-            #         value, raised = execute(obj, method_name, args, kwargs)
-            #
-            # self._parent_connection.send((value, raised))
-
-
-# def _parse_args_kwargs(args_kwargs: str) -> Tuple[List[Any], Dict[str, Any]]:
-#     """
-#     TODO
-#     :param args_kwargs:
-#     :return:
-#     """
-#     def parser(*args, **kwargs):
-#         return args, kwargs
-#
-#     return eval(f"parser({args_kwargs})")
-#
-#
-# def execute(obj: Any, method_name: str, args: Sequence[Any] = (), kwargs: Dict[str, Any] = MappingProxyType({})):
-#     """
-#     TODO
-#     :param obj:
-#     :param method_name:
-#     :param args:
-#     :param kwargs:
-#     :return:
-#     """
-#     print(obj, method_name, args, kwargs)
-#
-#     if isinstance(getattr(type(obj), method_name, None), property):
-#         if len(args) > 0:
-#             return ValueError(f"\"{method_name}\" is a property and therefore takes no args: {args}"), True
-#         if len(kwargs) > 0:
-#             return ValueError(f"\"{method_name}\" is a property and therefore takes no kwargs: {kwargs}"), True
-#         try:
-#             value = getattr(obj, method_name)
-#         except Exception as e:
-#             return e, True
-#     else:
-#         try:
-#             method = getattr(obj, method_name)
-#             value = method(*args, **kwargs)
-#         except Exception as e:
-#             return e, True
-#
-#     return value, False
 
 
 def kill(display_controller_receiver: MultiprocessDisplayControllerReceiver):

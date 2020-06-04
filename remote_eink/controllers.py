@@ -12,7 +12,7 @@ from remote_eink.drivers.base import DisplayDriver, BaseDisplayDriver, Listenabl
 from remote_eink.events import EventListenerController
 from remote_eink.transformers.base import ImageTransformer, ImageTransformerSequence, SimpleImageTransformerSequence
 from remote_eink.models import Image
-from remote_eink.storage.images import ImageStore, ImageStoreEvent
+from remote_eink.storage.images import ImageStore, ListenableImageStore
 
 DEFAULT_SECONDS_BETWEEN_CYCLE = float(60 * 60)
 
@@ -47,7 +47,7 @@ class DisplayController(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def driver(self) -> BaseDisplayDriver:
+    def driver(self) -> ListenableDisplayDriver:
         """
         TODO
         :return:
@@ -108,7 +108,7 @@ class ListenableDisplayController(DisplayController, metaclass=ABCMeta):
         """
 
 
-class BaseDisplayController(ListenableDisplayController):
+class BaseDisplayController(DisplayController):
     """
     Display controller.
     """
@@ -121,11 +121,11 @@ class BaseDisplayController(ListenableDisplayController):
         return self._current_image
 
     @property
-    def driver(self) -> DisplayDriver:
+    def driver(self) -> ListenableDisplayDriver:
         return self._driver
 
     @property
-    def image_store(self) -> ImageStore:
+    def image_store(self) -> ListenableImageStore:
         return self._image_store
 
     @property
@@ -150,14 +150,14 @@ class BaseDisplayController(ListenableDisplayController):
         :param image_transformers: image display transformers
         """
         self._identifier = identifier if identifier is not None else str(uuid4())
-        self._driver = driver
+        self._driver = ListenableDisplayDriver(driver)
         self._current_image = None
-        self._image_store = image_store
+        self._image_store = ListenableImageStore(image_store)
         self._image_transformers = SimpleImageTransformerSequence(image_transformers)
         self._display_requested = False
         self._event_listeners = EventListenerController[ListenableDisplayController.Event]()
 
-        self._image_store.event_listeners.add_listener(self._on_remove_image, ImageStoreEvent.REMOVE)
+        self._image_store.event_listeners.add_listener(self._on_remove_image, ListenableImageStore.Event.REMOVE)
         self._driver.event_listeners.add_listener(self._on_clear, ListenableDisplayDriver.Event.CLEAR)
         self._driver.event_listeners.add_listener(self._on_display, ListenableDisplayDriver.Event.DISPLAY)
 
@@ -241,7 +241,7 @@ class CyclableDisplayController(BaseDisplayController):
         super().__init__(driver, image_store, identifier, image_transformers)
         self._image_queue = []
         self.image_store.event_listeners.add_listener(
-            lambda image: self._add_to_queue(image.identifier), ImageStoreEvent.ADD)
+            lambda image: self._add_to_queue(image.identifier), ListenableImageStore.Event.ADD)
         for image in self.image_store.list():
             self._add_to_queue(image.identifier)
 
