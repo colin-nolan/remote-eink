@@ -10,10 +10,13 @@ class TestDisplayApi(AppTestBase):
     Tests for the `/display` endpoint.
     """
     def test_list(self):
-        display_controllers = [self.create_display_controller() for _ in range(10)]
+        self.display_controllers.clear()
+        for _ in range(10):
+            self.create_display_controller()
         result = self.client.get("/display")
         self.assertEqual(HTTPStatus.OK, result.status_code)
-        self.assertCountEqual([{"id": controller.identifier} for controller in display_controllers], result.json)
+        self.assertCountEqual([{"id": controller.identifier} for controller in self.display_controllers.values()],
+                              result.json)
 
     def test_get(self):
         for _ in range(5):

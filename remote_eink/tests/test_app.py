@@ -1,15 +1,18 @@
 from enum import unique, Enum, auto
 
 from typing import Any, Callable
+from uuid import uuid4
 
 from multiprocessing_on_dill.context import Process
 from multiprocessing import Event
 
 import unittest
 
-from remote_eink.app import create_app, get_app_storage, destroy_app
-from remote_eink.app_storage import SynchronisedAppStorage
-from remote_eink.controllers import DisplayController
+from multiprocessing_on_dill.process import current_process
+
+from remote_eink.app import create_app, destroy_app, get_display_controller, add_display_controller, \
+    get_display_controllers
+from remote_eink.controllers import BaseDisplayController
 from remote_eink.drivers.base import DummyDisplayDriver
 from remote_eink.storage.images import InMemoryImageStore
 from remote_eink.tests._common import create_dummy_display_controller
@@ -37,78 +40,52 @@ class TestApp(unittest.TestCase):
         process = Process(target=callable)
         process.start()
         process.join(timeout=15)
+        if process.exitcode != 0:
+            raise RuntimeError("Process did not exit with status code 0")
 
     @property
     def display_controller(self):
-        return self.app_storage.display_controllers[self._display_controller_id]
+        return get_display_controller(self._display_controller_id, self.app)
 
     def setUp(self):
-        display_controller = DisplayController(DummyDisplayDriver(), InMemoryImageStore([]))
+        display_controller = BaseDisplayController(DummyDisplayDriver(), InMemoryImageStore([]))
         self._display_controller_id = display_controller.identifier
-        self.app = create_app([display_controller], SynchronisedAppStorage).app
-        self.app_storage = get_app_storage(app=self.app)
+        self.app = create_app([display_controller])
 
     def tearDown(self):
         destroy_app(self.app)
 
-    def test_setup_display_controller(self):
-        display_controller = create_dummy_display_controller(number_of_images=10, number_of_image_transformers=10)
-        with self.app_storage.update_display_controllers() as display_controllers:
-            display_controllers[display_controller.identifier] = display_controller
-
-        synchronised_display_controller = self.app_storage.display_controllers[
-            display_controller.identifier]
-        self.assertCountEqual(set(display_controller.image_store), set(synchronised_display_controller.image_store))
-        self.assertEqual(tuple(display_controller.image_transformers),
-                         tuple(synchronised_display_controller.image_transformers))
-
-    def test_add_image_in_different_process(self):
-        with self.app_storage.update_display_controller(self.display_controller.identifier) as display_controller:
-            display_controller.image_store.add(WHITE_IMAGE)
+    def test_get_display_controller(self):
+        identifier = self.display_controller.identifier
+        get_display_controller(identifier, self.app).image_store.add(WHITE_IMAGE)
+        self.sanity_check = []
 
         def update_images():
             nonlocal self
-            with self.app_storage.update_display_controller(self.display_controller.identifier) as display_controller:
-                synchronised_app_storage = self.app_storage
-                self.assertEqual(1, synchronised_app_storage.display_controller_user_count)
-                self.assertFalse(synchronised_app_storage.update_pending)
-                self.assertCountEqual((WHITE_IMAGE,), display_controller.image_store)
-                display_controller.image_store.add(BLACK_IMAGE)
+            display_controller = get_display_controller(identifier, self.app)
+            self.assertCountEqual((WHITE_IMAGE,), display_controller.image_store)
+            display_controller.image_store.add(BLACK_IMAGE)
+            self.sanity_check.append(True)
 
         TestApp._run_in_different_process(update_images)
+        self.assertEqual(0, len(self.sanity_check))
+        self.assertCountEqual((WHITE_IMAGE, BLACK_IMAGE), get_display_controller(identifier, self.app).image_store)
         self.assertCountEqual((WHITE_IMAGE, BLACK_IMAGE), self.display_controller.image_store)
 
-    def test_add_new_display_controller(self):
-        updated = Event()
-        new_display_controller = DisplayController(DummyDisplayDriver(), InMemoryImageStore([]))
+    def test_add_display_controller(self):
+        ids = [self.display_controller.identifier]
+        for _ in range(10):
+            identifier = str(uuid4())
+            display_controller = BaseDisplayController(DummyDisplayDriver(), InMemoryImageStore([]),
+                                                       identifier=identifier)
+            add_display_controller(display_controller, self.app)
+            ids.append(identifier)
 
-        def updater():
-            nonlocal self, updated, new_display_controller
-            with self.app_storage.update_display_controllers() as display_controllers:
-                synchronised_app_storage = self.app_storage
-                self.assertEqual(0, synchronised_app_storage.display_controller_user_count)
-                self.assertTrue(synchronised_app_storage.update_pending)
-                display_controllers[new_display_controller.identifier] = new_display_controller
-            updated.set()
+        def check():
+            nonlocal self, ids
+            self.assertCountEqual(ids, (x.identifier for x in get_display_controllers(self.app).values()))
 
-        def user():
-            nonlocal self
-            with self.app_storage.update_display_controller(self.display_controller.identifier) as display_controller:
-                display_controller.driver.clear()
-
-        for i in range(10):
-            TestApp._run_in_different_process(user)
-        TestApp._run_in_different_process(updater)
-
-        updated.wait(timeout=15)
-        self.assertCountEqual((self.display_controller.identifier, new_display_controller.identifier),
-                              self.app_storage.display_controllers.keys())
-
-        with self.app_storage.update_display_controller(new_display_controller.identifier) as display_controller:
-            display_controller.image_store.add(WHITE_IMAGE)
-
-        self.assertCountEqual((WHITE_IMAGE, ),
-                              self.app_storage.display_controllers[new_display_controller.identifier].image_store)
+        TestApp._run_in_different_process(check)
 
 
 if __name__ == "__main__":

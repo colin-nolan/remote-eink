@@ -34,12 +34,24 @@ def image_transformer_id_handler(wrappable: Callable) -> Callable:
     :return: TODO
     """
     def wrapped(display_controller: DisplayController, imageTransformerId: str, **kwargs):
-        result = display_controller.image_transformers.get_by_id(imageTransformerId)
-        if result is None:
+        image_transformer = display_controller.image_transformers.get_by_id(imageTransformerId)
+        if image_transformer is None:
             return f"No matching image transformer with ID: {imageTransformerId}", HTTPStatus.NOT_FOUND
-        image_transformer, position = result
-        return wrappable(display_controller=display_controller, image_transformer=image_transformer, position=position,
-                         **kwargs)
+        return wrappable(display_controller=display_controller, image_transformer=image_transformer, **kwargs)
+
+    return wrapped
+
+
+def image_transformer_position_handler(wrappable: Callable) -> Callable:
+    """
+    TODO
+    :param wrappable: handler to wrap
+    :return: TODO
+    """
+    def wrapped(display_controller: DisplayController, image_transformer: ImageTransformer, **kwargs):
+        position = display_controller.image_transformers.get_position(image_transformer)
+        return wrappable(
+            display_controller=display_controller, image_transformer=image_transformer, position=position, **kwargs)
 
     return wrapped
 
@@ -52,6 +64,7 @@ def search(display_controller: DisplayController):
 
 @display_id_handler
 @image_transformer_id_handler
+@image_transformer_position_handler
 def get(display_controller: DisplayController, image_transformer: ImageTransformer, position: int):
     # XXX: there is probably a better way to deal with the concept of "position"
     serialised_image_transformer = dict(**_ImageTransformerSchema().dump(image_transformer), position=position)
@@ -60,6 +73,7 @@ def get(display_controller: DisplayController, image_transformer: ImageTransform
 
 @display_id_handler
 @image_transformer_id_handler
+@image_transformer_position_handler
 def put(display_controller: DisplayController, image_transformer: ImageTransformer, position: int, body: Dict):
     unsupported_parameters = set(body.keys()) - set(x.value for x in ModifiableParameter)
     if len(unsupported_parameters) > 0:

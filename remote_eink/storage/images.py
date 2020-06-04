@@ -17,7 +17,43 @@ class ImageAlreadyExistsError(ValueError):
         super().__init__(f"Image with the same ID already exists: {image_id}")
 
 
-class ImageStore(Collection, metaclass=ABCMeta):
+class ImageStore(Collection[Image], metaclass=ABCMeta):
+    """
+    Store of images.
+    """
+    @abstractmethod
+    def get(self, image_id: str) -> Optional[Image]:
+        """
+        TODO
+        :param image_id:
+        :return:
+        """
+
+    @abstractmethod
+    def list(self) -> List[Image]:
+        """
+        TODO
+        :return:
+        """
+
+    @abstractmethod
+    def add(self, image: Image):
+        """
+        TODO
+        :param image:
+        :return:
+        """
+
+    @abstractmethod
+    def remove(self, image_id: str) -> bool:
+        """
+        TODO
+        :param image_id:
+        :return:
+        """
+
+
+class SimpleImageStore(ImageStore):
     """
     Store of images.
     """
@@ -87,7 +123,7 @@ class ImageStore(Collection, metaclass=ABCMeta):
         return removed
 
 
-class InMemoryImageStore(ImageStore):
+class InMemoryImageStore(SimpleImageStore):
     """
     In memory image store.
     """
@@ -116,7 +152,7 @@ class InMemoryImageStore(ImageStore):
             return False
 
 
-class ManifestBasedImageStore(ImageStore, metaclass=ABCMeta):
+class ManifestBasedImageStore(SimpleImageStore, metaclass=ABCMeta):
     """
     Manifest-based image store.
 
@@ -237,6 +273,7 @@ class FileSystemImageStore(ManifestBasedImageStore):
         os.remove(path)
 
 
+# TODO: unify this into listenable image store?
 @unique
 class ImageStoreEvent(Enum):
     """

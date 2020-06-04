@@ -1,7 +1,6 @@
 from http import HTTPStatus
 
 from remote_eink.api.display._common import ImageTypeToMimeType
-from remote_eink.app import get_app_storage
 from remote_eink.models import ImageType
 from remote_eink.tests._common import create_image, AppTestBase, set_content_type_header
 
@@ -26,13 +25,12 @@ class TestDisplayImage(AppTestBase):
     def test_get_image(self):
         for image_type in ImageType:
             with self.subTest(image_type=image_type.name):
-                with self.create_and_update_display_controller() as display_controller:
-                    image = create_image(image_type)
-                    display_controller.image_store.add(image)
+                display_controller = self.create_display_controller()
+                image = create_image(image_type)
+                display_controller.image_store.add(image)
                 result = self.client.get(f"/display/{display_controller.identifier}/image/{image.identifier}")
                 self.assertEqual(HTTPStatus.OK, result.status_code)
                 self.assertEqual(ImageTypeToMimeType[image_type], result.mimetype)
-                display_controller = get_app_storage().display_controllers[display_controller.identifier]
                 self.assertEqual(display_controller.image_store.get(image.identifier).data, result.data)
 
     def test_get_when_does_not_exist(self):

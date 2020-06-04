@@ -7,7 +7,7 @@ from typing import TypeVar, Generic, Optional
 from unittest.mock import MagicMock
 
 from remote_eink.controllers import CyclableDisplayController, AutoCyclingDisplayController, DisplayController
-from remote_eink.drivers.base import DummyDisplayDriver, DisplayDriver
+from remote_eink.drivers.base import DummyDisplayDriver, DisplayDriver, BaseDisplayDriver
 from remote_eink.models import Image
 from remote_eink.storage.images import InMemoryImageStore, ImageStore
 from remote_eink.tests._common import DummyImageTransformer
@@ -44,7 +44,7 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
             display_image = image
             display_semaphore.release()
 
-        self.display_controller.driver.event_listeners.add_listener(on_image_display, DisplayDriver.Event.DISPLAY)
+        self.display_controller.driver.event_listeners.add_listener(on_image_display, BaseDisplayDriver.Event.DISPLAY)
         self.display_controller.image_store.add(WHITE_IMAGE)
         self.display_controller.display(WHITE_IMAGE.identifier)
         self.assertTrue(display_semaphore.acquire(timeout=10))
@@ -55,7 +55,7 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
         display_listener = MagicMock()
         self.display_controller.image_store.add(WHITE_IMAGE)
         self.display_controller.display(WHITE_IMAGE.identifier)
-        self.display_controller.driver.event_listeners.add_listener(display_listener, DisplayDriver.Event.DISPLAY)
+        self.display_controller.driver.event_listeners.add_listener(display_listener, BaseDisplayDriver.Event.DISPLAY)
         self.display_controller.display(WHITE_IMAGE.identifier)
         self.assertFalse(display_listener.called)
 
@@ -69,7 +69,7 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
             display_semaphore.release()
 
         transformer = DummyImageTransformer(lambda _: BLACK_IMAGE)
-        self.display_controller.driver.event_listeners.add_listener(on_display, DisplayDriver.Event.DISPLAY)
+        self.display_controller.driver.event_listeners.add_listener(on_display, BaseDisplayDriver.Event.DISPLAY)
         self.display_controller.image_transformers.add(transformer)
 
         self.display_controller.image_store.add(WHITE_IMAGE)
@@ -200,7 +200,7 @@ class TestAutoCyclingDisplayController(_TestDisplayController[AutoCyclingDisplay
             call_semaphore.release()
             images.append(image)
 
-        display_controller.driver.event_listeners.add_listener(listener, DisplayDriver.Event.DISPLAY)
+        display_controller.driver.event_listeners.add_listener(listener, BaseDisplayDriver.Event.DISPLAY)
         display_controller.start()
         for _ in range(10):
             self.assertTrue(call_semaphore.acquire(timeout=10))
@@ -216,7 +216,7 @@ class TestAutoCyclingDisplayController(_TestDisplayController[AutoCyclingDisplay
             nonlocal changes
             changes += 1
 
-        display_controller.driver.event_listeners.add_listener(listener, DisplayDriver.Event.DISPLAY)
+        display_controller.driver.event_listeners.add_listener(listener, BaseDisplayDriver.Event.DISPLAY)
         display_controller.start()
         display_controller.stop()
         end_changes = changes
