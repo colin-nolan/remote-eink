@@ -1,11 +1,11 @@
-from typing import Dict, Any, Sequence, Iterator, Tuple, Optional, Union
+from typing import Dict, Any, Sequence, Iterator, Optional, Union
 
 import logging
 from abc import abstractmethod, ABCMeta
 from enum import unique, Enum, auto
 
 from remote_eink.events import EventListenerController
-from remote_eink.models import Image, ImageType
+from remote_eink.images import Image, ImageType
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +93,17 @@ class ImageTransformer(metaclass=ABCMeta):
         :return: resulting image
         """
 
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, ImageTransformer):
+            return False
+        if other.identifier != self.identifier:
+            return False
+        if other.configuration != self.configuration:
+            return False
+        if other.active != self.active:
+            return False
+        return True
+
 
 class BaseImageTransformer(ImageTransformer, metaclass=ABCMeta):
     """
@@ -127,18 +138,6 @@ class BaseImageTransformer(ImageTransformer, metaclass=ABCMeta):
         """
         transformed_image = self._transform(image)
         return transformed_image
-
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, self.__class__):
-            return False
-        other: ImageTransformer
-        if other.identifier != self.identifier:
-            return False
-        if other.configuration != self.configuration:
-            return False
-        if other.active != self.active:
-            return False
-        return True
 
 
 class ListenableImageTransformer(ImageTransformer):

@@ -5,7 +5,8 @@ from enum import Enum, auto, unique
 from typing import Dict, Optional, Iterable, List, Collection, Iterator, Any
 
 from remote_eink.events import EventListenerController
-from remote_eink.models import Image, ImageDataReader
+from remote_eink.images import Image, ImageDataReader
+from remote_eink.multiprocess import ProxyObject
 from remote_eink.storage.manifests import Manifest, TinyDbManifest, ManifestRecord
 
 
@@ -314,3 +315,29 @@ class ListenableImageStore(ImageStore):
         removed = self._image_store.remove(image_id)
         self.event_listeners.call_listeners(ListenableImageStore.Event.REMOVE, [image_id])
         return removed
+
+
+class ProxyImageStore(ImageStore, ProxyObject):
+    """
+    TODO
+    """
+    def __len__(self) -> int:
+        return self._communicate("__len__")
+
+    def __iter__(self) -> Iterator[Image]:
+        return iter(self.list())
+
+    def __contains__(self, x: Any) -> bool:
+        return self._communicate("__contains__", x)
+
+    def get(self, image_id: str) -> Optional[Image]:
+        return self._communicate("get", image_id)
+
+    def list(self) -> List[Image]:
+        return self._communicate("list")
+
+    def add(self, image: Image):
+        self._communicate("add", image)
+
+    def remove(self, image_id: str) -> bool:
+        return self._communicate("remove", image_id)

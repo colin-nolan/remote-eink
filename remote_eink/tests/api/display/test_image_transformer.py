@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
-from remote_eink.tests._common import AppTestBase, DummyImageTransformer
+from remote_eink.tests._common import AppTestBase
+from remote_eink.tests.transformers._common import DummyImageTransformer
 from remote_eink.transformers import ImageTransformer
 from remote_eink.transformers.rotate import RotateImageTransformer, RotateConfigurationParameter
 

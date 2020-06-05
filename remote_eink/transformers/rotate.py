@@ -3,7 +3,7 @@ from enum import Enum, unique
 from io import BytesIO
 from typing import Dict, Any
 
-from remote_eink.models import Image
+from remote_eink.images import Image
 from remote_eink.transformers.base import ImageTypeToPillowFormat, InvalidConfigurationError, BaseImageTransformer
 
 _logger = logging.getLogger(__name__)

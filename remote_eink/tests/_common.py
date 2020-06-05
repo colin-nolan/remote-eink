@@ -1,6 +1,8 @@
 import random
+import unittest
 from abc import ABCMeta
-from typing import Optional, Dict, Any, Callable
+from threading import Thread
+from typing import Optional, Dict, Any
 from uuid import uuid4
 
 from flask import current_app
@@ -10,11 +12,11 @@ from remote_eink.api.display._common import CONTENT_TYPE_HEADER, ImageTypeToMime
 from remote_eink.app import create_app, destroy_app, add_display_controller
 from remote_eink.controllers import DisplayController, BaseDisplayController
 from remote_eink.tests.drivers._common import DummyBaseDisplayDriver
-from remote_eink.models import ImageType, Image
-from remote_eink.multiprocess import kill
+from remote_eink.images import ImageType, Image
+from remote_eink.multiprocess import ProxyReceiver
 from remote_eink.storage.images import InMemoryImageStore
 from remote_eink.tests.storage._common import WHITE_IMAGE
-from remote_eink.transformers.base import InvalidConfigurationError, BaseImageTransformer
+from remote_eink.tests.transformers._common import DummyImageTransformer
 
 
 def create_image(image_type: Optional[ImageType] = None) -> Image:
@@ -84,7 +86,7 @@ class AppTestBase(TestCase, metaclass=ABCMeta):
             # FIXME
             with current_app.app_context():
                 for display_controller_receiver in current_app.config["DISPLAY_CONTROLLER_RECEIVER"].values():
-                    kill(display_controller_receiver)
+                    display_controller_receiver.stop()
             destroy_app(self._app)
 
     # Required to satisfy the super class' interface
@@ -100,26 +102,21 @@ class AppTestBase(TestCase, metaclass=ABCMeta):
         return display_controller
 
 
-class DummyImageTransformer(BaseImageTransformer):
-    @property
-    def configuration(self) -> Dict[str, Any]:
-        return self.dummy_configuration
+class TestProxy(unittest.TestCase, metaclass=ABCMeta):
+    """
+    TODO
+    """
+    def setup_receiver(self, proxy_target: Any) -> ProxyReceiver:
+        receiver = ProxyReceiver(proxy_target)
+        self._receivers.append(receiver)
+        Thread(target=receiver.run).start()
+        return receiver
 
-    @property
-    def description(self) -> str:
-        return self.dummy_description
+    def setUp(self):
+        self._receivers = []
+        super().setUp()
 
-    def __init__(self, transformer: Optional[Callable[[Image], Image]] = None, active: bool = True,
-                 configuration: Optional[Any] = None, description: Optional[str] = None, identifier: str = None):
-        super().__init__(identifier if identifier is not None else str(uuid4()), active)
-        self.dummy_transformer = transformer if transformer is not None else lambda image: image
-        self.dummy_configuration = configuration if configuration is not None else {}
-        self.dummy_description = description if description is not None else ""
-
-    def modify_configuration(self, configuration: Dict[str, Any]):
-        if "invalid-config-property" in configuration:
-            raise InvalidConfigurationError(configuration)
-        self.dummy_configuration = configuration
-
-    def _transform(self, image: Image) -> Image:
-        return self.dummy_transformer(image)
+    def tearDown(self):
+        for receiver in self._receivers:
+            receiver.connector.send(ProxyReceiver.RUN_POISON)
+        super().tearDown()

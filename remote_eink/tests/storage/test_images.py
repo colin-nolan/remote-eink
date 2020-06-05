@@ -4,9 +4,10 @@ import unittest
 from abc import abstractmethod, ABCMeta
 from typing import TypeVar, Generic
 
-from remote_eink.models import Image
+from remote_eink.images import Image
 from remote_eink.storage.images import ImageStore, InMemoryImageStore, ImageAlreadyExistsError, FileSystemImageStore, \
-    ListenableImageStore
+    ListenableImageStore, ProxyImageStore
+from remote_eink.tests._common import TestProxy
 from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE
 
 _ImageStoreType = TypeVar("_ImageStoreType", bound=ImageStore)
@@ -145,6 +146,15 @@ class TestListenableImageStore(_TestImageStore[ListenableImageStore]):
 
     def create_image_store(self, *args, **kwargs) -> ListenableImageStore:
         return ListenableImageStore(InMemoryImageStore(*args, **kwargs))
+
+
+class TestProxyImageStore(_TestImageStore[ProxyImageStore], TestProxy):
+    """
+    Test for `ProxyImageStore`.
+    """
+    def create_image_store(self, *args, **kwargs) -> ProxyImageStore:
+        receiver = self.setup_receiver(InMemoryImageStore(*args, **kwargs))
+        return ProxyImageStore(receiver.connector)
 
 
 del _TestImageStore

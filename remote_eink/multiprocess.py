@@ -1,58 +1,135 @@
 import inspect
 from abc import ABCMeta
 from multiprocessing import RLock
-from typing import Any, Optional, List, Iterator, Dict, Union, Tuple, Callable
+from typing import Any, Optional, Tuple, TypeVar, Generic
 
 from multiprocessing_on_dill.connection import Connection, Pipe
 
-from remote_eink.controllers import DisplayController
-from remote_eink.drivers.base import DisplayDriver
-from remote_eink.models import Image
-from remote_eink.storage.images import ImageStore
-from remote_eink.transformers import ImageTransformerSequence, ImageTransformer
+ProxyObjectType = TypeVar("ProxyObjectType")
 
 
-class MultiprocessConnection:
+class ProxyConnection:
     """
-    TODO
+    Connection to enable a proxy object to communicate with a receiver on the side of the real object.
     """
     def __init__(self, connection: Connection):
+        """
+        Constructor.
+        :param connection: low level connector
+        """
         self.connection = connection
-
         self._lock = RLock()
 
     def send(self, to_send: Any):
+        """
+        Sends the given object to the receiver.
+        :param to_send: object to send
+        """
         with self._lock:
             self.connection.send(to_send)
 
     def receive(self) -> Any:
+        """
+        Blocks until receives communication from the receiver.
+        :return: object returned by the receiver
+        """
         with self._lock:
             return self.connection.recv()
 
     def send_and_receive(self, to_send: Any) -> Any:
+        """
+        Send and receive with the same lock.
+        :param to_send: object to send
+        :return: object returned by the receiver
+        """
         with self._lock:
             self.send(to_send)
             return self.receive()
 
 
-class _MultiprocessCaller(metaclass=ABCMeta):
+class ProxyReceiver:
     """
     TODO
     """
-    def __init__(self, connection: MultiprocessConnection, method_name_prefix: str = ""):
+    RUN_POISON = "+kill"
+
+    @property
+    def connector(self) -> ProxyConnection:
+        return ProxyConnection(self._child_connection)
+
+    def __init__(self, target: Any):
+        self._target = target
+        self._parent_connection, self._child_connection = Pipe(duplex=True)
+
+    def run(self):
+        while True:
+            call_string = self._parent_connection.recv()
+
+            if call_string == ProxyReceiver.RUN_POISON:
+                return
+
+            args, kwargs = None, None
+            if isinstance(call_string, Tuple):
+                call_string, args, kwargs = call_string
+
+            try:
+                value = eval(f"self._target.{call_string}")
+                if args is not None:
+                    if inspect.ismethod(value):
+                        value = value(*args, **kwargs)
+                    else:
+                        if len(args) == 1:
+                            # Property setter
+                            exec(f"self._target.{call_string} = {args[0]}")
+                            value = None
+                        elif len(args) > 1:
+                            return ValueError(
+                                f"\"{call_string}\" is a property and therefore takes no args: {args}"), True
+                        elif len(kwargs) > 0:
+                            return ValueError(
+                                f"\"{call_string}\" is a property and therefore takes no kwargs: {kwargs}"), True
+                result = value, False
+            except Exception as e:
+                result = e, True
+            self._parent_connection.send(result)
+
+    def stop(self):
+        """
+        TODO
+        :return:
+        """
+        self.connector.send(ProxyReceiver.RUN_POISON)
+
+
+
+class ProxyObject(Generic[ProxyObjectType], metaclass=ABCMeta):
+    """
+    TODO
+    """
+    def __init__(self, connection: ProxyConnection, method_name_prefix: str = "",
+                 local_copy: Optional[ProxyObjectType] = None):
         """
         TODO
         :param connection:
+        :param method_name_prefix:
+        :param local_copy:
         """
+        assert isinstance(method_name_prefix, str)
+        super().__init__()
         self.connection = connection
         self.method_name_prefix = method_name_prefix
+        self.local_copy = local_copy
+
+    def __eq__(self, other) -> bool:
+        return self._communicate("__eq__", other)
+
+    def __str__(self) -> str:
+        return self._communicate("__str__")
 
     def _communicate_call(self, call_string: str) -> Any:
         """
         TODO
-        :param method_name:
-        :param args:
-        :param kwargs:
+        :param call_string:
         :return:
         """
         value, raised = self.connection.send_and_receive(call_string)
@@ -74,225 +151,3 @@ class _MultiprocessCaller(metaclass=ABCMeta):
             raise value
         return value
 
-
-class MultiprocessImageTransformer(ImageTransformer, _MultiprocessCaller):
-    """
-    TODO
-    """
-    @property
-    def active(self) -> bool:
-        return self._communicate("active")
-
-    @property
-    def configuration(self) -> Dict[str, Any]:
-        return self._communicate("configuration")
-
-    @property
-    def description(self) -> str:
-        return self._communicate("description")
-
-    @property
-    def identifier(self) -> str:
-        return self._communicate("identifier")
-
-    def __init__(self, image_transformer: ImageTransformer, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.image_transformer = image_transformer
-
-    def modify_configuration(self, configuration: Dict[str, Any]):
-        self._communicate("modify_configuration", configuration)
-
-    def _transform(self, image: Image) -> Image:
-        return self._communicate("_transform", image)
-
-
-def to_native_image_transformer(wrappable: Callable) -> Callable:
-    """
-    TODO
-    :param image_transformer:
-    :return:
-    """
-    def wrapped(self, image_transformer, *args, **kwargs) -> Callable:
-        if isinstance(image_transformer, MultiprocessImageTransformer):
-            image_transformer = image_transformer.image_transformer
-        return wrappable(self, image_transformer, *args, **kwargs)
-
-    return wrapped
-
-
-class MultiprocessImageTransformerSequence(ImageTransformerSequence, _MultiprocessCaller):
-    """
-    TODO
-    """
-    def __getitem__(self, i: int) -> ImageTransformer:
-        image_transformer = self._communicate("__getitem__", i)
-        prefix = f"{self.method_name_prefix}.get_by_id('{image_transformer.identifier}')"
-        return MultiprocessImageTransformer(image_transformer, self.connection, prefix)
-
-    def __len__(self) -> int:
-        return self._communicate("__len__")
-
-    def get_by_id(self, image_transformer_id: str) -> Optional[ImageTransformer]:
-        image_transformer = self._communicate("get_by_id", image_transformer_id)
-        if image_transformer is None:
-            return None
-        prefix = f"{self.method_name_prefix}.get_by_id('{image_transformer_id}')"
-        return MultiprocessImageTransformer(image_transformer, self.connection, prefix)
-
-    @to_native_image_transformer
-    def get_position(self, image_transformer: Union[ImageTransformer, str]) -> int:
-        return self._communicate("get_position", image_transformer)
-
-    @to_native_image_transformer
-    def set_position(self, image_transformer: ImageTransformer, position: int):
-        self._communicate("set_position", image_transformer, position)
-
-    @to_native_image_transformer
-    def add(self, image_transformer: ImageTransformer, position: Optional[int] = None):
-        self._communicate("add", image_transformer, position)
-
-    @to_native_image_transformer
-    def remove(self, image_transformer: ImageTransformer) -> bool:
-        return self._communicate("remove", image_transformer)
-
-
-class MultiprocessImageStore(ImageStore, _MultiprocessCaller):
-    """
-    TODO
-    """
-    def __len__(self) -> int:
-        return self._communicate("__len__")
-
-    def __iter__(self) -> Iterator[Image]:
-        return iter(self.list())
-
-    def __contains__(self, x: Any) -> bool:
-        return self._communicate("__contains__", x)
-
-    def get(self, image_id: str) -> Optional[Image]:
-        return self._communicate("get", image_id)
-
-    def list(self) -> List[Image]:
-        return self._communicate("list")
-
-    def add(self, image: Image):
-        self._communicate("add", image)
-
-    def remove(self, image_id: str) -> bool:
-        return self._communicate("remove", image_id)
-
-
-# FIXME: DisplayDriver + listenable
-class MultiprocessDisplayDriver(DisplayDriver, _MultiprocessCaller):
-    """
-    TODO
-    """
-    @property
-    def sleeping(self) -> bool:
-        return self._communicate("sleeping")
-
-    @property
-    def image(self) -> Optional[Image]:
-        return self._communicate("image")
-
-    def display(self, image_data: bytes):
-        self._communicate("display", image_data)
-
-    def clear(self):
-        self._communicate("clear")
-
-    def sleep(self):
-        self._communicate("sleep")
-
-    def wake(self):
-        self._communicate("wake")
-
-
-class MultiprocessDisplayController(DisplayController, _MultiprocessCaller):
-    """
-    TODO
-    """
-    @property
-    def identifier(self) -> str:
-        return self._communicate("identifier")
-
-    @property
-    def current_image(self) -> Image:
-        return self._communicate("current_image")
-
-    @property
-    def driver(self) -> DisplayDriver:
-        return MultiprocessDisplayDriver(self.connection, "driver")
-
-    @property
-    def image_store(self) -> ImageStore:
-        return MultiprocessImageStore(self.connection, "image_store")
-
-    @property
-    def image_transformers(self) -> ImageTransformerSequence:
-        return MultiprocessImageTransformerSequence(self.connection, "image_transformers")
-
-    def display(self, image_id: str):
-        self._communicate("display", image_id)
-
-    def clear(self):
-        self._communicate("clear")
-
-    def apply_image_transforms(self, image: Image) -> Image:
-        return self._communicate("apply_image_transforms", image)
-
-
-class MultiprocessDisplayControllerReceiver:
-    """
-    TODO
-    """
-    RUN_POISON = "+kill"
-
-    @property
-    def connector(self) -> MultiprocessConnection:
-        return MultiprocessConnection(self._child_connection)
-
-    @property
-    def display_controller(self):
-        return self._display_controller
-
-    def __init__(self, display_controller: DisplayController):
-        self._display_controller = display_controller
-        self._parent_connection, self._child_connection = Pipe(duplex=True)
-
-    def run(self):
-        while True:
-            call_string = self._parent_connection.recv()
-
-            if call_string == MultiprocessDisplayControllerReceiver.RUN_POISON:
-                return
-
-            args, kwargs = None, None
-            if isinstance(call_string, Tuple):
-                call_string, args, kwargs = call_string
-
-            try:
-                value = eval(f"self._display_controller.{call_string}")
-                if args is not None:
-                    if inspect.ismethod(value):
-                        value = value(*args, **kwargs)
-                    else:
-                        if len(args) > 0:
-                            return ValueError(f"\"{call_string}\" is a property and therefore takes no args: {args}"), True
-                        if len(kwargs) > 0:
-                            return ValueError(f"\"{call_string}\" is a property and therefore takes no kwargs: {kwargs}"), True
-                result = value, False
-            except Exception as e:
-                result = e, True
-            self._parent_connection.send(result)
-
-
-def kill(display_controller_receiver: MultiprocessDisplayControllerReceiver):
-    """
-    TODO
-    :param display_controller_receiver:
-    :return:
-    """
-    # print(f"Killing {display_controller_receiver}")
-    display_controller_receiver.connector.send(MultiprocessDisplayControllerReceiver.RUN_POISON)
-    # print(f"Killed {display_controller_receiver}")

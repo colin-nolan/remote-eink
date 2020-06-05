@@ -1,10 +1,9 @@
 from abc import ABCMeta, abstractmethod
-from dataclasses import dataclass
 from enum import auto, unique, Enum
 from typing import Optional
 
 from remote_eink.events import EventListenerController
-from remote_eink.models import Image
+from remote_eink.images import Image
 
 
 class DisplayDriver(metaclass=ABCMeta):

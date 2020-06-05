@@ -6,12 +6,14 @@ from time import sleep
 from typing import TypeVar, Generic, Optional
 from unittest.mock import MagicMock
 
-from remote_eink.controllers import CyclableDisplayController, AutoCyclingDisplayController, DisplayController
-from remote_eink.drivers.base import BaseDisplayDriver, ListenableDisplayDriver
+from remote_eink.controllers import CyclableDisplayController, AutoCyclingDisplayController, DisplayController, \
+    ProxyDisplayController, BaseDisplayController
+from remote_eink.drivers.base import ListenableDisplayDriver
+from remote_eink.tests._common import TestProxy
 from remote_eink.tests.drivers._common import DummyBaseDisplayDriver
-from remote_eink.models import Image
+from remote_eink.images import Image
 from remote_eink.storage.images import InMemoryImageStore, ImageStore
-from remote_eink.tests._common import DummyImageTransformer
+from remote_eink.tests.transformers._common import DummyImageTransformer
 from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE
 
 _DisplayControllerType = TypeVar("_DisplayControllerType", bound=DisplayController)
@@ -33,6 +35,7 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
         """
 
     def setUp(self):
+        super().setUp()
         self.display_controller: _DisplayControllerType = self.create_display_controller()
 
     def test_display_image(self):
@@ -110,9 +113,11 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
         self.display_controller.apply_image_transforms(WHITE_IMAGE)
         self.assertEqual([i for i, transformer in enumerate(transformers) if transformer.active], call_order)
 
-    # TODO
+    # FIXME
     def test_sleep_after_no_use(self):
         controller = self.create_display_controller(sleep_after_seconds=0.5)
+
+# FIXME: tests for `BaseDisplayController`?!
 
 
 class TestCyclableDisplayController(_TestDisplayController[CyclableDisplayController]):
@@ -225,6 +230,20 @@ class TestAutoCyclingDisplayController(_TestDisplayController[AutoCyclingDisplay
         end_changes = changes
         sleep(display_controller.cycle_image_after_seconds * 25)
         self.assertEqual(end_changes, changes)
+
+
+# FIXME: tests are written with the requirement of event listeners. An interesting idea would be to implement
+#        cross-process event listeners... but not at the moment!
+# class TestProxyDisplayController(_TestDisplayController[ProxyDisplayController], TestProxy):
+#     """
+#     Test for `ProxyDisplayController`.
+#     """
+#     def create_display_controller(self, image_store: Optional[ImageStore] = None, *args, **kwargs) \
+#             -> ProxyDisplayController:
+#         display_controller = BaseDisplayController(
+#             DummyBaseDisplayDriver(), image_store if image_store is not None else InMemoryImageStore())
+#         receiver = self.setup_receiver(display_controller)
+#         return ProxyDisplayController(receiver.connector)
 
 
 del _TestDisplayController

@@ -6,7 +6,7 @@ from marshmallow import Schema, fields
 
 from remote_eink.app import get_display_controller
 from remote_eink.controllers import DisplayController
-from remote_eink.models import ImageType
+from remote_eink.images import ImageType
 
 CONTENT_TYPE_HEADER = "Content-Type"
 

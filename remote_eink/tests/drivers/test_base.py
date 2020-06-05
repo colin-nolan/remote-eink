@@ -11,59 +11,74 @@ DisplayDriverType = TypeVar("DisplayDriverType", bound=DisplayDriver)
 BaseDisplayDriverType = TypeVar("BaseDisplayDriverType", bound=BaseDisplayDriver)
 
 
-class TestDisplayDriver(Generic[DisplayDriverType], unittest.TestCase):
-    """
-    Tests for `DisplayDriver`.
-    """
-
-    @abstractmethod
-    def create_display_driver(self) -> DisplayDriverType:
+class AbstractTest:
+    class TestDisplayDriver(Generic[DisplayDriverType], unittest.TestCase):
         """
-        TODO
-        :return:
+        Tests for `DisplayDriver`.
         """
+        @abstractmethod
+        def create_display_driver(self) -> DisplayDriverType:
+            """
+            TODO
+            :return:
+            """
 
-    def setUp(self):
-        self.display_driver: DisplayDriverType = self.create_display_driver()
+        def setUp(self):
+            super().setUp()
+            self.display_driver: DisplayDriverType = self.create_display_driver()
 
-    def test_sleep(self):
-        self.assertFalse(self.display_driver.sleeping)
-        self.display_driver.sleep()
-        self.assertTrue(self.display_driver.sleeping)
-        self.display_driver.sleep()
-        self.assertTrue(self.display_driver.sleeping)
+        def test_sleep(self):
+            self.assertFalse(self.display_driver.sleeping)
+            self.display_driver.sleep()
+            self.assertTrue(self.display_driver.sleeping)
+            self.display_driver.sleep()
+            self.assertTrue(self.display_driver.sleeping)
 
-    def test_wake(self):
-        self.assertFalse(self.display_driver.sleeping)
-        self.display_driver.sleep()
-        assert self.display_driver.sleeping
-        self.display_driver.wake()
-        self.assertFalse(self.display_driver.sleeping)
-        self.display_driver.wake()
-        self.assertFalse(self.display_driver.sleeping)
+        def test_wake(self):
+            self.assertFalse(self.display_driver.sleeping)
+            self.display_driver.sleep()
+            assert self.display_driver.sleeping
+            self.display_driver.wake()
+            self.assertFalse(self.display_driver.sleeping)
+            self.display_driver.wake()
+            self.assertFalse(self.display_driver.sleeping)
 
-    def test_display(self):
-        self.display_driver.display(WHITE_IMAGE)
-        self.assertEqual(WHITE_IMAGE, self.display_driver.image)
-        self.display_driver.display(BLACK_IMAGE)
-        self.assertEqual(BLACK_IMAGE, self.display_driver.image)
+        def test_display(self):
+            self.display_driver.display(WHITE_IMAGE)
+            self.assertEqual(WHITE_IMAGE, self.display_driver.image)
+            self.display_driver.display(BLACK_IMAGE)
+            self.assertEqual(BLACK_IMAGE, self.display_driver.image)
 
-    def test_clear(self):
-        self.display_driver.display(WHITE_IMAGE)
-        assert self.display_driver.image == WHITE_IMAGE
-        self.display_driver.clear()
-        self.assertIsNone(self.display_driver.image)
+        def test_display_when_sleeping(self):
+            self.display_driver.sleep()
+            assert self.display_driver.sleeping
+            self.display_driver.display(WHITE_IMAGE)
+            self.assertFalse(self.display_driver.sleeping)
+
+        def test_clear(self):
+            self.display_driver.display(WHITE_IMAGE)
+            assert self.display_driver.image == WHITE_IMAGE
+            self.display_driver.clear()
+            self.assertIsNone(self.display_driver.image)
 
 
-class TestBaseDisplayDriver(TestDisplayDriver[BaseDisplayDriverType], unittest.TestCase):
+class TestBaseDisplayDriver(AbstractTest.TestDisplayDriver[BaseDisplayDriverType], unittest.TestCase):
     """
     Tests for `BaseDisplayDriver`.
     """
     def create_display_driver(self) -> DisplayDriverType:
         return DummyBaseDisplayDriver()
 
+    def test_init_to_sleeping(self):
+        display_driver = DummyBaseDisplayDriver(sleeping=True)
+        self.assertTrue(display_driver.sleeping)
 
-class TestListenableDisplayDriver(TestDisplayDriver[ListenableDisplayDriver], unittest.TestCase):
+    def test_init_with_image(self):
+        display_driver = DummyBaseDisplayDriver(image=WHITE_IMAGE)
+        self.assertEqual(WHITE_IMAGE, display_driver.image)
+
+
+class TestListenableDisplayDriver(AbstractTest.TestDisplayDriver[ListenableDisplayDriver], unittest.TestCase):
     """
     Tests for `ListenableDisplayDriver`.
     """
@@ -101,6 +116,3 @@ class TestListenableDisplayDriver(TestDisplayDriver[ListenableDisplayDriver], un
         self.display_driver.wake()
         self.assertEqual(1, self.listener.call_count)
         self.assertEqual((), self.listener.call_args.args)
-
-
-del TestDisplayDriver

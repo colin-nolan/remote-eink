@@ -5,9 +5,9 @@ from abc import ABCMeta
 from io import BytesIO
 from typing import Tuple
 
-from remote_eink.tests.transformers.test_base import TestImageTransformer
-from remote_eink.models import Image
+from remote_eink.images import Image
 from remote_eink.tests.storage._common import WHITE_IMAGE
+from remote_eink.tests.transformers.test_base import AbstractTest
 from remote_eink.transformers.base import ImageTransformer
 
 try:
@@ -25,7 +25,7 @@ EXAMPLE_FILL_COLOR = "silver"
 
 
 @unittest.skipIf(not IMAGE_TOOLS_INSTALLED, "Optional `image-tools` not installed")
-class TestRotateImageTransformer(TestImageTransformer[RotateImageTransformer]):
+class TestRotateImageTransformer(AbstractTest.TestImageTransformer[RotateImageTransformer]):
     """
     Test for `RotateImageTransformer`.
     """
@@ -104,8 +104,6 @@ class TestRotateImageTransformer(TestImageTransformer[RotateImageTransformer]):
              RotateConfigurationParameter.EXPAND.value: EXAMPLE_EXPAND,
              RotateConfigurationParameter.FILL_COLOR.value: EXAMPLE_FILL_COLOR}, image_transformer.configuration)
 
-
-del TestImageTransformer
 
 if __name__ == "__main__":
     unittest.main()

@@ -7,8 +7,8 @@ import connexion
 from flask import Flask, current_app
 from flask_cors import CORS
 
-from remote_eink.controllers import DisplayController
-from remote_eink.multiprocess import MultiprocessDisplayController, MultiprocessDisplayControllerReceiver
+from remote_eink.controllers import DisplayController, ProxyDisplayController
+from remote_eink.multiprocess import ProxyReceiver
 from remote_eink.resolver import CustomRestResolver
 
 OPEN_API_LOCATION = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../openapi.yml")
@@ -78,8 +78,6 @@ def _ensure_execute_in_created_process(app: Flask):
                 "Only adding display controllers in process where the app is created is currently supported")
 
 
-
-# TODO: app None annotation
 @_app_from_context_if_none
 def destroy_app(app: Flask):
     """
@@ -91,7 +89,7 @@ def destroy_app(app: Flask):
 
     with app.app_context():
         for display_controller_id, display_controller_receiver in app.config[DISPLAY_CONTROLLER_RECEIVER_PROPERTY].copy().items():
-            display_controller_receiver.connector.send(MultiprocessDisplayControllerReceiver.RUN_POISON)
+            display_controller_receiver.connector.send(ProxyReceiver.RUN_POISON)
             del app.config[DISPLAY_CONTROLLER_RECEIVER_PROPERTY][display_controller_id]
 
 
@@ -105,8 +103,7 @@ def add_display_controller(display_controller: DisplayController, app: Optional[
     _ensure_execute_in_created_process(app)
 
     with app.app_context():
-        # TODO: tidy up
-        display_controller_receiver = MultiprocessDisplayControllerReceiver(display_controller)
+        display_controller_receiver = ProxyReceiver(display_controller)
         Thread(target=display_controller_receiver.run).start()
         assert display_controller.identifier not in current_app.config[DISPLAY_CONTROLLER_RECEIVER_PROPERTY]
         current_app.config[DISPLAY_CONTROLLER_RECEIVER_PROPERTY][display_controller.identifier] = \
@@ -121,7 +118,7 @@ def get_display_controllers(app: Optional[Flask] = None) -> Dict[str, DisplayCon
     :return:
     """
     with app.app_context():
-        return {identifier: MultiprocessDisplayController(receiver.connector)
+        return {identifier: ProxyDisplayController(receiver.connector)
                 for identifier, receiver in current_app.config[DISPLAY_CONTROLLER_RECEIVER_PROPERTY].items()}
 
 
@@ -135,4 +132,4 @@ def get_display_controller(display_controller_id: str, app: Optional[Flask] = No
     """
     with app.app_context():
         receiver = current_app.config[DISPLAY_CONTROLLER_RECEIVER_PROPERTY][display_controller_id]
-        return MultiprocessDisplayController(receiver.connector)
+        return ProxyDisplayController(receiver.connector)
