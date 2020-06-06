@@ -10,6 +10,7 @@ authors = [
 ]
 
 readme = "README.md"
+include = ["LICENSE", "openapi.yml"]
 
 repository = ""
 homepage = ""

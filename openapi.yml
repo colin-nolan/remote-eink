@@ -9,6 +9,7 @@ paths:
   /display:
     get:
       summary: Get displays
+      operationId: getDisplays
       responses:
         200:
           description: List of displays retrieved.
@@ -26,6 +27,7 @@ paths:
   /display/{displayId}:
     get:
       summary: Get a display
+      operationId: getDisplayById
       parameters:
         - $ref: "#/components/parameters/displayId"
       responses:
@@ -40,6 +42,7 @@ paths:
 
   /display/{displayId}/image-transformer:
     get:
+      operationId: getDisplayImageTransformers
       summary: Gets an list of image transformer IDs
       parameters:
         - $ref: "#/components/parameters/displayId"
@@ -55,6 +58,7 @@ paths:
   /display/{displayId}/image-transformer/{imageTransformerId}:
     get:
       summary: Gets details about a display image transformer
+      operationId: getDisplayImageTransformer
       parameters:
         - $ref: "#/components/parameters/displayId"
         - $ref: "#/components/parameters/imageTransformerId"
@@ -68,6 +72,7 @@ paths:
 
     put:
       summary: Updates the configuration of an image transformer
+      operationId: putDisplayImageTransformer
       parameters:
         - $ref: "#/components/parameters/displayId"
         - $ref: "#/components/parameters/imageTransformerId"
@@ -83,6 +88,7 @@ paths:
   /display/{displayId}/current-image:
     get:
       summary: Get ID of the image currently being displayed
+      operationId: getDisplayCurrentImage
       parameters:
         - $ref: "#/components/parameters/displayId"
       responses:
@@ -98,6 +104,7 @@ paths:
 
     put:
       summary: Puts the image onto the display.
+      operationId: putDisplayCurrentImage
       parameters:
         - $ref: "#/components/parameters/displayId"
       requestBody:
@@ -112,6 +119,7 @@ paths:
 
     delete:
       summary: Clear display of the current image
+      operationId: deleteDisplayCurrentImage
       parameters:
         - $ref: "#/components/parameters/displayId"
       responses:
@@ -121,6 +129,7 @@ paths:
   /display/{displayId}/image:
     get:
       summary: Get IDs of images that can be displayed
+      operationId: getDisplayImages
       parameters:
         - $ref: "#/components/parameters/displayId"
       responses:
@@ -136,6 +145,7 @@ paths:
   /display/{displayId}/image/{imageId}:
     get:
       summary: Get image from the device
+      operationId: getDiplayImageById
       parameters:
         - $ref: "#/components/parameters/displayId"
         - $ref: "#/components/parameters/imageId"
@@ -151,6 +161,7 @@ paths:
 
     post:
       summary: Uploads an image onto the device
+      operationId: postDisplayImage
       parameters:
         - $ref: "#/components/parameters/displayId"
         - $ref: "#/components/parameters/imageId"
@@ -171,6 +182,7 @@ paths:
 
     delete:
       summary: Delete an image from the device
+      operationId: deleteDisplayImageById
       parameters:
         - $ref: "#/components/parameters/displayId"
         - $ref: "#/components/parameters/imageId"
@@ -181,6 +193,7 @@ paths:
   /display/{displayId}/sleep:
     get:
       summary: Gets whether the device is sleeping
+      operationId: getDisplaySleep
       parameters:
         - $ref: "#/components/parameters/displayId"
       responses:
@@ -192,7 +205,8 @@ paths:
                 type: bool
 
     put:
-      summary: Set the device sleep status.
+      summary: Set the device sleep status
+      operationId: putDisplaySleep
       parameters:
         - $ref: "#/components/parameters/displayId"
       requestBody:

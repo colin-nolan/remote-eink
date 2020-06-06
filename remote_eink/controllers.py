@@ -12,7 +12,6 @@ from remote_eink.drivers.base import DisplayDriver, ListenableDisplayDriver
 from remote_eink.drivers.proxy import ProxyDisplayDriver
 from remote_eink.events import EventListenerController
 from remote_eink.multiprocess import ProxyObject
-from remote_eink.transformers import ImageTransformerSequence
 from remote_eink.transformers.base import ImageTransformer, ImageTransformerSequence, SimpleImageTransformerSequence
 from remote_eink.images import Image
 from remote_eink.storage.images import ImageStore, ListenableImageStore, ProxyImageStore
