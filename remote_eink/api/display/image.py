@@ -1,5 +1,7 @@
 from http import HTTPStatus
-from flask import make_response, request
+from io import BytesIO
+
+from flask import make_response, request, send_file
 
 from remote_eink.api.display._common import ImageTypeToMimeType, CONTENT_TYPE_HEADER, display_id_handler, ImageSchema
 from remote_eink.controllers import DisplayController
@@ -20,8 +22,9 @@ def get(display_controller: DisplayController, imageId: str):
     if image is None:
         return make_response(f"Image not found: {imageId}", HTTPStatus.NOT_FOUND)
 
-    response = make_response(image.data, HTTPStatus.OK)
-    response.headers[CONTENT_TYPE_HEADER] = ImageTypeToMimeType[image.type]
+    # response = make_response(image.data, HTTPStatus.OK)
+    # response.headers[CONTENT_TYPE_HEADER] = ImageTypeToMimeType[image.type]
+    response = send_file(BytesIO(image.data), ImageTypeToMimeType[image.type])
     return response
 
 

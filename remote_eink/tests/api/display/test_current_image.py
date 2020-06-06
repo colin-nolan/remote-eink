@@ -35,6 +35,13 @@ class TestDisplayCurrentImage(AppTestBase):
                                  json={"id": WHITE_IMAGE.identifier})
         self.assertEqual(HTTPStatus.BAD_REQUEST, result.status_code)
 
+    def test_set_with_array(self):
+        display_controller = self.create_display_controller()
+        result = self.client.put(f"/display/{display_controller.identifier}/current-image",
+                                 json=[{"id": WHITE_IMAGE.identifier}])
+        self.assertEqual(HTTPStatus.BAD_REQUEST, result.status_code)
+
+
     def test_set_without_id(self):
         display_controller = self.create_display_controller()
         result = self.client.put(f"/display/{display_controller.identifier}/current-image", json={})

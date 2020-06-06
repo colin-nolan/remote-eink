@@ -20,6 +20,8 @@ def delete(display_controller: DisplayController):
 
 @display_id_handler
 def put(display_controller: DisplayController, body: Dict):
+    if not isinstance(body, Dict):
+        return f"Body must be a map, got: {body}", HTTPStatus.BAD_REQUEST
     image_id = body.get("id")
     if image_id is None:
         return f"\"id\" field missing: {body}", HTTPStatus.BAD_REQUEST

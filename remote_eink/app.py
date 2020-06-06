@@ -16,8 +16,6 @@ OPEN_API_LOCATION = os.path.join(os.path.dirname(os.path.realpath(__file__)), ".
 DISPLAY_CONTROLLER_RECEIVER_PROPERTY = "DISPLAY_CONTROLLER_RECEIVER"
 CREATED_PID_PROPERTY = "CREATED_PID"
 
-_apps = {}
-
 
 def create_app(display_controllers: Collection[DisplayController]) -> Flask:
     """
