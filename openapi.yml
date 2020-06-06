@@ -144,8 +144,8 @@ paths:
 
   /display/{displayId}/image/{imageId}:
     get:
-      summary: Get image from the device
-      operationId: getDiplayImageById
+      summary: Get data for an image that can be displayed
+      operationId: getDisplayImageById
       parameters:
         - $ref: "#/components/parameters/displayId"
         - $ref: "#/components/parameters/imageId"
