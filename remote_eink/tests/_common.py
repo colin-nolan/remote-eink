@@ -12,11 +12,11 @@ from remote_eink.api.display._common import CONTENT_TYPE_HEADER, ImageTypeToMime
 from remote_eink.app import create_app, destroy_app, add_display_controller
 from remote_eink.controllers import DisplayController, BaseDisplayController
 from remote_eink.tests.drivers._common import DummyBaseDisplayDriver
-from remote_eink.images import ImageType, Image
+from remote_eink.images import ImageType, Image, SimpleImage
 from remote_eink.multiprocess import ProxyReceiver
 from remote_eink.storage.images import InMemoryImageStore
 from remote_eink.tests.storage._common import WHITE_IMAGE
-from remote_eink.tests.transformers._common import DummyImageTransformer
+from remote_eink.transformers.base import SimpleImageTransformer
 
 
 def create_image(image_type: Optional[ImageType] = None) -> Image:
@@ -27,7 +27,7 @@ def create_image(image_type: Optional[ImageType] = None) -> Image:
     if image_type is None:
         image_type = random.choice(list(ImageType))
     identifier = str(uuid4())
-    return Image(identifier, lambda: WHITE_IMAGE.data, image_type)
+    return SimpleImage(identifier, lambda: WHITE_IMAGE.data, image_type)
 
 
 def create_dummy_display_controller(*, number_of_images: int = 0, number_of_image_transformers: int = 0, **kwargs) \
@@ -48,7 +48,7 @@ def create_dummy_display_controller(*, number_of_images: int = 0, number_of_imag
         if "image_transformers" in kwargs:
             raise ValueError("Cannot specify a number of image transformers to be created in addition to passing in "
                              "image transformers")
-        kwargs["image_transformers"] = [DummyImageTransformer() for _ in range(number_of_image_transformers)]
+        kwargs["image_transformers"] = [SimpleImageTransformer() for _ in range(number_of_image_transformers)]
 
     return BaseDisplayController(driver=DummyBaseDisplayDriver(), **kwargs)
 

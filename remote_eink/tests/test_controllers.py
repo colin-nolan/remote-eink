@@ -11,7 +11,7 @@ from remote_eink.drivers.base import ListenableDisplayDriver
 from remote_eink.tests.drivers._common import DummyBaseDisplayDriver
 from remote_eink.images import Image
 from remote_eink.storage.images import InMemoryImageStore, ImageStore
-from remote_eink.tests.transformers._common import DummyImageTransformer
+from remote_eink.transformers.base import SimpleImageTransformer
 from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE
 
 _DisplayControllerType = TypeVar("_DisplayControllerType", bound=DisplayController)
@@ -72,7 +72,7 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
             displayed_image = image
             display_semaphore.release()
 
-        transformer = DummyImageTransformer(lambda _: BLACK_IMAGE)
+        transformer = SimpleImageTransformer(lambda _: BLACK_IMAGE)
         self.display_controller.driver.event_listeners.add_listener(on_display, ListenableDisplayDriver.Event.DISPLAY)
         self.display_controller.image_transformers.add(transformer)
 
@@ -87,12 +87,12 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
         self.assertEqual(WHITE_IMAGE, self.display_controller.apply_image_transforms(WHITE_IMAGE))
 
     def test_image_transform(self):
-        transformer = DummyImageTransformer(lambda _: BLACK_IMAGE)
+        transformer = SimpleImageTransformer(lambda _: BLACK_IMAGE)
         self.display_controller.image_transformers.add(transformer)
         self.assertEqual(BLACK_IMAGE, self.display_controller.apply_image_transforms(WHITE_IMAGE))
 
     def test_image_transform_when_not_active(self):
-        transformer = DummyImageTransformer(lambda _: BLACK_IMAGE, active=False)
+        transformer = SimpleImageTransformer(lambda _: BLACK_IMAGE, active=False)
         self.display_controller.image_transformers.add(transformer)
         self.assertEqual(WHITE_IMAGE, self.display_controller.apply_image_transforms(WHITE_IMAGE))
 
@@ -105,7 +105,7 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
 
         transformers = []
         for i in range(16):
-            transformer = DummyImageTransformer(partial(transform, i), active=i % 4 != 0)
+            transformer = SimpleImageTransformer(partial(transform, i), active=i % 4 != 0)
             transformers.append(transformer)
             self.display_controller.image_transformers.add(transformer)
         self.display_controller.apply_image_transforms(WHITE_IMAGE)

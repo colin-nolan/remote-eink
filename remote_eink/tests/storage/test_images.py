@@ -4,7 +4,7 @@ import unittest
 from abc import abstractmethod, ABCMeta
 from typing import TypeVar, Generic
 
-from remote_eink.images import Image
+from remote_eink.images import Image, SimpleImage
 from remote_eink.storage.images import ImageStore, InMemoryImageStore, ImageAlreadyExistsError, FileSystemImageStore, \
     ListenableImageStore, ProxyImageStore
 from remote_eink.tests._common import TestProxy
@@ -65,10 +65,10 @@ class _TestImageStore(unittest.TestCase, Generic[_ImageStoreType], metaclass=ABC
 
     def test_set_with_same_image_data(self):
         self.image_store.add(WHITE_IMAGE)
-        image_1_copy = Image(BLACK_IMAGE.identifier, lambda: WHITE_IMAGE.data, WHITE_IMAGE.type)
-        self.image_store.add(image_1_copy)
+        white_image_copy = SimpleImage(BLACK_IMAGE.identifier, lambda: WHITE_IMAGE.data, WHITE_IMAGE.type)
+        self.image_store.add(white_image_copy)
         self.assertEqual(WHITE_IMAGE, self.image_store.get(WHITE_IMAGE.identifier))
-        self.assertEqual(image_1_copy, self.image_store.get(image_1_copy.identifier))
+        self.assertEqual(white_image_copy, self.image_store.get(white_image_copy.identifier))
 
     def test_remove(self):
         self.image_store.add(WHITE_IMAGE)

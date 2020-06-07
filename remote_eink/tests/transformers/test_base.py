@@ -3,9 +3,9 @@ from abc import abstractmethod, ABCMeta
 from threading import Semaphore
 from typing import TypeVar, Generic, Sequence
 
-from remote_eink.tests.transformers._common import DummyImageTransformer
 from remote_eink.transformers.base import ImageTransformer, ImageTransformerSequence, \
-    InvalidConfigurationError, InvalidPositionError, ListenableImageTransformer, SimpleImageTransformerSequence
+    InvalidConfigurationError, InvalidPositionError, ListenableImageTransformer, SimpleImageTransformerSequence, \
+    SimpleImageTransformer
 
 ImageTransformerType = TypeVar("ImageTransformerType", bound=ImageTransformer)
 ImageTransformerSequenceType = TypeVar("ImageTransformerSequenceType", bound=ImageTransformerSequence)
@@ -53,7 +53,7 @@ class AbstractTest:
 
         def setUp(self):
             super().setUp()
-            self.image_transformers_list = [DummyImageTransformer(), DummyImageTransformer(), DummyImageTransformer()]
+            self.image_transformers_list = [SimpleImageTransformer(), SimpleImageTransformer(), SimpleImageTransformer()]
             self.image_transformers: ImageTransformerSequenceType = self.create_image_transformer_sequence(
                 self.image_transformers_list)
 
@@ -66,7 +66,7 @@ class AbstractTest:
 
         def test_contains(self):
             self.assertIn(self.image_transformers_list[0], self.image_transformers)
-            self.assertNotIn(DummyImageTransformer(), self.image_transformers)
+            self.assertNotIn(SimpleImageTransformer(), self.image_transformers)
 
         def test_slice(self):
             self.assertEqual(self.image_transformers_list[1], self.image_transformers[1])
@@ -84,7 +84,7 @@ class AbstractTest:
 
         def test_get_position_when_does_not_exist(self):
             with self.assertRaises(KeyError):
-                self.image_transformers.get_position(DummyImageTransformer())
+                self.image_transformers.get_position(SimpleImageTransformer())
 
         def test_get_position_using_id(self):
             for i, image_transformer in enumerate(self.image_transformers):
@@ -104,26 +104,26 @@ class AbstractTest:
 
         def test_set_position_when_image_transformer_not_in_sequence(self):
             with self.assertRaises(KeyError):
-                 self.image_transformers.set_position( DummyImageTransformer(), 0)
+                 self.image_transformers.set_position(SimpleImageTransformer(), 0)
 
         def test_set_position_less_than_zero(self):
             with self.assertRaises(InvalidPositionError):
                  self.image_transformers.set_position(self.image_transformers[0], -1)
 
         def test_add(self):
-            image_transformer = DummyImageTransformer()
+            image_transformer = SimpleImageTransformer()
             self.image_transformers.add(image_transformer)
             self.assertEqual(image_transformer, self.image_transformers[-1])
 
         def test_add_with_position(self):
-            image_transformer = DummyImageTransformer()
+            image_transformer = SimpleImageTransformer()
             self.image_transformers.add(image_transformer, 1)
             self.assertEqual(image_transformer, self.image_transformers[1])
 
         def test_add_with_duplicate_id(self):
-            self.image_transformers.add(DummyImageTransformer(identifier="test"))
+            self.image_transformers.add(SimpleImageTransformer(identifier="test"))
             with self.assertRaises(ValueError):
-                self.image_transformers.add(DummyImageTransformer(identifier="test"))
+                self.image_transformers.add(SimpleImageTransformer(identifier="test"))
 
         def test_remove(self):
             for image_transformer in self.image_transformers_list:
@@ -132,7 +132,7 @@ class AbstractTest:
                 self.assertNotIn(image_transformer, self.image_transformers)
 
         def test_remove_when_does_not_exist(self):
-            self.assertFalse(self.image_transformers.remove(DummyImageTransformer()))
+            self.assertFalse(self.image_transformers.remove(SimpleImageTransformer()))
 
 
 class TestListenableImageTransformer(unittest.TestCase):
@@ -140,7 +140,7 @@ class TestListenableImageTransformer(unittest.TestCase):
     Tests for `ListenableImageTransformer`.
     """
     def setUp(self):
-        self.image_transformer = ListenableImageTransformer(DummyImageTransformer())
+        self.image_transformer = ListenableImageTransformer(SimpleImageTransformer())
 
     def test_listen_to_active_change(self):
         changed = Semaphore(0)
@@ -177,7 +177,7 @@ class TestSimpleImageTransformerSequence(AbstractTest.TestImageTransformerSequen
             semaphore.release()
 
         self.image_transformers.event_listeners.add_listener(callback, SimpleImageTransformerSequence.Event.ADD)
-        image_transformer = DummyImageTransformer()
+        image_transformer = SimpleImageTransformer()
         self.image_transformers.add(image_transformer)
         self.assertTrue(semaphore.acquire(timeout=15))
         self.assertEqual(image_transformer, callback_image_transformer)
@@ -195,7 +195,7 @@ class TestSimpleImageTransformerSequence(AbstractTest.TestImageTransformerSequen
             semaphore.release()
 
         self.image_transformers.event_listeners.add_listener(callback, SimpleImageTransformerSequence.Event.REMOVE)
-        image_transformer = DummyImageTransformer()
+        image_transformer = SimpleImageTransformer()
         self.image_transformers.remove(image_transformer)
         self.assertTrue(semaphore.acquire(timeout=15))
         self.assertEqual(image_transformer, callback_image_transformer)

@@ -5,7 +5,7 @@ from enum import Enum, auto, unique
 from typing import Dict, Optional, Iterable, List, Collection, Iterator, Any
 
 from remote_eink.events import EventListenerController
-from remote_eink.images import Image, ImageDataReader
+from remote_eink.images import Image, ImageDataReader, SimpleImage, ProxyImage
 from remote_eink.multiprocess import ProxyObject
 from remote_eink.storage.manifests import Manifest, TinyDbManifest, ManifestRecord
 
@@ -223,7 +223,7 @@ class ManifestBasedImageStore(SimpleImageStore, metaclass=ABCMeta):
         :return:
         """
         image_reader = self._get_image_reader(manifest_record.storage_location)
-        return Image(manifest_record.identifier, image_reader, manifest_record.image_type)
+        return SimpleImage(manifest_record.identifier, image_reader, manifest_record.image_type)
 
 
 class FileSystemImageStore(ManifestBasedImageStore):
@@ -331,6 +331,10 @@ class ProxyImageStore(ImageStore, ProxyObject):
         return self._communicate("__contains__", x)
 
     def get(self, image_id: str) -> Optional[Image]:
+        # # TODO: it's possible to have a pointer to the image but for it to no longer be accessible via this method -
+        # #       a smarter implementation is really needed
+        # call_prefix = f"{self.method_name_prefix}." if self.method_name_prefix != "" else ""
+        # ProxyImage(self.connection, f"{call_prefix}.get('{image_id}')")
         return self._communicate("get", image_id)
 
     def list(self) -> List[Image]:

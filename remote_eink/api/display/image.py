@@ -5,7 +5,7 @@ from flask import make_response, request, send_file
 
 from remote_eink.api.display._common import ImageTypeToMimeType, CONTENT_TYPE_HEADER, display_id_handler, ImageSchema
 from remote_eink.controllers import DisplayController
-from remote_eink.images import Image
+from remote_eink.images import Image, SimpleImage
 from remote_eink.storage.images import ImageAlreadyExistsError
 
 
@@ -38,7 +38,7 @@ def post(display_controller: DisplayController, imageId: str, body: bytes):
     if image_type is None:
         return f"Unsupported image format: {image_type}", HTTPStatus.UNSUPPORTED_MEDIA_TYPE
 
-    image = Image(imageId, lambda: body, image_type)
+    image = SimpleImage(imageId, lambda: body, image_type)
     try:
         display_controller.image_store.add(image)
     except ImageAlreadyExistsError:

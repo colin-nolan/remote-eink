@@ -1,5 +1,8 @@
+from abc import ABCMeta, abstractmethod
 from enum import unique, Enum
 from typing import Any, Callable
+
+from remote_eink.multiprocess import ProxyObject
 
 ImageDataReader = Callable[[], bytes]
 
@@ -15,7 +18,49 @@ class ImageType(Enum):
     WEBP = "webp"
 
 
-class Image:
+class Image(metaclass=ABCMeta):
+    """
+    TODO
+    """
+    @property
+    @abstractmethod
+    def identifier(self) -> str:
+        """
+        TODO
+        :return:
+        """
+
+    @property
+    @abstractmethod
+    def data(self) -> bytes:
+        """
+        TODO
+        :return:
+        """
+
+    @property
+    @abstractmethod
+    def type(self) -> ImageType:
+        """
+        TODO
+        :return:
+        """
+
+    def __repr__(self) -> str:
+        return repr(dict(identifier=self.identifier, data=self.data))
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+        if other.identifier != self.identifier:
+            return False
+        return other.data == self.data
+
+    def __hash__(self) -> int:
+        return hash(self.identifier)
+
+
+class SimpleImage(Image):
     """
     Immutable model of an image.
     """
@@ -61,15 +106,19 @@ class Image:
         self._cache_data = cache_data
         self._cached = None
 
-    def __repr__(self) -> str:
-        return repr(dict(identifier=self.identifier, data=self.data))
 
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, self.__class__):
-            return False
-        if other.identifier != self.identifier:
-            return False
-        return other.data == self.data
+class ProxyImage(Image, ProxyObject):
+    """
+    TODO
+    """
+    @property
+    def identifier(self) -> str:
+        return self._communicate("identifier")
 
-    def __hash__(self) -> int:
-        return hash(self.identifier)
+    @property
+    def data(self) -> bytes:
+        return self._communicate("data")
+
+    @property
+    def type(self) -> ImageType:
+        return self._communicate("type")

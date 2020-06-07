@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
 from remote_eink.tests._common import AppTestBase
-from remote_eink.tests.transformers._common import DummyImageTransformer
+from remote_eink.transformers.base import SimpleImageTransformer
 from remote_eink.transformers import ImageTransformer
 from remote_eink.transformers.rotate import RotateImageTransformer, RotateConfigurationParameter
 
@@ -17,7 +17,7 @@ class TestImageTransformer(AppTestBase):
     def setUp(self):
         self.image_transformers = []
         for i in range(3):
-            image_transformer = DummyImageTransformer(configuration={"test": i}, description=f"example-{i}")
+            image_transformer = SimpleImageTransformer(configuration={"test": i}, description=f"example-{i}")
             self.image_transformers.append(image_transformer)
         self.create_display_controller(image_transformers=self.image_transformers)
 
@@ -83,7 +83,7 @@ class TestImageTransformer(AppTestBase):
 
     def test_put_with_mix_valid_invalid_configuration_parameters(self):
         image_transformer = self.image_transformers[0]
-        image_transformer.dummy_configuration = {}
+        image_transformer._configuration = {}
         assert image_transformer.configuration == {}
         result = self.client.put(
             f"/display/{self.display_controller.identifier}/image-transformer/{image_transformer.identifier}",

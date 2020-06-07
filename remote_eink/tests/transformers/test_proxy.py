@@ -4,10 +4,9 @@ from typing import Sequence
 
 from remote_eink.multiprocess import ProxyReceiver
 from remote_eink.tests._common import TestProxy
-from remote_eink.tests.transformers._common import DummyImageTransformer
 from remote_eink.tests.transformers.test_base import AbstractTest
 from remote_eink.transformers import ImageTransformer
-from remote_eink.transformers.base import SimpleImageTransformerSequence
+from remote_eink.transformers.base import SimpleImageTransformerSequence, SimpleImageTransformer
 from remote_eink.transformers.proxy import ProxyImageTransformer, ProxyImageTransformerSequence
 
 
@@ -16,7 +15,7 @@ class TestProxyImageTransformer(AbstractTest.TestImageTransformer[ProxyImageTran
     Test for `ProxyImageTransformer`.
     """
     def create_image_transformer(self) -> ProxyImageTransformer:
-        receiver = self.setup_receiver(DummyImageTransformer())
+        receiver = self.setup_receiver(SimpleImageTransformer())
         return ProxyImageTransformer(receiver.connector)
 
 
