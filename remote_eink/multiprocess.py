@@ -2,7 +2,7 @@ import inspect
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from multiprocessing import RLock
-from typing import Any, Tuple, TypeVar, Generic, Union
+from typing import Any, Tuple, TypeVar, Generic, Union, Dict
 from uuid import uuid4
 from weakref import WeakValueDictionary
 
@@ -10,7 +10,7 @@ from multiprocessing_on_dill.connection import Connection, Pipe
 
 ProxyObjectType = TypeVar("ProxyObjectType")
 
-OriginalObjectReference = str
+ReferenceLookupMap = Dict[Any, "ReferencePlaceholder"]
 
 
 class ProxyConnection:
@@ -33,15 +33,15 @@ class ProxyConnection:
         with self._lock:
             self.connection.send(to_send)
 
-    def receive(self) -> Tuple[Any, OriginalObjectReference]:
+    def receive(self) -> Tuple[Any, ReferenceLookupMap]:
         """
         Blocks until receives communication from the receiver.
-        :return: object returned by the receiver
+        :return: the first element is the object returned by the receiver and the second is TODO
         """
         with self._lock:
             return self.connection.recv()
 
-    def send_and_receive(self, to_send: Any) -> Tuple[Any, OriginalObjectReference]:
+    def send_and_receive(self, to_send: Any) -> Tuple[Any, ReferenceLookupMap]:
         """
         Send and receive with the same lock.
         :param to_send: object to send
@@ -108,18 +108,29 @@ class ProxyReceiver:
             except Exception as e:
                 result = e, True
 
-            reference = None
-            if not result[1] and result[0] is not None and type(result[0]) not in (str, float, int, bytes, str, tuple, bool):
-                identifier = str(uuid4())
-                try:
-                    _proxy_object_references[identifier] = result[0]
-                    reference = f"_proxy_object_references['{identifier}']"
-                except TypeError:
-                    pass
+            references = {}
+            if not result[1] and result[0] is not None and type(result[0]) not in (str, float, int, bytes, str, bool):
+                # XXX: Support for other containers, such as nested or dictionaries may be required in the future.
+                #      Not adding now as the complexity is already very high.
+                if isinstance(result[0], list) or isinstance(result[0], tuple):
+                    all_referenced = result[0]
+                else:
+                    all_referenced = [result[0]]
 
-            self._parent_connection.send((result, reference))
-            # Don't hold reference to result
+                for referenced in all_referenced:
+                    identifier = str(uuid4())
+                    try:
+                        if referenced not in references:
+                            _proxy_object_references[identifier] = referenced
+                            reference = f"_proxy_object_references['{identifier}']"
+                            references[referenced] = ReferencePlaceholder(reference)
+                    except TypeError:
+                        pass
+
+            self._parent_connection.send((result, references))
+            # Don't hold on to references
             result = None
+            references = None
 
     def stop(self):
         """
@@ -134,7 +145,7 @@ class ReferencePlaceholder:
     """
     TODO
     """
-    reference: OriginalObjectReference
+    reference: str
 
 
 class ProxyObject(Generic[ProxyObjectType], metaclass=ABCMeta):
@@ -168,9 +179,9 @@ class ProxyObject(Generic[ProxyObjectType], metaclass=ABCMeta):
         :param kwargs:
         :return:
         """
-        return self._communicate_and_get_reference(method_name, *args, *kwargs)[0]
+        return self._communicate_and_get_references(method_name, *args, *kwargs)[0]
 
-    def _communicate_and_get_reference(self, method_name: str, *args, **kwargs) -> Tuple[Any, OriginalObjectReference]:
+    def _communicate_and_get_references(self, method_name: str, *args, **kwargs) -> Tuple[Any, ReferenceLookupMap]:
         """
         TODO
         :param method_name:
@@ -179,11 +190,11 @@ class ProxyObject(Generic[ProxyObjectType], metaclass=ABCMeta):
         :return:
         """
         prefix = f"{self.call_string_prefix}." if len(self.call_string_prefix) > 0 else ""
-        (value, raised), reference = self.connection.send_and_receive(
+        (value, raised), references = self.connection.send_and_receive(
             (f"{prefix}{method_name}", self.is_direct_reference, args, kwargs))
         if raised:
             raise value
-        return value, reference
+        return value, references
 
 
 def prepare_to_send(obj: Any) -> Union[Any, ReferencePlaceholder]:

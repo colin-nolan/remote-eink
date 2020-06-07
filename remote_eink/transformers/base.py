@@ -113,6 +113,9 @@ class ImageTransformer(metaclass=ABCMeta):
             return False
         return True
 
+    def __hash__(self) -> hash:
+        return hash(self.identifier)
+
 
 class BaseImageTransformer(ImageTransformer, metaclass=ABCMeta):
     """

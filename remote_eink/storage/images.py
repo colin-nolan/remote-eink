@@ -6,7 +6,7 @@ from typing import Dict, Optional, Iterable, List, Collection, Iterator, Any
 
 from remote_eink.events import EventListenerController
 from remote_eink.images import Image, ImageDataReader, SimpleImage, ProxyImage
-from remote_eink.multiprocess import ProxyObject
+from remote_eink.multiprocess import ProxyObject, prepare_to_send
 from remote_eink.storage.manifests import Manifest, TinyDbManifest, ManifestRecord
 
 
@@ -328,20 +328,20 @@ class ProxyImageStore(ImageStore, ProxyObject):
         return iter(self.list())
 
     def __contains__(self, x: Any) -> bool:
-        return self._communicate("__contains__", x)
+        return self._communicate("__contains__", prepare_to_send(x))
 
     def get(self, image_id: str) -> Optional[Image]:
-        # # TODO: it's possible to have a pointer to the image but for it to no longer be accessible via this method -
-        # #       a smarter implementation is really needed
-        # call_prefix = f"{self.method_name_prefix}." if self.method_name_prefix != "" else ""
-        # ProxyImage(self.connection, f"{call_prefix}.get('{image_id}')")
-        return self._communicate("get", image_id)
+        image, references = self._communicate_and_get_references("get", image_id)
+        if image is None:
+            return None
+        return ProxyImage(self.connection, references[image].reference, True)
 
     def list(self) -> List[Image]:
-        return self._communicate("list")
+        images, references = self._communicate_and_get_references("list")
+        return [ProxyImage(self.connection, references[image].reference, True) for image in images]
 
     def add(self, image: Image):
-        self._communicate("add", image)
+        self._communicate("add", prepare_to_send(image))
 
     def remove(self, image_id: str) -> bool:
         return self._communicate("remove", image_id)

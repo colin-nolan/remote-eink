@@ -50,7 +50,7 @@ class Image(metaclass=ABCMeta):
         return repr(dict(identifier=self.identifier, data=self.data))
 
     def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, self.__class__):
+        if not isinstance(other, Image):
             return False
         if other.identifier != self.identifier:
             return False
