@@ -1,7 +1,7 @@
 from typing import Optional
 
 from remote_eink.drivers.base import DisplayDriver
-from remote_eink.images import Image
+from remote_eink.images import Image, ReallySimpleImage
 from remote_eink.multiprocess import ProxyObject
 
 
@@ -17,8 +17,9 @@ class ProxyDisplayDriver(DisplayDriver, ProxyObject):
     def image(self) -> Optional[Image]:
         return self._communicate("image")
 
-    def display(self, image_data: bytes):
-        self._communicate("display", image_data)
+    def display(self, image: Image):
+        image = ReallySimpleImage(image.identifier, image.data, image.type)
+        self._communicate("display", image)
 
     def clear(self):
         self._communicate("clear")

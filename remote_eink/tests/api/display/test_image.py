@@ -1,8 +1,12 @@
+import shutil
+import tempfile
 from http import HTTPStatus
 
 from remote_eink.api.display._common import ImageTypeToMimeType
 from remote_eink.images import ImageType
+from remote_eink.storage.images import FileSystemImageStore
 from remote_eink.tests._common import create_image, AppTestBase, set_content_type_header
+from remote_eink.tests.storage._common import WHITE_IMAGE
 
 
 class TestDisplayImage(AppTestBase):
@@ -82,3 +86,23 @@ class TestDisplayImage(AppTestBase):
     def test_delete_image_display_does_not_exist(self):
         result = self.client.delete(f"/display/does-not-exist/image/does-not-exist")
         self.assertEqual(HTTPStatus.NOT_FOUND, result.status_code)
+
+    # def test_complex(self):
+    #
+    #     # temp_directory = tempfile.mkdtemp()
+    #     # try:
+    #     #     image_store = FileSystemImageStore(temp_directory)
+    #
+    #     image_store = FileSystemImageStore("/tmp/images")
+    #
+    #     controller = self.create_display_controller(image_store=image_store)
+    #
+    #     controller.image_store.add(WHITE_IMAGE)
+    #
+    #     result = self.client.get(f"/display/{controller.identifier}")
+    #     result = self.client.get(f"/display/{controller.identifier}/image")
+    #     result = self.client.get(f"/display/{controller.identifier}/image/{WHITE_IMAGE.identifier}")
+    #     print(result)
+    #
+    #     # finally:
+    #     #     shutil.rmtree(temp_directory, ignore_errors=True)

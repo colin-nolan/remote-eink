@@ -41,17 +41,19 @@ class ProxyImageTransformerSequence(ImageTransformerSequence, ProxyObject[ImageT
     TODO
     """
     def __getitem__(self, i: int) -> ImageTransformer:
-        image_transformer, references = self._communicate_and_get_references("__getitem__", i)
-        return ProxyImageTransformer(self.connection, references[image_transformer].reference, True)
+        references = self._communicate_reference_return("__getitem__", i)
+        assert len(references) == 1
+        return ProxyImageTransformer(self.connection, references[0].reference, True)
 
     def __len__(self) -> int:
         return self._communicate("__len__")
 
     def get_by_id(self, image_transformer_id: str) -> Optional[ImageTransformer]:
-        image_transformer, references = self._communicate_and_get_references("get_by_id", image_transformer_id)
-        if image_transformer is None:
+        references = self._communicate_reference_return("get_by_id", image_transformer_id)
+        if len(references) == 0:
             return None
-        return ProxyImageTransformer(self.connection, references[image_transformer].reference, True)
+        assert len(references) == 1
+        return ProxyImageTransformer(self.connection, references[0].reference, True)
 
     def get_position(self, image_transformer: Union[ImageTransformer, str]) -> int:
         return self._communicate("get_position", prepare_to_send(image_transformer))

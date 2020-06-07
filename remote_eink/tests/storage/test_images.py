@@ -156,6 +156,24 @@ class TestProxyImageStore(_TestImageStore[ProxyImageStore], TestProxy):
         receiver = self.setup_receiver(InMemoryImageStore(*args, **kwargs))
         return ProxyImageStore(receiver.connector)
 
+    def test_with_file_based_image_store(self):
+        temp_directory = tempfile.mkdtemp()
+        try:
+             image_store = FileSystemImageStore(temp_directory)
+             receiver = self.setup_receiver(image_store)
+             proxy_image_store = ProxyImageStore(receiver.connector)
+
+             image_store.add(WHITE_IMAGE)
+             self.assertCountEqual((WHITE_IMAGE, ), proxy_image_store)
+             self.assertEqual(image_store.get(WHITE_IMAGE.identifier).data,
+                              proxy_image_store.get(WHITE_IMAGE.identifier).data)
+
+             proxy_image_store.add(BLACK_IMAGE)
+             self.assertCountEqual((WHITE_IMAGE, BLACK_IMAGE), image_store)
+             self.assertCountEqual((WHITE_IMAGE, BLACK_IMAGE), proxy_image_store)
+        finally:
+            shutil.rmtree(temp_directory, ignore_errors=True)
+
 
 del _TestImageStore
 

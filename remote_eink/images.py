@@ -60,6 +60,32 @@ class Image(metaclass=ABCMeta):
         return hash(self.identifier)
 
 
+class ReallySimpleImage(Image):
+    @property
+    def identifier(self) -> str:
+        return self._identifier
+
+    @property
+    def data(self) -> bytes:
+        return self._data
+
+    @property
+    def type(self) -> ImageType:
+        return self._type
+
+    def __init__(self, identifier: str, data: bytes, image_type: ImageType):
+        """
+        TODO
+        :param identifier:
+        :param data:
+        :param image_type:
+        """
+        self._identifier = identifier
+        self._data = data
+        self._type = image_type
+
+
+# TODO: do we need caching here...
 class SimpleImage(Image):
     """
     Immutable model of an image.

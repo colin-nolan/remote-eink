@@ -1,16 +1,14 @@
 import inspect
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 from dataclasses import dataclass
 from multiprocessing import RLock
-from typing import Any, Tuple, TypeVar, Generic, Union, Dict
+from typing import Any, TypeVar, Generic, Union, List
 from uuid import uuid4
 from weakref import WeakValueDictionary
 
 from multiprocessing_on_dill.connection import Connection, Pipe
 
 ProxyObjectType = TypeVar("ProxyObjectType")
-
-ReferenceLookupMap = Dict[Any, "ReferencePlaceholder"]
 
 
 class ProxyConnection:
@@ -25,6 +23,7 @@ class ProxyConnection:
         self.connection = connection
         self._lock = RLock()
 
+    # TODO: Used separately?
     def send(self, to_send: Any):
         """
         Sends the given object to the receiver.
@@ -33,7 +32,8 @@ class ProxyConnection:
         with self._lock:
             self.connection.send(to_send)
 
-    def receive(self) -> Tuple[Any, ReferenceLookupMap]:
+    # TODO: Used separately?
+    def receive(self) -> Any:
         """
         Blocks until receives communication from the receiver.
         :return: the first element is the object returned by the receiver and the second is TODO
@@ -41,7 +41,7 @@ class ProxyConnection:
         with self._lock:
             return self.connection.recv()
 
-    def send_and_receive(self, to_send: Any) -> Tuple[Any, ReferenceLookupMap]:
+    def send_and_receive(self, to_send: Any) -> Any:
         """
         Send and receive with the same lock.
         :param to_send: object to send
@@ -63,11 +63,12 @@ class ProxyReceiver:
 
     @property
     def connector(self) -> ProxyConnection:
-        return ProxyConnection(self._child_connection)
+        return self._proxy_connection
 
     def __init__(self, target: Any):
         self._target = target
         self._parent_connection, self._child_connection = Pipe(duplex=True)
+        self._proxy_connection = ProxyConnection(self._child_connection)
 
     def run(self):
         while True:
@@ -76,7 +77,7 @@ class ProxyReceiver:
             if call_string == ProxyReceiver.RUN_POISON:
                 return
 
-            call_string, direct_reference, args, kwargs = call_string
+            call_string, direct_reference, return_references, args, kwargs = call_string
             call_prefix = "self._target." if not direct_reference else ""
 
             # XXX: no support for nested reference placeholders, e.g. args = (1, ReferencePlaceholder())
@@ -91,7 +92,8 @@ class ProxyReceiver:
             try:
                 value = eval(f"{call_prefix}{call_string}")
                 if args is not None:
-                    if inspect.ismethod(value):
+                    # XXX: Detect of "method-wrapper" (such as __str__) is hacky
+                    if inspect.ismethod(value) or str(type(value)) == "<class 'method-wrapper'>":
                         value = value(*args, **kwargs)
                     else:
                         if len(args) == 1:
@@ -108,8 +110,8 @@ class ProxyReceiver:
             except Exception as e:
                 result = e, True
 
-            references = {}
-            if not result[1] and result[0] is not None and type(result[0]) not in (str, float, int, bytes, str, bool):
+            if not result[1] and return_references:
+                references = []
                 # XXX: Support for other containers, such as nested or dictionaries may be required in the future.
                 #      Not adding now as the complexity is already very high.
                 if isinstance(result[0], list) or isinstance(result[0], tuple):
@@ -118,19 +120,22 @@ class ProxyReceiver:
                     all_referenced = [result[0]]
 
                 for referenced in all_referenced:
-                    identifier = str(uuid4())
-                    try:
-                        if referenced not in references:
-                            _proxy_object_references[identifier] = referenced
-                            reference = f"_proxy_object_references['{identifier}']"
-                            references[referenced] = ReferencePlaceholder(reference)
-                    except TypeError:
-                        pass
+                    if type(result[0]) not in (str, float, int, bytes, str, bool):
+                        try:
+                            if referenced not in references:
+                                identifier = str(uuid4())
+                                _proxy_object_references[identifier] = referenced
+                                reference = f"_proxy_object_references['{identifier}']"
+                                references.append(ReferencePlaceholder(reference))
+                        except TypeError:
+                            pass
+                result = references, False
 
-            self._parent_connection.send((result, references))
+            self._parent_connection.send(result)
             # Don't hold on to references
             result = None
-            references = None
+            all_referenced = None
+            value = None
 
     def stop(self):
         """
@@ -179,9 +184,9 @@ class ProxyObject(Generic[ProxyObjectType], metaclass=ABCMeta):
         :param kwargs:
         :return:
         """
-        return self._communicate_and_get_references(method_name, *args, *kwargs)[0]
+        return self._communicate_with_set_return(method_name, False, *args, *kwargs)
 
-    def _communicate_and_get_references(self, method_name: str, *args, **kwargs) -> Tuple[Any, ReferenceLookupMap]:
+    def _communicate_reference_return(self, method_name: str, *args, **kwargs) -> List[ReferencePlaceholder]:
         """
         TODO
         :param method_name:
@@ -189,12 +194,23 @@ class ProxyObject(Generic[ProxyObjectType], metaclass=ABCMeta):
         :param kwargs:
         :return:
         """
+        return self._communicate_with_set_return(method_name, True, *args, *kwargs)
+
+    def _communicate_with_set_return(self, method_name: str, return_references: bool = False, *args, **kwargs) -> Any:
+        """
+        TODO
+        :param method_name:
+        :param return_references:
+        :param args:
+        :param kwargs:
+        :return:
+        """
         prefix = f"{self.call_string_prefix}." if len(self.call_string_prefix) > 0 else ""
-        (value, raised), references = self.connection.send_and_receive(
-            (f"{prefix}{method_name}", self.is_direct_reference, args, kwargs))
+        value, raised = self.connection.send_and_receive(
+            (f"{prefix}{method_name}", self.is_direct_reference, return_references, args, kwargs))
         if raised:
             raise value
-        return value, references
+        return value
 
 
 def prepare_to_send(obj: Any) -> Union[Any, ReferencePlaceholder]:

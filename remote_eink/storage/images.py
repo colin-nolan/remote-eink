@@ -5,7 +5,7 @@ from enum import Enum, auto, unique
 from typing import Dict, Optional, Iterable, List, Collection, Iterator, Any
 
 from remote_eink.events import EventListenerController
-from remote_eink.images import Image, ImageDataReader, SimpleImage, ProxyImage
+from remote_eink.images import Image, ImageDataReader, SimpleImage, ProxyImage, ReallySimpleImage
 from remote_eink.multiprocess import ProxyObject, prepare_to_send
 from remote_eink.storage.manifests import Manifest, TinyDbManifest, ManifestRecord
 
@@ -182,15 +182,13 @@ class ManifestBasedImageStore(SimpleImageStore, metaclass=ABCMeta):
         :return:
         """
 
-    def __init__(self, images: Iterable[Image] = (), manifest: Manifest = None, cache_data: bool = False):
+    def __init__(self, images: Iterable[Image] = (), manifest: Manifest = None):
         """
         TODO
         :param images:
         :param manifest:
-        :param cache_data:
         """
         self._manifest = manifest
-        self.cache_data = cache_data
         super().__init__(images)
 
     def _get(self, image_id: str) -> Optional[Image]:
@@ -232,9 +230,32 @@ class FileSystemImageStore(ManifestBasedImageStore):
     """
     def __init__(self, root_directory: str, images: Iterable[Image] = (), manifest: Optional[Manifest] = None):
         self.root_directory = root_directory
+        self._cache = {}
         manifest = manifest if manifest is not None else \
             TinyDbManifest(os.path.join(self.root_directory, "manifest.json"))
         super().__init__(images, manifest)
+
+    # FIXME: putting it in a "cache" is really just a hack to keep the reference alive when held only through a proxy
+    def get(self, image_id: str) -> Optional[Image]:
+        image = super().get(image_id)
+        self._cache[image_id] = image
+        return image
+
+    # FIXME: putting it in a "cache" is really just a hack to keep the reference alive when held only through a proxy
+    def add(self, image: Image):
+        super().add(image)
+        self._cache[image.identifier] = image
+
+    # FIXME: putting it in a "cache" is really just a hack to keep the reference alive when held only through a proxy
+    def list(self) -> List[Image]:
+        images = super().list()
+        for i, image in enumerate(images):
+            cache_copy = self._cache.get(image.identifier)
+            if not cache_copy:
+                self._cache[image.identifier] = image
+            else:
+                images[i] = cache_copy
+        return images
 
     def _get_image_reader(self, storage_location: str) -> ImageDataReader:
         path = os.path.join(self.root_directory, storage_location)
@@ -328,20 +349,26 @@ class ProxyImageStore(ImageStore, ProxyObject):
         return iter(self.list())
 
     def __contains__(self, x: Any) -> bool:
-        return self._communicate("__contains__", prepare_to_send(x))
+        if not isinstance(x, Image):
+            return False
+        image = ReallySimpleImage(x.identifier, x.data, x.type)
+        return self._communicate("__contains__", image)
 
     def get(self, image_id: str) -> Optional[Image]:
-        image, references = self._communicate_and_get_references("get", image_id)
-        if image is None:
+        references = self._communicate_reference_return("get", image_id)
+        if len(references) == 0:
             return None
-        return ProxyImage(self.connection, references[image].reference, True)
+        assert len(references) == 1
+        return ProxyImage(self.connection, references[0].reference, True)
 
     def list(self) -> List[Image]:
-        images, references = self._communicate_and_get_references("list")
-        return [ProxyImage(self.connection, references[image].reference, True) for image in images]
+        references = self._communicate_reference_return("list")
+        return [ProxyImage(self.connection, reference.reference, True) for reference in references]
 
     def add(self, image: Image):
-        self._communicate("add", prepare_to_send(image))
+        image = ReallySimpleImage(image.identifier, image.data, image.type)
+        # self._communicate("add", prepare_to_send(image))
+        self._communicate("add", image)
 
     def remove(self, image_id: str) -> bool:
         return self._communicate("remove", image_id)

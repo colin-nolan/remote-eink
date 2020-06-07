@@ -13,8 +13,9 @@ from remote_eink.drivers.proxy import ProxyDisplayDriver
 from remote_eink.events import EventListenerController
 from remote_eink.multiprocess import ProxyObject
 from remote_eink.transformers.base import ImageTransformer, ImageTransformerSequence, SimpleImageTransformerSequence
-from remote_eink.images import Image
+from remote_eink.images import Image, ProxyImage
 from remote_eink.storage.images import ImageStore, ListenableImageStore, ProxyImageStore
+from remote_eink.transformers.proxy import ProxyImageTransformerSequence
 
 DEFAULT_SECONDS_BETWEEN_CYCLE = float(60 * 60)
 
@@ -41,7 +42,7 @@ class DisplayController(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def current_image(self) -> Image:
+    def current_image(self) -> Optional[Image]:
         """
         TODO
         :return:
@@ -119,7 +120,7 @@ class BaseDisplayController(DisplayController):
         return self._identifier
 
     @property
-    def current_image(self) -> Image:
+    def current_image(self) -> Optional[Image]:
         return self._current_image
 
     @property
@@ -325,7 +326,7 @@ class SleepyDisplayController(ListenableDisplayController):
         return self._display_controller.identifier
 
     @property
-    def current_image(self) -> Image:
+    def current_image(self) -> Optional[Image]:
         return self._display_controller.current_image
 
     @property
@@ -393,8 +394,12 @@ class ProxyDisplayController(DisplayController, ProxyObject):
         return self._communicate("identifier")
 
     @property
-    def current_image(self) -> Image:
-        return self._communicate("current_image")
+    def current_image(self) -> Optional[Image]:
+        references = self._communicate_with_set_return("current_image", True)
+        if len(references) == 0:
+            return None
+        assert len(references) == 1
+        return ProxyImage(self.connection, references[0].reference, True)
 
     @property
     def driver(self) -> DisplayDriver:
@@ -406,8 +411,6 @@ class ProxyDisplayController(DisplayController, ProxyObject):
 
     @property
     def image_transformers(self) -> ImageTransformerSequence:
-        # FIXME: import
-        from remote_eink.transformers.proxy import ProxyImageTransformerSequence
         return ProxyImageTransformerSequence(self.connection, "image_transformers")
 
     def display(self, image_id: str):

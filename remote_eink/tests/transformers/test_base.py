@@ -134,6 +134,9 @@ class AbstractTest:
         def test_remove_when_does_not_exist(self):
             self.assertFalse(self.image_transformers.remove(SimpleImageTransformer()))
 
+        def test_str(self):
+            self.assertIsInstance(str(self.image_transformers), str)
+
 
 class TestListenableImageTransformer(unittest.TestCase):
     """
