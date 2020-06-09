@@ -229,6 +229,7 @@ class TestAutoCyclingDisplayController(_TestDisplayController[AutoCyclingDisplay
         sleep(display_controller.cycle_image_after_seconds * 25)
         self.assertEqual(end_changes, changes)
 
+# TODO: test `SleepyDisplayController`
 
 # FIXME: tests are written with the requirement of event listeners. An interesting idea would be to implement
 #        cross-process event listeners... but not at the moment!

@@ -40,6 +40,7 @@ class DisplayController(metaclass=ABCMeta):
         :return:
         """
 
+    # TODO: consider setter over use of `display`
     @property
     @abstractmethod
     def current_image(self) -> Optional[Image]:
