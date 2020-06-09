@@ -1,3 +1,5 @@
+from typing import Type
+
 import logging
 from io import BytesIO
 
@@ -18,7 +20,7 @@ class PaperTtyDisplayDriver(BaseDisplayDriver):
     """
     PaperTTY-based device driver.
     """
-    def __init__(self, device_driver: DeviceDisplayDriver):
+    def __init__(self, device_driver: Type[DeviceDisplayDriver]):
         """
         Constructor.
         :param device_driver: PaperTTY device display driver
@@ -26,9 +28,12 @@ class PaperTtyDisplayDriver(BaseDisplayDriver):
         super().__init__()
         self._device_driver = device_driver
         self._papertty: PaperTTY = None
+        # Wake will initialise PaperTTY
+        self._wake()
 
     def _display(self, image_data: bytes):
-        display_image(self._device_driver, PILImage.open(BytesIO(image_data)))
+        assert self._papertty.driver is not None
+        display_image(self._papertty.driver, PILImage.open(BytesIO(image_data)))
 
     def _clear(self):
         self._papertty.clear()
@@ -38,6 +43,6 @@ class PaperTtyDisplayDriver(BaseDisplayDriver):
         self._papertty = None
 
     def _wake(self):
-        if self._papertty is not None:
-            self._papertty = PaperTTY(self._device_driver)
+        if self._papertty is None:
+            self._papertty = PaperTTY(self._device_driver.__name__)
             self._papertty.init_display()
