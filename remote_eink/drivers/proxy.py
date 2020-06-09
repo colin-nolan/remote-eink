@@ -17,8 +17,10 @@ class ProxyDisplayDriver(DisplayDriver, ProxyObject):
     def image(self) -> Optional[Image]:
         return self._communicate("image")
 
-    def display(self, image: Image):
-        image = ReallySimpleImage(image.identifier, image.data, image.type)
+    @image.setter
+    def image(self, image: Optional[Image]):
+        if image is not None:
+            image = ReallySimpleImage(image.identifier, image.data, image.type)
         self._communicate("display", image)
 
     def clear(self):

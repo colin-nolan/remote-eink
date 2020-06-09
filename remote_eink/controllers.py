@@ -36,41 +36,42 @@ class DisplayController(metaclass=ABCMeta):
     @abstractmethod
     def identifier(self) -> str:
         """
-        TODO
-        :return:
+        Unique identifier of the display controller.
+        :return: display controller's unique identifier
         """
 
-    # TODO: consider setter over use of `display`
     @property
     @abstractmethod
     def current_image(self) -> Optional[Image]:
         """
-        TODO
-        :return:
+        Image currently been displayed on the display.
+        :return: displayed image or `None` if no image is being displayed. Image will not have any transforms applied
+                 (see `apply_image_transforms`)
         """
 
     @property
     @abstractmethod
-    def driver(self) -> ListenableDisplayDriver:
+    def driver(self) -> DisplayDriver:
         """
-        TODO
-        :return:
+        Underlying display device driver.
+        :return: display device driver
         """
 
     @property
     @abstractmethod
     def image_store(self) -> ImageStore:
         """
-        TODO
-        :return:
+        Displays image storage
+        :return: image storage
         """
 
     @property
     @abstractmethod
     def image_transformers(self) -> ImageTransformerSequence:
         """
-        TODO
-        :return:
+        Sequence of image transformers that will be applied to the image before it is given to the device driver for
+        display.
+        :return: sequence of image transformers (first in sequence is applied first)
         """
 
     @abstractmethod
@@ -78,6 +79,7 @@ class DisplayController(metaclass=ABCMeta):
         """
         Displays the image with the given ID.
         :param image_id: ID of stored image
+        :raises ImageNotFoundError: iof an image with the given ID is not found in the image store
         """
 
     @abstractmethod
@@ -97,7 +99,7 @@ class DisplayController(metaclass=ABCMeta):
 
 class ListenableDisplayController(DisplayController, metaclass=ABCMeta):
     """
-    TODO
+    Display controller with listenable events.
     """
     @unique
     class Event(Enum):
@@ -105,10 +107,18 @@ class ListenableDisplayController(DisplayController, metaclass=ABCMeta):
 
     @property
     @abstractmethod
+    def driver(self) -> ListenableDisplayDriver:
+        """
+        See `DisplayController.driver`.
+        :return: see `DisplayController.driver`.
+        """
+
+    @property
+    @abstractmethod
     def event_listeners(self) -> EventListenerController["ListenableDisplayController.Event"]:
         """
-        TODO
-        :return:
+        Gets event listener controller.
+        :return: event listener controller
         """
 
 
@@ -122,6 +132,8 @@ class BaseDisplayController(DisplayController):
 
     @property
     def current_image(self) -> Optional[Image]:
+        # The reason why we don't return `self._driver.image` is that the device may be displaying a transformation of
+        # the image
         return self._current_image
 
     @property
@@ -138,10 +150,6 @@ class BaseDisplayController(DisplayController):
 
     @property
     def event_listeners(self) -> EventListenerController["ListenableDisplayController.Event"]:
-        """
-        TODO
-        :return:
-        """
         return self._event_listeners
 
     def __init__(self, driver: DisplayDriver, image_store: ImageStore, identifier: Optional[str] = None,
@@ -158,18 +166,14 @@ class BaseDisplayController(DisplayController):
         self._current_image = None
         self._image_store = ListenableImageStore(image_store)
         self._image_transformers = SimpleImageTransformerSequence(image_transformers)
+
         self._display_requested = False
         self._event_listeners = EventListenerController[ListenableDisplayController.Event]()
-
         self._image_store.event_listeners.add_listener(self._on_remove_image, ListenableImageStore.Event.REMOVE)
         self._driver.event_listeners.add_listener(self._on_clear, ListenableDisplayDriver.Event.CLEAR)
         self._driver.event_listeners.add_listener(self._on_display, ListenableDisplayDriver.Event.DISPLAY)
 
     def display(self, image_id: str):
-        """
-        Displays the image with the given ID.
-        :param image_id: ID of stored image
-        """
         image = self.image_store.get(image_id)
         if image is None:
             raise ImageNotFoundError(image_id)
@@ -183,17 +187,9 @@ class BaseDisplayController(DisplayController):
             self._current_image = image
 
     def clear(self):
-        """
-        Clears the display.
-        """
         self.driver.clear()
 
     def apply_image_transforms(self, image: Image) -> Image:
-        """
-        Apply image transforms (defined by the image transformers sequence) to the given image.
-        :param image: image to apply transforms (not modified)
-        :return: new, transformed image
-        """
         for transformer in self.image_transformers:
             if transformer.active:
                 image = transformer.transform(image)
@@ -388,7 +384,7 @@ class SleepyDisplayController(ListenableDisplayController):
 
 class ProxyDisplayController(DisplayController, ProxyObject):
     """
-    TODO
+    Proxy to a display controller behind a receiver (likely running in process).
     """
     @property
     def identifier(self) -> str:

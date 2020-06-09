@@ -9,8 +9,6 @@ from remote_eink.images import Image
 class DisplayDriver(metaclass=ABCMeta):
     """
     Device display driver.
-
-    The device must be awake (i.e. `not display_driver.sleeping`) when instantiated.
     """
     @property
     @abstractmethod
@@ -28,17 +26,11 @@ class DisplayDriver(metaclass=ABCMeta):
         :return: the image being display or `None` if no image displayed
         """
 
+    @image.setter
     @abstractmethod
-    def display(self, image: Image):
+    def image(self, image: Optional[Image]):
         """
-        Display the given image.
-        :param image: the image to display
-        """
-
-    @abstractmethod
-    def clear(self):
-        """
-        Clear the displayed image.
+        Sets the image that the device is displaying.
         """
 
     @abstractmethod
@@ -52,6 +44,19 @@ class DisplayDriver(metaclass=ABCMeta):
         """
         Wake the device.
         """
+
+    def clear(self):
+        """
+        Clear the displayed image.
+        """
+        self.display(None)
+
+    def display(self, image: Optional[Image]):
+        """
+        Display the given image (alternative to `self.image = image`.
+        :param image: the image to display
+        """
+        self.image = image
 
 
 class BaseDisplayDriver(DisplayDriver, metaclass=ABCMeta):
@@ -68,26 +73,26 @@ class BaseDisplayDriver(DisplayDriver, metaclass=ABCMeta):
     def image(self) -> Optional[Image]:
         return self._image
 
+    @image.setter
+    def image(self, image: Optional[Image]):
+        if self.image != image:
+            if self.sleeping:
+                self.wake()
+            if image is not None:
+                self._display(image.data)
+            else:
+                self._clear()
+            self._image = image
+
     def __init__(self, sleeping: bool = False, image: Optional[Image] = None):
         """
-        TODO
-        :param sleeping:
+        Constructor.
+        :param sleeping: whether the device is currently sleeping.
+        :param image: image to display initially
         """
         self._sleeping = sleeping
         self._image = None
-        if image:
-            self.display(image)
-
-    def display(self, image: Image):
-        """
-        TODO
-        :param image:
-        :return:
-        """
-        if self.sleeping:
-            self.wake()
-        self._display(image.data)
-        self._image = image
+        self.image = image
 
     def clear(self):
         """
@@ -95,7 +100,7 @@ class BaseDisplayDriver(DisplayDriver, metaclass=ABCMeta):
         :return:
         """
         self._clear()
-        self._image = None
+        super().clear()
 
     def sleep(self):
         """
@@ -164,6 +169,11 @@ class ListenableDisplayDriver(DisplayDriver):
     def image(self) -> Optional[Image]:
         return self._display_driver.image
 
+    @image.setter
+    def image(self, image: Optional[Image]):
+        self._display_driver.display(image)
+        self.event_listeners.call_listeners(ListenableDisplayDriver.Event.DISPLAY, [image])
+
     def __init__(self, display_driver: DisplayDriver):
         """
         Constructor.
@@ -171,10 +181,6 @@ class ListenableDisplayDriver(DisplayDriver):
         """
         self._display_driver = display_driver
         self.event_listeners = EventListenerController["ListenableDisplayDriver.Event"]()
-
-    def display(self, image: Image):
-        self._display_driver.display(image)
-        self.event_listeners.call_listeners(ListenableDisplayDriver.Event.DISPLAY, [image])
 
     def clear(self):
         self._display_driver.clear()
