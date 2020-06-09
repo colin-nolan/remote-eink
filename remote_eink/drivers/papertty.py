@@ -1,7 +1,7 @@
 import logging
 from io import BytesIO
 
-from remote_eink.drivers.base import DisplayDriver
+from remote_eink.drivers.base import BaseDisplayDriver
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ except ImportError:
     raise
 
 
-class PaperTtyDriver(DisplayDriver):
+class PaperTtyDisplayDriver(BaseDisplayDriver):
     """
     PaperTTY-based device driver.
     """
