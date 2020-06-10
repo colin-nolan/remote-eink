@@ -1,20 +1,83 @@
 import inspect
 import os
+from uuid import uuid4
+
 from threading import Thread
-from typing import Collection, Optional, Dict, Callable
+from typing import Collection, Dict, Callable, Iterable, Any
 
 import connexion
 from flask import Flask, current_app
 from flask_cors import CORS
 
-from remote_eink.controllers import DisplayController, ProxyDisplayController
-from remote_eink.multiprocess import ProxyReceiver
+from remote_eink.controllers import DisplayController
+from remote_eink.multiprocess import CommunicationPipe
 from remote_eink.resolver import CustomRestResolver
 
 OPEN_API_LOCATION = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../openapi.yml")
 
-DISPLAY_CONTROLLER_RECEIVER_PROPERTY = "DISPLAY_CONTROLLER_RECEIVER"
-CREATED_PID_PROPERTY = "CREATED_PID"
+APP_ID_PROPERTY = "APP_ID"
+
+apps_data: Dict[str, "AppData"] = {}
+
+
+def _use_only_in_created_process(wrappable: Callable) -> Callable:
+    """
+    TODO
+    :return:
+    """
+    def wrapped(self, *args, **kwargs) -> Any:
+        if os.getpid() != self._created_pid:
+            raise RuntimeError("Cannot access in process other than that which the app is created in")
+
+    return wrappable
+
+
+class AppData:
+    """
+    TODO
+    """
+    @property
+    def communication_pipe(self) -> CommunicationPipe:
+        return self._communication_pipe
+
+    @property
+    @_use_only_in_created_process
+    def display_controllers(self) -> Dict[str, DisplayController]:
+        return dict(self._display_controllers)
+
+    def __init__(self, display_controllers: Iterable[DisplayController]):
+        """
+        Constructor.
+        :param display_controllers: TODO
+        """
+        self._display_controllers: Dict[str, DisplayController] = {}
+
+        communication_pipe = CommunicationPipe()
+        Thread(target=communication_pipe.receiver.run).start()
+        self._communication_pipe = communication_pipe
+        self._created_pid = os.getpid()
+
+        for display_controller in display_controllers:
+            self.add_display_controller(display_controller)
+
+    @_use_only_in_created_process
+    def add_display_controller(self, display_controller: DisplayController):
+        """
+        TODO
+        """
+        if display_controller.identifier in self._display_controllers:
+            raise ValueError(f"Display controller with ID \"{display_controller.identifier}\" already in collection")
+        self._display_controllers[display_controller.identifier] = display_controller
+
+    @_use_only_in_created_process
+    def destroy(self):
+        """
+        TODO
+        :return:
+        """
+        self.communication_pipe.sender.stop_receiver()
+        self._communication_pipe = None
+        self._display_controllers.clear()
 
 
 def create_app(display_controllers: Collection[DisplayController]) -> Flask:
@@ -27,16 +90,22 @@ def create_app(display_controllers: Collection[DisplayController]) -> Flask:
     app.add_api(OPEN_API_LOCATION, resolver=CustomRestResolver("remote_eink.api"), strict_validation=True)
     CORS(app.app)
 
+    identifier = str(uuid4())
     with app.app.app_context():
-        app.app.config[CREATED_PID_PROPERTY] = os.getpid()
-        app.app.config[DISPLAY_CONTROLLER_RECEIVER_PROPERTY] = {}
-        for display_controller in display_controllers:
-            add_display_controller(display_controller, app.app)
+        app.app.config[APP_ID_PROPERTY] = identifier
+
+    apps_data[identifier] = AppData(display_controllers)
 
     return app.app
 
 
+# TODO: to app_data
 def _app_from_context_if_none(wrappable: Callable) -> Callable:
+    """
+    TODO
+    :param wrappable:
+    :return:
+    """
     arg_spec = inspect.getfullargspec(wrappable).args
     app_parameter = "app"
 
@@ -63,17 +132,17 @@ def _app_from_context_if_none(wrappable: Callable) -> Callable:
     return wrapper
 
 
-def _ensure_execute_in_created_process(app: Flask):
+@_app_from_context_if_none
+def add_display_controller(display_controller: DisplayController, app: Flask):
     """
     TODO
+    :param display_controller:
     :param app:
     :return:
-    :raises NotImplementedError:
     """
     with app.app_context():
-        if os.getpid() != app.config[CREATED_PID_PROPERTY]:
-            raise NotImplementedError(
-                "Only adding display controllers in process where the app is created is currently supported")
+        app_data: AppData = apps_data[app.config[APP_ID_PROPERTY]]
+    app_data.add_display_controller(display_controller)
 
 
 @_app_from_context_if_none
@@ -83,51 +152,22 @@ def destroy_app(app: Flask):
     :param app:
     :return:
     """
-    _ensure_execute_in_created_process(app)
-
     with app.app_context():
-        for display_controller_id, display_controller_receiver in app.config[DISPLAY_CONTROLLER_RECEIVER_PROPERTY].copy().items():
-            display_controller_receiver.connector.send(ProxyReceiver.RUN_POISON)
-            del app.config[DISPLAY_CONTROLLER_RECEIVER_PROPERTY][display_controller_id]
+        app_data: AppData = apps_data[app.config[APP_ID_PROPERTY]]
+
+    app_data.destroy()
+    # TODO: anything else required to stop Flask?
 
 
-@_app_from_context_if_none
-def add_display_controller(display_controller: DisplayController, app: Optional[Flask] = None):
-    """
-    TODO
-    :param app:
-    :return:
-    """
-    _ensure_execute_in_created_process(app)
-
-    with app.app_context():
-        display_controller_receiver = ProxyReceiver(display_controller)
-        Thread(target=display_controller_receiver.run).start()
-        assert display_controller.identifier not in current_app.config[DISPLAY_CONTROLLER_RECEIVER_PROPERTY]
-        current_app.config[DISPLAY_CONTROLLER_RECEIVER_PROPERTY][display_controller.identifier] = \
-            display_controller_receiver
-
-
-@_app_from_context_if_none
-def get_display_controllers(app: Optional[Flask] = None) -> Dict[str, DisplayController]:
-    """
-    TODO
-    :param app:
-    :return:
-    """
-    with app.app_context():
-        return {identifier: ProxyDisplayController(receiver.connector)
-                for identifier, receiver in current_app.config[DISPLAY_CONTROLLER_RECEIVER_PROPERTY].items()}
-
-
-@_app_from_context_if_none
-def get_display_controller(display_controller_id: str, app: Optional[Flask] = None) -> DisplayController:
-    """
-    TODO
-    :param display_controller_id:
-    :param app:
-    :return:
-    """
-    with app.app_context():
-        receiver = current_app.config[DISPLAY_CONTROLLER_RECEIVER_PROPERTY][display_controller_id]
-        return ProxyDisplayController(receiver.connector)
+# TODO
+# def _ensure_execute_in_created_process(app: AppData):
+#     """
+#     TODO
+#     :param app:
+#     :return:
+#     :raises NotImplementedError:
+#     """
+#     with app.app_context():
+#         if os.getpid() != app.config[CREATED_PID_PROPERTY]:
+#             raise NotImplementedError(
+#                 "Only adding display controllers in process where the app is created is currently supported")

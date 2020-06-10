@@ -1,10 +1,12 @@
 from http import HTTPStatus
-from typing import Callable
+
+from flask import current_app
+from typing import Callable, Any
 
 from bidict import bidict
 from marshmallow import Schema, fields
 
-from remote_eink.app import get_display_controller
+from remote_eink.app import apps_data, APP_ID_PROPERTY
 from remote_eink.controllers import DisplayController
 from remote_eink.images import ImageType
 
@@ -30,12 +32,53 @@ def display_id_handler(wrappable: Callable) -> Callable:
     :return: handler wrapped in layer to take display ID, validate it and then pass the corresponding display controller
              to the handler
     """
-    def wrapped(displayId: str, *args, **kwargs):
+    def wrapped(app_id: str, displayId: str, *args, **kwargs):
         try:
-            display_controller = get_display_controller(displayId)
+            display_controller = apps_data[app_id].display_controllers[displayId]
             assert isinstance(display_controller, DisplayController)
         except KeyError:
             return f"Display not found: {displayId}", HTTPStatus.NOT_FOUND
         return wrappable(display_controller, *args, **kwargs)
+
+    return wrapped
+
+
+def to_target_process(wrappable: Callable) -> Callable:
+    """
+    TODO
+    :param wrappable:
+    :return:
+    """
+    def unwrapped(*args, **kwargs) -> Any:
+        assert kwargs.get("target_process")
+        del kwargs["target_process"]
+        return wrappable(*args, **kwargs)
+
+    def wrapped(*args, **kwargs) -> Any:
+        assert kwargs.get("target_process") is None
+
+        with current_app.app_context():
+            app_id = current_app.config[APP_ID_PROPERTY]
+
+        app_data = apps_data[app_id]
+        communication_pipe = app_data.communication_pipe
+
+        kwargs["target_process"] = True
+        kwargs["app_id"] = app_id
+        return communication_pipe.sender.communicate(unwrapped, *args, **kwargs)
+
+    return wrapped
+
+
+def display_controllers_handler(wrappable: Callable) -> Callable:
+    """
+    TODO
+    :param wrappable:
+    :return:
+    """
+    def wrapped(app_id: str, *args, **kwargs) -> Any:
+        app_data = apps_data[app_id]
+        kwargs["display_controllers"] = app_data.display_controllers
+        return wrappable(*args, **kwargs)
 
     return wrapped

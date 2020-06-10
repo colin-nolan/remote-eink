@@ -1,8 +1,10 @@
 import inspect
+import traceback
+
 from abc import ABCMeta
 from dataclasses import dataclass
-from multiprocessing import RLock
-from typing import Any, TypeVar, Generic, Union, List
+from multiprocessing import RLock, Lock
+from typing import Any, TypeVar, Generic, Union, List, Callable
 from uuid import uuid4
 from weakref import WeakValueDictionary
 
@@ -225,3 +227,102 @@ def prepare_to_send(obj: Any) -> Union[Any, ReferencePlaceholder]:
         raise RuntimeError(f"Cannot convert to non-proxy object copy that can be send to the receiver as does not have "
                            f"direct reference: {obj}")
     return ReferencePlaceholder(obj.call_string_prefix)
+
+
+class RequestReceiver:
+    """
+    TODO
+    """
+    RUN_POISON = "+kill"
+
+    def __init__(self, connection: Connection):
+        """
+        TODO
+        :param connection:
+        """
+        self._connection = connection
+
+    def run(self):
+        """
+        TODO
+        :return:
+        """
+        while True:
+            received = self._connection.recv()
+            if received == RequestReceiver.RUN_POISON:
+                return
+
+            callable, args, kwargs = received
+            raised = False
+            try:
+                result = callable(*args, **kwargs)
+            except Exception as e:
+                result = e
+                traceback.print_exc()
+                raised = True
+            self._connection.send((result, raised))
+
+    # TODO: would need to lock...
+    # def stop(self):
+    #     """
+    #     TODO
+    #     :return:
+    #     """
+    #     self._connection.send(RequestReceiver.RUN_POISON)
+
+
+class RequestSender:
+    """
+    TODO
+    """
+    def __init__(self, connection: Connection):
+        """
+        TODO
+        :param connection:
+        """
+        self._connection = connection
+        self._lock = Lock()
+
+    def communicate(self, callable: Callable, *args, **kwargs) -> Any:
+        """
+        TODO
+        :param callable:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        with self._lock:
+            self._connection.send((callable, args, kwargs))
+            result, raised = self._connection.recv()
+            if raised:
+                raise result
+            return result
+
+    def stop_receiver(self):
+        """
+        TODO
+        :return:
+        """
+        with self._lock:
+            self._connection.send(RequestReceiver.RUN_POISON)
+
+
+class CommunicationPipe:
+    """
+    TODO
+    """
+    @property
+    def sender(self) -> RequestSender:
+        return self._sender
+
+    @property
+    def receiver(self) -> RequestReceiver:
+        return self._receiver
+
+    def __init__(self):
+        """
+        TODO
+        """
+        parent_connection, child_connection = Pipe(duplex=True)
+        self._receiver = RequestReceiver(parent_connection)
+        self._sender = RequestSender(child_connection)

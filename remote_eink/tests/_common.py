@@ -83,10 +83,6 @@ class AppTestBase(TestCase, metaclass=ABCMeta):
 
     def tearDown(self):
         if self._app:
-            # FIXME
-            with current_app.app_context():
-                for display_controller_receiver in current_app.config["DISPLAY_CONTROLLER_RECEIVER"].values():
-                    display_controller_receiver.stop()
             destroy_app(self._app)
 
     # Required to satisfy the super class' interface
