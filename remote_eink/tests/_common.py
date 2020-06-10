@@ -13,7 +13,6 @@ from remote_eink.app import create_app, destroy_app, add_display_controller
 from remote_eink.controllers import DisplayController, BaseDisplayController
 from remote_eink.tests.drivers._common import DummyBaseDisplayDriver
 from remote_eink.images import ImageType, Image, SimpleImage
-from remote_eink.multiprocess import ProxyReceiver
 from remote_eink.storage.images import InMemoryImageStore
 from remote_eink.tests.storage._common import WHITE_IMAGE
 from remote_eink.transformers.base import SimpleImageTransformer
@@ -96,23 +95,3 @@ class AppTestBase(TestCase, metaclass=ABCMeta):
         add_display_controller(display_controller, self._app)
         self._display_controllers.append(display_controller)
         return display_controller
-
-
-class TestProxy(unittest.TestCase, metaclass=ABCMeta):
-    """
-    TODO
-    """
-    def setup_receiver(self, proxy_target: Any) -> ProxyReceiver:
-        receiver = ProxyReceiver(proxy_target)
-        self._receivers.append(receiver)
-        Thread(target=receiver.run).start()
-        return receiver
-
-    def setUp(self):
-        self._receivers = []
-        super().setUp()
-
-    def tearDown(self):
-        for receiver in self._receivers:
-            receiver.connector.send(ProxyReceiver.RUN_POISON)
-        super().tearDown()

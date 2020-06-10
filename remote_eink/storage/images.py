@@ -5,8 +5,7 @@ from enum import Enum, auto, unique
 from typing import Dict, Optional, Iterable, List, Collection, Iterator, Any
 
 from remote_eink.events import EventListenerController
-from remote_eink.images import Image, ImageDataReader, SimpleImage, ProxyImage, ReallySimpleImage
-from remote_eink.multiprocess import ProxyObject, prepare_to_send
+from remote_eink.images import Image, ImageDataReader, SimpleImage
 from remote_eink.storage.manifests import Manifest, TinyDbManifest, ManifestRecord
 
 
@@ -336,39 +335,3 @@ class ListenableImageStore(ImageStore):
         removed = self._image_store.remove(image_id)
         self.event_listeners.call_listeners(ListenableImageStore.Event.REMOVE, [image_id])
         return removed
-
-
-class ProxyImageStore(ImageStore, ProxyObject):
-    """
-    TODO
-    """
-    def __len__(self) -> int:
-        return self._communicate("__len__")
-
-    def __iter__(self) -> Iterator[Image]:
-        return iter(self.list())
-
-    def __contains__(self, x: Any) -> bool:
-        if not isinstance(x, Image):
-            return False
-        image = ReallySimpleImage(x.identifier, x.data, x.type)
-        return self._communicate("__contains__", image)
-
-    def get(self, image_id: str) -> Optional[Image]:
-        references = self._communicate_reference_return("get", image_id)
-        if len(references) == 0:
-            return None
-        assert len(references) == 1
-        return ProxyImage(self.connection, references[0].reference, True)
-
-    def list(self) -> List[Image]:
-        references = self._communicate_reference_return("list")
-        return [ProxyImage(self.connection, reference.reference, True) for reference in references]
-
-    def add(self, image: Image):
-        image = ReallySimpleImage(image.identifier, image.data, image.type)
-        # self._communicate("add", prepare_to_send(image))
-        self._communicate("add", image)
-
-    def remove(self, image_id: str) -> bool:
-        return self._communicate("remove", image_id)

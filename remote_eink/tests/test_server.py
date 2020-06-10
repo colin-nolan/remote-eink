@@ -33,9 +33,9 @@ class TestRun(AppTestBase):
             server.stop()
 
     def test_stop_server(self):
-        app = create_app([])
         port, _ = find_free_port()
         for i in range(3):
+            app = create_app([])
             # Asserting must have stopped on second+ run as using same port
             server = start(app, interface=_TEST_INTERFACE, port=port)
             try:

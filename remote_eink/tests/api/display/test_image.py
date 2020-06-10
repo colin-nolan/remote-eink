@@ -1,12 +1,8 @@
-import shutil
-import tempfile
 from http import HTTPStatus
 
 from remote_eink.api.display._common import ImageTypeToMimeType
 from remote_eink.images import ImageType
-from remote_eink.storage.images import FileSystemImageStore
 from remote_eink.tests._common import create_image, AppTestBase, set_content_type_header
-from remote_eink.tests.storage._common import WHITE_IMAGE
 
 
 class TestDisplayImage(AppTestBase):

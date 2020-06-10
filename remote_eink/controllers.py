@@ -9,13 +9,10 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.base import STATE_RUNNING
 
 from remote_eink.drivers.base import DisplayDriver, ListenableDisplayDriver
-from remote_eink.drivers.proxy import ProxyDisplayDriver
 from remote_eink.events import EventListenerController
-from remote_eink.multiprocess import ProxyObject
+from remote_eink.images import Image
+from remote_eink.storage.images import ImageStore, ListenableImageStore
 from remote_eink.transformers.base import ImageTransformer, ImageTransformerSequence, SimpleImageTransformerSequence
-from remote_eink.images import Image, ProxyImage
-from remote_eink.storage.images import ImageStore, ListenableImageStore, ProxyImageStore
-from remote_eink.transformers.proxy import ProxyImageTransformerSequence
 
 DEFAULT_SECONDS_BETWEEN_CYCLE = float(60 * 60)
 
@@ -380,41 +377,3 @@ class SleepyDisplayController(ListenableDisplayController):
                 self._sleep_timer.cancel()
             self._sleep_timer = Timer(self._sleep_after_seconds, lambda: self.driver.sleep())
             self._sleep_timer.start()
-
-
-class ProxyDisplayController(DisplayController, ProxyObject):
-    """
-    Proxy to a display controller behind a receiver (likely running in process).
-    """
-    @property
-    def identifier(self) -> str:
-        return self._communicate("identifier")
-
-    @property
-    def current_image(self) -> Optional[Image]:
-        references = self._communicate_with_set_return("current_image", True)
-        if len(references) == 0:
-            return None
-        assert len(references) == 1
-        return ProxyImage(self.connection, references[0].reference, True)
-
-    @property
-    def driver(self) -> DisplayDriver:
-        return ProxyDisplayDriver(self.connection, "driver")
-
-    @property
-    def image_store(self) -> ImageStore:
-        return ProxyImageStore(self.connection, "image_store")
-
-    @property
-    def image_transformers(self) -> ImageTransformerSequence:
-        return ProxyImageTransformerSequence(self.connection, "image_transformers")
-
-    def display(self, image_id: str):
-        self._communicate("display", image_id)
-
-    def clear(self):
-        self._communicate("clear")
-
-    def apply_image_transforms(self, image: Image) -> Image:
-        return self._communicate("apply_image_transforms", image)

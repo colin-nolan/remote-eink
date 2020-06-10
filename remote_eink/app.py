@@ -157,17 +157,3 @@ def destroy_app(app: Flask):
 
     app_data.destroy()
     # TODO: anything else required to stop Flask?
-
-
-# TODO
-# def _ensure_execute_in_created_process(app: AppData):
-#     """
-#     TODO
-#     :param app:
-#     :return:
-#     :raises NotImplementedError:
-#     """
-#     with app.app_context():
-#         if os.getpid() != app.config[CREATED_PID_PROPERTY]:
-#             raise NotImplementedError(
-#                 "Only adding display controllers in process where the app is created is currently supported")

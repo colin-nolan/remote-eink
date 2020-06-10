@@ -2,8 +2,6 @@ from abc import ABCMeta, abstractmethod
 from enum import unique, Enum
 from typing import Any, Callable
 
-from remote_eink.multiprocess import ProxyObject
-
 ImageDataReader = Callable[[], bytes]
 
 
@@ -131,20 +129,3 @@ class SimpleImage(Image):
         self._type = image_type
         self._cache_data = cache_data
         self._cached = None
-
-
-class ProxyImage(Image, ProxyObject):
-    """
-    TODO
-    """
-    @property
-    def identifier(self) -> str:
-        return self._communicate("identifier")
-
-    @property
-    def data(self) -> bytes:
-        return self._communicate("data")
-
-    @property
-    def type(self) -> ImageType:
-        return self._communicate("type")
