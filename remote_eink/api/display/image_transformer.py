@@ -5,7 +5,7 @@ from typing import Dict, Callable
 
 from marshmallow import Schema, fields
 
-from remote_eink.api.display._common import display_id_handler
+from remote_eink.api.display._common import display_id_handler, to_target_process
 from remote_eink.controllers import DisplayController
 from remote_eink.transformers import ImageTransformer
 from remote_eink.transformers.base import InvalidConfigurationError, InvalidPositionError
@@ -56,12 +56,14 @@ def image_transformer_position_handler(wrappable: Callable) -> Callable:
     return wrapped
 
 
+@to_target_process
 @display_id_handler
 def search(display_controller: DisplayController):
     image_transformers = display_controller.image_transformers
     return _ImageTransformerSchema(only=["identifier"]).dump(image_transformers, many=True), HTTPStatus.OK
 
 
+@to_target_process
 @display_id_handler
 @image_transformer_id_handler
 @image_transformer_position_handler
@@ -71,6 +73,7 @@ def get(display_controller: DisplayController, image_transformer: ImageTransform
     return serialised_image_transformer, HTTPStatus.OK
 
 
+@to_target_process
 @display_id_handler
 @image_transformer_id_handler
 @image_transformer_position_handler

@@ -42,14 +42,14 @@ class TestDisplayImage(AppTestBase):
         result = self.client.get(f"/display/{controller.identifier}/image/does-not-exist")
         self.assertEqual(HTTPStatus.NOT_FOUND, result.status_code)
 
-    def test_save(self):
+    def test_post(self):
         controller = self.create_display_controller()
         image = create_image()
         result = self.client.post(f"/display/{controller.identifier}/image/{image.identifier}", data=image.data,
                                   headers=set_content_type_header(image))
         self.assertEqual(HTTPStatus.CREATED, result.status_code)
 
-    def test_save_with_duplicate_id(self):
+    def test_post_with_duplicate_id(self):
         controller = self.create_display_controller()
         image_1 = create_image()
         self.client.post(f"/display/{controller.identifier}/image/{image_1.identifier}", data=image_1.data,
@@ -59,13 +59,13 @@ class TestDisplayImage(AppTestBase):
                                   headers=set_content_type_header(image_2))
         self.assertEqual(HTTPStatus.CONFLICT, result.status_code)
 
-    def test_save_no_content_type_header(self):
+    def test_post_no_content_type_header(self):
         controller = self.create_display_controller()
         image = create_image()
         result = self.client.post(f"/display/{controller.identifier}/image/{image.identifier}", data=image.data)
         self.assertEqual(HTTPStatus.BAD_REQUEST, result.status_code)
 
-    def test_save_display_not_exist(self):
+    def test_post_display_not_exist(self):
         image = create_image()
         result = self.client.post(f"/display/does-not-exist/image/{image.identifier}", data=image.data)
         self.assertEqual(HTTPStatus.NOT_FOUND, result.status_code)

@@ -32,7 +32,11 @@ def display_id_handler(wrappable: Callable) -> Callable:
     :return: handler wrapped in layer to take display ID, validate it and then pass the corresponding display controller
              to the handler
     """
-    def wrapped(app_id: str, displayId: str, *args, **kwargs):
+    def wrapped(displayId: str, *args, **kwargs):
+        app_id = kwargs.pop("app_id")
+        # if app_id is None:
+        #     with current_app.app_context():
+        #         app_id = current_app.config[APP_ID_PROPERTY]
         try:
             display_controller = apps_data[app_id].display_controllers[displayId]
             assert isinstance(display_controller, DisplayController)
