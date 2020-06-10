@@ -22,14 +22,6 @@ class Image(metaclass=ABCMeta):
     """
     @property
     @abstractmethod
-    def identifier(self) -> str:
-        """
-        TODO
-        :return:
-        """
-
-    @property
-    @abstractmethod
     def data(self) -> bytes:
         """
         TODO
@@ -37,15 +29,33 @@ class Image(metaclass=ABCMeta):
         """
 
     @property
-    @abstractmethod
+    def identifier(self) -> str:
+        """
+        TODO
+        :return:
+        """
+        return self._identifier
+
+    @property
     def type(self) -> ImageType:
         """
         TODO
         :return:
         """
+        return self._type
+
+    def __init__(self, identifier: str, image_type: ImageType):
+        """
+        Constructor.
+        :param identifier: image identifier
+        :param image_type: the type of the image (e.g. PNG)z
+        """
+        self._identifier = identifier
+        self._type = image_type
 
     def __repr__(self) -> str:
-        return repr(dict(identifier=self.identifier, data=self.data))
+        # return repr(dict(identifier=self.identifier, data=self.data))
+        return repr(dict(identifier=self.identifier))
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Image):
@@ -58,74 +68,39 @@ class Image(metaclass=ABCMeta):
         return hash(self.identifier)
 
 
-class ReallySimpleImage(Image):
-    @property
-    def identifier(self) -> str:
-        return self._identifier
-
+class DataBasedImage(Image):
+    """
+    TODO
+    """
     @property
     def data(self) -> bytes:
         return self._data
 
-    @property
-    def type(self) -> ImageType:
-        return self._type
-
     def __init__(self, identifier: str, data: bytes, image_type: ImageType):
         """
         TODO
-        :param identifier:
-        :param data:
-        :param image_type:
+        :param identifier: see `Image.__init__`
+        :param data: image data
+        :param image_type: see `Image.__init__`
         """
-        self._identifier = identifier
+        super().__init__(identifier, image_type)
         self._data = data
-        self._type = image_type
 
 
-# TODO: do we need caching here...
-class SimpleImage(Image):
+class FunctionBasedImage(Image):
     """
     Immutable model of an image.
     """
     @property
-    def identifier(self) -> str:
-        return self._identifier
-
-    @property
-    def cache_data(self) -> bool:
-        return self._cache_data
-
-    @cache_data.setter
-    def cache_data(self, cache_on: bool):
-        if not cache_on:
-            self._cached = None
-        self._cache_data = cache_on
-
-    @property
     def data(self) -> bytes:
-        if self._cached:
-            return self._cached
-        data = self._data_reader()
-        if self.cache_data:
-            self._cached = data
-        return data
+        return self._data_reader()
 
-    @property
-    def type(self) -> ImageType:
-        return self._type
-
-    def __init__(self, identifier: str, data_reader: ImageDataReader, image_type: ImageType,
-                 cache_data: bool = False):
+    def __init__(self, identifier: str, data_reader: ImageDataReader, image_type: ImageType):
         """
         Constructor.
-        :param identifier: image identifier
+        :param identifier: see `Image.__init__`
         :param data_reader: (reusable) callable that can be used to read a copy of the image data
-        :param image_type: the type of the image (e.g. PNG)
-        :param cache_data: whether to cache the data when read using the reader
+        :param image_type: see `Image.__init__`
         """
-        self._identifier = identifier
+        super().__init__(identifier, image_type)
         self._data_reader = data_reader
-        self._type = image_type
-        self._cache_data = cache_data
-        self._cached = None

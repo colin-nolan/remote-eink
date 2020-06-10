@@ -5,7 +5,7 @@ from enum import Enum, auto, unique
 from typing import Dict, Optional, Iterable, List, Collection, Iterator, Any
 
 from remote_eink.events import EventListenerController
-from remote_eink.images import Image, ImageDataReader, SimpleImage
+from remote_eink.images import Image, ImageDataReader, FunctionBasedImage
 from remote_eink.storage.manifests import Manifest, TinyDbManifest, ManifestRecord
 
 
@@ -220,7 +220,7 @@ class ManifestBasedImageStore(SimpleImageStore, metaclass=ABCMeta):
         :return:
         """
         image_reader = self._get_image_reader(manifest_record.storage_location)
-        return SimpleImage(manifest_record.identifier, image_reader, manifest_record.image_type)
+        return FunctionBasedImage(manifest_record.identifier, image_reader, manifest_record.image_type)
 
 
 class FileSystemImageStore(ManifestBasedImageStore):
@@ -229,32 +229,32 @@ class FileSystemImageStore(ManifestBasedImageStore):
     """
     def __init__(self, root_directory: str, images: Iterable[Image] = (), manifest: Optional[Manifest] = None):
         self.root_directory = root_directory
-        self._cache = {}
+        # self._cache = {}
         manifest = manifest if manifest is not None else \
             TinyDbManifest(os.path.join(self.root_directory, "manifest.json"))
         super().__init__(images, manifest)
 
-    # FIXME: putting it in a "cache" is really just a hack to keep the reference alive when held only through a proxy
-    def get(self, image_id: str) -> Optional[Image]:
-        image = super().get(image_id)
-        self._cache[image_id] = image
-        return image
-
-    # FIXME: putting it in a "cache" is really just a hack to keep the reference alive when held only through a proxy
-    def add(self, image: Image):
-        super().add(image)
-        self._cache[image.identifier] = image
-
-    # FIXME: putting it in a "cache" is really just a hack to keep the reference alive when held only through a proxy
-    def list(self) -> List[Image]:
-        images = super().list()
-        for i, image in enumerate(images):
-            cache_copy = self._cache.get(image.identifier)
-            if not cache_copy:
-                self._cache[image.identifier] = image
-            else:
-                images[i] = cache_copy
-        return images
+    # # FIXME: putting it in a "cache" is really just a hack to keep the reference alive when held only through a proxy
+    # def get(self, image_id: str) -> Optional[Image]:
+    #     image = super().get(image_id)
+    #     self._cache[image_id] = image
+    #     return image
+    #
+    # # FIXME: putting it in a "cache" is really just a hack to keep the reference alive when held only through a proxy
+    # def add(self, image: Image):
+    #     super().add(image)
+    #     self._cache[image.identifier] = image
+    #
+    # # FIXME: putting it in a "cache" is really just a hack to keep the reference alive when held only through a proxy
+    # def list(self) -> List[Image]:
+    #     images = super().list()
+    #     for i, image in enumerate(images):
+    #         cache_copy = self._cache.get(image.identifier)
+    #         if not cache_copy:
+    #             self._cache[image.identifier] = image
+    #         else:
+    #             images[i] = cache_copy
+    #     return images
 
     def _get_image_reader(self, storage_location: str) -> ImageDataReader:
         path = os.path.join(self.root_directory, storage_location)
@@ -294,13 +294,10 @@ class FileSystemImageStore(ManifestBasedImageStore):
 
 class ListenableImageStore(ImageStore):
     """
-    TODO
+    Listenable image store.
     """
     @unique
     class Event(Enum):
-        """
-        TODO
-        """
         ADD = auto()
         REMOVE = auto()
 

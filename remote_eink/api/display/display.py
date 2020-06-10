@@ -19,9 +19,6 @@ class _DisplayControllerSchema(Schema):
     cycle_image_after_seconds = fields.Integer(data_key="cycleAfterSeconds")
 
 
-# TODO: common
-
-
 @to_target_process
 @display_controllers_handler
 def search(display_controllers: Dict[str, DisplayController]):

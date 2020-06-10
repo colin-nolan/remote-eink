@@ -4,7 +4,7 @@ import unittest
 from abc import abstractmethod, ABCMeta
 from typing import TypeVar, Generic
 
-from remote_eink.images import SimpleImage
+from remote_eink.images import FunctionBasedImage
 from remote_eink.storage.images import ImageStore, InMemoryImageStore, ImageAlreadyExistsError, FileSystemImageStore, \
     ListenableImageStore
 from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE
@@ -64,7 +64,7 @@ class _TestImageStore(unittest.TestCase, Generic[_ImageStoreType], metaclass=ABC
 
     def test_set_with_same_image_data(self):
         self.image_store.add(WHITE_IMAGE)
-        white_image_copy = SimpleImage(BLACK_IMAGE.identifier, lambda: WHITE_IMAGE.data, WHITE_IMAGE.type)
+        white_image_copy = FunctionBasedImage(BLACK_IMAGE.identifier, lambda: WHITE_IMAGE.data, WHITE_IMAGE.type)
         self.image_store.add(white_image_copy)
         self.assertEqual(WHITE_IMAGE, self.image_store.get(WHITE_IMAGE.identifier))
         self.assertEqual(white_image_copy, self.image_store.get(white_image_copy.identifier))

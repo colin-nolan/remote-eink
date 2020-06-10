@@ -1,4 +1,5 @@
 from collections import defaultdict
+
 from functools import partial
 from types import MappingProxyType
 from typing import Any, TypeVar, Generic, Callable, Set, Sequence, Dict

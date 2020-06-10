@@ -231,19 +231,6 @@ class TestAutoCyclingDisplayController(_TestDisplayController[AutoCyclingDisplay
 
 # TODO: test `SleepyDisplayController`
 
-# FIXME: tests are written with the requirement of event listeners. An interesting idea would be to implement
-#        cross-process event listeners... but not at the moment!
-# class TestProxyDisplayController(_TestDisplayController[ProxyDisplayController], TestProxy):
-#     """
-#     Test for `ProxyDisplayController`.
-#     """
-#     def create_display_controller(self, image_store: Optional[ImageStore] = None, *args, **kwargs) \
-#             -> ProxyDisplayController:
-#         display_controller = BaseDisplayController(
-#             DummyBaseDisplayDriver(), image_store if image_store is not None else InMemoryImageStore())
-#         receiver = self.setup_receiver(display_controller)
-#         return ProxyDisplayController(receiver.connector)
-
 
 del _TestDisplayController
 

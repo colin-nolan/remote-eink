@@ -32,22 +32,25 @@ class TestRotateImageTransformer(AbstractTest.TestImageTransformer[RotateImageTr
     @staticmethod
     def _get_size(image: Image) -> Tuple[int, int]:
         """
-        TODO
-        :param image:
-        :return:
+        Gets size of the given image.
+        :param image: image to get size of
+        :return: width, height tuple
         """
         return PilImage.open(BytesIO(image.data)).size
 
     @staticmethod
     def _calculate_new_size(image_size: Tuple[int, int], angle: float) -> Tuple[int, int]:
         """
-        TODO
-        :param image_size:
-        :param angle:
-        :return:
+        Calculates horizontal and vertical size of an image of the given size after it has been rotated by the given
+        angle.
+        :param image_size: original image size width, height tuple
+        :param angle: rotation angle in degrees
+        :return: width, height tuple after translation
         """
-        new_width = abs(image_size[0] * math.cos(math.radians(angle))) + abs(image_size[1] * math.sin(math.radians(angle)))
-        new_height = abs(image_size[0] * math.sin(math.radians(angle))) + abs(image_size[1] * math.cos(math.radians(angle)))
+        new_width = abs(
+            image_size[0] * math.cos(math.radians(angle))) + abs(image_size[1] * math.sin(math.radians(angle)))
+        new_height = abs(
+            image_size[0] * math.sin(math.radians(angle))) + abs(image_size[1] * math.cos(math.radians(angle)))
         return int(new_width), int(new_height)
 
     def create_image_transformer(self) -> RotateImageTransformer:
@@ -98,7 +101,7 @@ class TestRotateImageTransformer(AbstractTest.TestImageTransformer[RotateImageTr
         image_transformer = RotateImageTransformer(angle=EXAMPLE_ANGLE)
         assert image_transformer.expand != EXAMPLE_EXPAND and image_transformer.fill_color != EXAMPLE_FILL_COLOR
         image_transformer.modify_configuration({RotateConfigurationParameter.EXPAND.value: EXAMPLE_EXPAND,
-                                          RotateConfigurationParameter.FILL_COLOR.value: EXAMPLE_FILL_COLOR})
+                                                RotateConfigurationParameter.FILL_COLOR.value: EXAMPLE_FILL_COLOR})
         self.assertEqual(
             {RotateConfigurationParameter.ANGLE.value: EXAMPLE_ANGLE,
              RotateConfigurationParameter.EXPAND.value: EXAMPLE_EXPAND,

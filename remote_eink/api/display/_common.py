@@ -6,7 +6,8 @@ from typing import Callable, Any
 from bidict import bidict
 from marshmallow import Schema, fields
 
-from remote_eink.app import apps_data, APP_ID_PROPERTY
+from remote_eink.app import APP_ID_PROPERTY
+from remote_eink.app_data import apps_data
 from remote_eink.controllers import DisplayController
 from remote_eink.images import ImageType
 
@@ -34,9 +35,6 @@ def display_id_handler(wrappable: Callable) -> Callable:
     """
     def wrapped(displayId: str, *args, **kwargs):
         app_id = kwargs.pop("app_id")
-        # if app_id is None:
-        #     with current_app.app_context():
-        #         app_id = current_app.config[APP_ID_PROPERTY]
         try:
             display_controller = apps_data[app_id].display_controllers[displayId]
             assert isinstance(display_controller, DisplayController)

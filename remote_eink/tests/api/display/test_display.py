@@ -2,7 +2,8 @@ from http import HTTPStatus
 
 import unittest
 
-from remote_eink.tests._common import AppTestBase
+from remote_eink.app import get_app_data
+from remote_eink.tests._common import AppTestBase, run_in_different_process
 
 
 class TestDisplayApi(AppTestBase):
@@ -10,7 +11,6 @@ class TestDisplayApi(AppTestBase):
     Tests for the `/display` endpoint.
     """
     def test_list(self):
-        self.display_controllers.clear()
         for _ in range(10):
             self.create_display_controller()
         result = self.client.get("/display")

@@ -3,7 +3,7 @@ from enum import Enum, unique
 from io import BytesIO
 from typing import Dict, Any
 
-from remote_eink.images import Image, SimpleImage
+from remote_eink.images import Image, FunctionBasedImage
 from remote_eink.transformers.base import ImageTypeToPillowFormat, InvalidConfigurationError, BaseImageTransformer
 
 _logger = logging.getLogger(__name__)
@@ -91,6 +91,6 @@ class RotateImageTransformer(BaseImageTransformer):
                 raise InvalidConfigurationError(configuration, f"unknown property: {key}")
 
     def _transform(self, image: Image) -> Image:
-        return SimpleImage(image.identifier,
-                           lambda: RotateImageTransformer._rotate(image, self.angle, self.expand, self.fill_color),
-                           image.type, cache_data=True)
+        return FunctionBasedImage(image.identifier,
+                                  lambda: RotateImageTransformer._rotate(image, self.angle, self.expand, self.fill_color),
+                                  image.type)

@@ -1,19 +1,20 @@
 import random
-import unittest
+
+from multiprocessing_on_dill.connection import Pipe
+
 from abc import ABCMeta
-from threading import Thread
-from typing import Optional, Dict, Any
+from flask_testing import TestCase
+from multiprocessing_on_dill.context import Process
+from typing import Optional, Dict, Callable, Any
 from uuid import uuid4
 
-from flask import current_app
-from flask_testing import TestCase
-
 from remote_eink.api.display._common import CONTENT_TYPE_HEADER, ImageTypeToMimeType
-from remote_eink.app import create_app, destroy_app, add_display_controller
+from remote_eink.app import create_app, destroy_app, get_app_data
+from remote_eink.app_data import AppData
 from remote_eink.controllers import DisplayController, BaseDisplayController
-from remote_eink.tests.drivers._common import DummyBaseDisplayDriver
-from remote_eink.images import ImageType, Image, SimpleImage
+from remote_eink.images import ImageType, Image, FunctionBasedImage
 from remote_eink.storage.images import InMemoryImageStore
+from remote_eink.tests.drivers._common import DummyBaseDisplayDriver
 from remote_eink.tests.storage._common import WHITE_IMAGE
 from remote_eink.transformers.base import SimpleImageTransformer
 
@@ -26,7 +27,7 @@ def create_image(image_type: Optional[ImageType] = None) -> Image:
     if image_type is None:
         image_type = random.choice(list(ImageType))
     identifier = str(uuid4())
-    return SimpleImage(identifier, lambda: WHITE_IMAGE.data, image_type)
+    return FunctionBasedImage(identifier, lambda: WHITE_IMAGE.data, image_type)
 
 
 def create_dummy_display_controller(*, number_of_images: int = 0, number_of_image_transformers: int = 0, **kwargs) \
@@ -77,6 +78,10 @@ class AppTestBase(TestCase, metaclass=ABCMeta):
     def display_controllers(self) -> Dict[str, DisplayController]:
         return {x.identifier: x for x in self._display_controllers}
 
+    @property
+    def app_data(self) -> AppData:
+        return get_app_data(self.app)
+
     def setUp(self):
         self._display_controllers.append(self.create_display_controller())
 
@@ -92,6 +97,33 @@ class AppTestBase(TestCase, metaclass=ABCMeta):
 
     def create_display_controller(self, **kwargs):
         display_controller = create_dummy_display_controller(**kwargs)
-        add_display_controller(display_controller, self._app)
+        get_app_data(self._app).add_display_controller(display_controller)
         self._display_controllers.append(display_controller)
         return display_controller
+
+
+def run_in_different_process(callable: Callable[[], Any], *args, **kwargs) -> Any:
+    """
+    Runs the given callable and arguments/keyword arguments in a different process and resturn the result.
+    :param callable: callable to run
+    :return: result from callable (moved over Pipe)
+    """
+    parent, child = Pipe()
+
+    def wrapped():
+        nonlocal child, callable, args, kwargs
+        try:
+            raised, value = False, callable(*args, **kwargs)
+        except Exception as e:
+            raised, value = True, e
+        child.send((raised, value))
+
+    process = Process(target=wrapped)
+    process.start()
+    raised, value = parent.recv()
+    if raised:
+        raise value
+    process.join(timeout=15)
+    if process.exitcode != 0:
+        raise RuntimeError("Process did not exit with status code 0")
+    return value
