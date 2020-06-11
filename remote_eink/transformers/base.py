@@ -309,10 +309,9 @@ class SimpleImageTransformerSequence(ImageTransformerSequence):
         return removed
 
 
-# TODO: testing
 class SimpleImageTransformer(BaseImageTransformer):
     """
-    TODO
+    Simple image transformer implementation.
     """
     @property
     def configuration(self) -> Dict[str, Any]:

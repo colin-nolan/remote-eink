@@ -1,21 +1,18 @@
-from abc import abstractmethod, ABCMeta
 from enum import unique, Enum, auto
+
+from abc import abstractmethod, ABCMeta
+from apscheduler.schedulers import SchedulerNotRunningError
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.base import STATE_RUNNING
 from threading import Timer
 from typing import Optional, Sequence
 from uuid import uuid4
 
-from apscheduler.schedulers import SchedulerNotRunningError
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.schedulers.base import STATE_RUNNING
-
 from remote_eink.drivers.base import DisplayDriver, ListenableDisplayDriver
-from remote_eink.drivers.proxy import ProxyDisplayDriver
 from remote_eink.events import EventListenerController
-from remote_eink.multiprocess import ProxyObject
+from remote_eink.images import Image
+from remote_eink.storage.images import ImageStore, ListenableImageStore
 from remote_eink.transformers.base import ImageTransformer, ImageTransformerSequence, SimpleImageTransformerSequence
-from remote_eink.images import Image, ProxyImage
-from remote_eink.storage.images import ImageStore, ListenableImageStore, ProxyImageStore
-from remote_eink.transformers.proxy import ProxyImageTransformerSequence
 
 DEFAULT_SECONDS_BETWEEN_CYCLE = float(60 * 60)
 
@@ -227,19 +224,20 @@ class BaseDisplayController(DisplayController):
 
 class CyclableDisplayController(BaseDisplayController):
     """
-    TODO
+    Display controller that can cycle through the image that it displays.
     """
     def __init__(self, driver: DisplayDriver, image_store: ImageStore, identifier: Optional[str] = None,
                  image_transformers: Sequence[ImageTransformer] = ()):
         """
-        TODO
-        :param driver:
-        :param image_store:
-        :param identifier:
-        :param image_transformers:
+        Constructor.
+        :param driver: `BaseDisplayController.__init__`
+        :param image_store: `BaseDisplayController.__init__`
+        :param identifier: `BaseDisplayController.__init__`
+        :param image_transformers: `BaseDisplayController.__init__`
         """
         super().__init__(driver, image_store, identifier, image_transformers)
         self._image_queue = []
+        # Note: the superclass converts the image store to a `ListenableImageStore`
         self.image_store.event_listeners.add_listener(
             lambda image: self._add_to_queue(image.identifier), ListenableImageStore.Event.ADD)
         for image in self.image_store.list():
@@ -247,8 +245,8 @@ class CyclableDisplayController(BaseDisplayController):
 
     def display_next_image(self) -> Optional[Image]:
         """
-        TODO
-        :return:
+        Displays the next image in the image queue.
+        :return: image displayed or `None` if no images to display
         """
         if len(self._image_queue) == 0:
             self.driver.clear()
@@ -271,7 +269,7 @@ class CyclableDisplayController(BaseDisplayController):
 
     def _add_to_queue(self, image_id: str):
         """
-        TODO
+        Adds the image with the given ID
         :param image_id:
         :return:
         """
@@ -284,18 +282,18 @@ class CyclableDisplayController(BaseDisplayController):
 
 class AutoCyclingDisplayController(CyclableDisplayController):
     """
-    TODO
+    Display controller that auto cycles through images.
     """
     def __init__(self, driver: DisplayDriver, image_store: ImageStore,
                  identifier: Optional[str] = None, image_transformers: Sequence[ImageTransformer] = (),
                  cycle_image_after_seconds: float = DEFAULT_SECONDS_BETWEEN_CYCLE):
         """
-        TODO
-        :param driver:
-        :param image_store:
-        :param identifier:
-        :param image_transformers:
-        :param cycle_image_after_seconds:
+        Constructor.
+        :param driver: see `CyclableDisplayController.__init__`
+        :param image_store: see `CyclableDisplayController.__init__`
+        :param identifier: see `CyclableDisplayController.__init__`
+        :param image_transformers: see `CyclableDisplayController.__init__`
+        :param cycle_image_after_seconds: the number of seconds before cycling on to the next image
         """
         super().__init__(driver, image_store, identifier, image_transformers)
         self.cycle_image_after_seconds = cycle_image_after_seconds
@@ -380,41 +378,3 @@ class SleepyDisplayController(ListenableDisplayController):
                 self._sleep_timer.cancel()
             self._sleep_timer = Timer(self._sleep_after_seconds, lambda: self.driver.sleep())
             self._sleep_timer.start()
-
-
-class ProxyDisplayController(DisplayController, ProxyObject):
-    """
-    Proxy to a display controller behind a receiver (likely running in process).
-    """
-    @property
-    def identifier(self) -> str:
-        return self._communicate("identifier")
-
-    @property
-    def current_image(self) -> Optional[Image]:
-        references = self._communicate_with_set_return("current_image", True)
-        if len(references) == 0:
-            return None
-        assert len(references) == 1
-        return ProxyImage(self.connection, references[0].reference, True)
-
-    @property
-    def driver(self) -> DisplayDriver:
-        return ProxyDisplayDriver(self.connection, "driver")
-
-    @property
-    def image_store(self) -> ImageStore:
-        return ProxyImageStore(self.connection, "image_store")
-
-    @property
-    def image_transformers(self) -> ImageTransformerSequence:
-        return ProxyImageTransformerSequence(self.connection, "image_transformers")
-
-    def display(self, image_id: str):
-        self._communicate("display", image_id)
-
-    def clear(self):
-        self._communicate("clear")
-
-    def apply_image_transforms(self, image: Image) -> Image:
-        return self._communicate("apply_image_transforms", image)

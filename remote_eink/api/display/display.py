@@ -1,7 +1,9 @@
 from http import HTTPStatus
 
-from remote_eink.api.display._common import display_id_handler, ImageSchema
-from remote_eink.app import get_display_controllers
+from typing import Dict
+
+from remote_eink.api.display._common import display_id_handler, ImageSchema, to_target_process, \
+    display_controllers_handler
 from remote_eink.controllers import DisplayController
 from marshmallow import Schema, fields
 
@@ -17,10 +19,13 @@ class _DisplayControllerSchema(Schema):
     cycle_image_after_seconds = fields.Integer(data_key="cycleAfterSeconds")
 
 
-def search():
-    return [{"id": identifier} for identifier in get_display_controllers().keys()], HTTPStatus.OK
+@to_target_process
+@display_controllers_handler
+def search(display_controllers: Dict[str, DisplayController]):
+    return [{"id": identifier} for identifier in display_controllers.keys()], HTTPStatus.OK
 
 
+@to_target_process
 @display_id_handler
 def get(display_controller: DisplayController):
     return _DisplayControllerSchema().dump(display_controller), HTTPStatus.OK

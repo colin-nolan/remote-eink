@@ -4,10 +4,9 @@ import unittest
 from abc import abstractmethod, ABCMeta
 from typing import TypeVar, Generic
 
-from remote_eink.images import Image, SimpleImage
+from remote_eink.images import FunctionBasedImage
 from remote_eink.storage.images import ImageStore, InMemoryImageStore, ImageAlreadyExistsError, FileSystemImageStore, \
-    ListenableImageStore, ProxyImageStore
-from remote_eink.tests._common import TestProxy
+    ListenableImageStore
 from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE
 
 _ImageStoreType = TypeVar("_ImageStoreType", bound=ImageStore)
@@ -65,7 +64,7 @@ class _TestImageStore(unittest.TestCase, Generic[_ImageStoreType], metaclass=ABC
 
     def test_set_with_same_image_data(self):
         self.image_store.add(WHITE_IMAGE)
-        white_image_copy = SimpleImage(BLACK_IMAGE.identifier, lambda: WHITE_IMAGE.data, WHITE_IMAGE.type)
+        white_image_copy = FunctionBasedImage(BLACK_IMAGE.identifier, lambda: WHITE_IMAGE.data, WHITE_IMAGE.type)
         self.image_store.add(white_image_copy)
         self.assertEqual(WHITE_IMAGE, self.image_store.get(WHITE_IMAGE.identifier))
         self.assertEqual(white_image_copy, self.image_store.get(white_image_copy.identifier))
@@ -146,33 +145,6 @@ class TestListenableImageStore(_TestImageStore[ListenableImageStore]):
 
     def create_image_store(self, *args, **kwargs) -> ListenableImageStore:
         return ListenableImageStore(InMemoryImageStore(*args, **kwargs))
-
-
-class TestProxyImageStore(_TestImageStore[ProxyImageStore], TestProxy):
-    """
-    Test for `ProxyImageStore`.
-    """
-    def create_image_store(self, *args, **kwargs) -> ProxyImageStore:
-        receiver = self.setup_receiver(InMemoryImageStore(*args, **kwargs))
-        return ProxyImageStore(receiver.connector)
-
-    def test_with_file_based_image_store(self):
-        temp_directory = tempfile.mkdtemp()
-        try:
-             image_store = FileSystemImageStore(temp_directory)
-             receiver = self.setup_receiver(image_store)
-             proxy_image_store = ProxyImageStore(receiver.connector)
-
-             image_store.add(WHITE_IMAGE)
-             self.assertCountEqual((WHITE_IMAGE, ), proxy_image_store)
-             self.assertEqual(image_store.get(WHITE_IMAGE.identifier).data,
-                              proxy_image_store.get(WHITE_IMAGE.identifier).data)
-
-             proxy_image_store.add(BLACK_IMAGE)
-             self.assertCountEqual((WHITE_IMAGE, BLACK_IMAGE), image_store)
-             self.assertCountEqual((WHITE_IMAGE, BLACK_IMAGE), proxy_image_store)
-        finally:
-            shutil.rmtree(temp_directory, ignore_errors=True)
 
 
 del _TestImageStore

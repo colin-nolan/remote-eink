@@ -1,6 +1,5 @@
 from http import HTTPStatus
 
-from remote_eink.controllers import DisplayController
 from remote_eink.tests._common import AppTestBase
 
 

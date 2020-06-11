@@ -1,10 +1,11 @@
 from http import HTTPStatus
 from typing import Dict
 
-from remote_eink.api.display._common import display_id_handler, ImageSchema
+from remote_eink.api.display._common import display_id_handler, ImageSchema, to_target_process
 from remote_eink.controllers import DisplayController
 
 
+@to_target_process
 @display_id_handler
 def search(display_controller: DisplayController):
     if display_controller.current_image is None:
@@ -12,12 +13,14 @@ def search(display_controller: DisplayController):
     return ImageSchema(only=["identifier"]).dump(display_controller.current_image), HTTPStatus.OK
 
 
+@to_target_process
 @display_id_handler
 def delete(display_controller: DisplayController):
     display_controller.clear()
     return "Image cleared", HTTPStatus.OK
 
 
+@to_target_process
 @display_id_handler
 def put(display_controller: DisplayController, body: Dict):
     if not isinstance(body, Dict):
