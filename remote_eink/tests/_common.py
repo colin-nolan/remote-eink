@@ -125,5 +125,5 @@ def run_in_different_process(callable: Callable[[], Any], *args, **kwargs) -> An
         raise value
     process.join(timeout=15)
     if process.exitcode != 0:
-        raise RuntimeError("Process did not exit with status code 0")
+        raise RuntimeError(f"Process exited with non-zero error code {process.exitcode}: {callable}, {args}, {kwargs}")
     return value
