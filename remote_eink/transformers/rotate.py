@@ -18,7 +18,7 @@ except ImportError:
 @unique
 class RotateConfigurationParameter(Enum):
     """
-    TODO
+    Configuration parameters that can be used to alter the function of a `RotateImageTransformer`.
     """
     ANGLE = "angle"
     EXPAND = "expand"
@@ -27,21 +27,21 @@ class RotateConfigurationParameter(Enum):
 
 class RotateImageTransformer(BaseImageTransformer):
     """
-    TODO
+    Transformer that rotates the image by a common angle (the rotation on the image itself is ignored).
     """
     @staticmethod
-    def _rotate(image: Image, angle: float, expand: bool, fill_color) -> bytes:
+    def rotate(image: Image, angle: float, expand: bool, fill_color: str) -> bytes:
         """
-        TODO
-        :param image:
-        :param angle: In degrees counter clockwise.
-        :param expand:If true, expands the output
-           image to make it large enough to hold the entire rotated image.
-           If false or omitted, make the output image the same size as the
-           input image.
-        :param fill_color:  An optional color for area outside the rotated image
-        :return:
+        Rotates the given image according to the given specification.
+        :param image: image to rotate
+        :param angle: counter clockwise angle (in degrees) to rotate image by
+        :param expand: if true, expands the output image to make it large enough to hold the entire rotated image
+                       If false, makes the output image the same size as the input image.
+        :param fill_color: color for area outside the rotated image
+        :return: bytes of rotated image
         """
+        if angle % 360 == 0:
+            return image.data
         image_data = PilImage.open(BytesIO(image.data))
         image_data = image_data.rotate(angle, expand=expand, fillcolor=fill_color)
         byte_io = BytesIO()
@@ -58,21 +58,17 @@ class RotateImageTransformer(BaseImageTransformer):
 
     @property
     def description(self) -> str:
-        """
-        TODO
-        :return: TODO
-        """
         return f"Rotates an image (currently by {self.angle} degrees)"
 
     def __init__(self, identifier: str = "rotate", active: bool = True, angle: float = 0.0, expand: bool = True,
                  fill_color: str = "white"):
         """
-        TODO
-        :param identifier:
-        :param active:
-        :param angle:
-        :param expand:
-        :param fill_color:
+        Constructor.
+        :param identifier: transformer's identifier
+        :param active: see `RotateImageTransformer.rotate`
+        :param angle: see `RotateImageTransformer.rotate`
+        :param expand: see `RotateImageTransformer.rotate`
+        :param fill_color: see `RotateImageTransformer.rotate`
         """
         super().__init__(identifier, active)
         self.angle = angle
@@ -91,6 +87,22 @@ class RotateImageTransformer(BaseImageTransformer):
                 raise InvalidConfigurationError(configuration, f"unknown property: {key}")
 
     def _transform(self, image: Image) -> Image:
-        return FunctionBasedImage(image.identifier,
-                                  lambda: RotateImageTransformer._rotate(image, self.angle, self.expand, self.fill_color),
-                                  image.type)
+        return FunctionBasedImage(
+            image.identifier,
+            lambda: RotateImageTransformer.rotate(image, self.angle, self.expand, self.fill_color), image.type)
+
+
+class ImageRotationAwareRotateImageTransformer(RotateImageTransformer):
+    """
+    Transformer that rotates the image by a common angle in addition to the specific rotation set on the image.
+    """
+    @property
+    def description(self) -> str:
+        return f"Rotates an image (currently by {self.angle} degrees, in addition to applying the image specific " \
+               f"rotation)"
+
+    def _transform(self, image: Image) -> Image:
+        return FunctionBasedImage(
+            image.identifier,
+            lambda: RotateImageTransformer.rotate(image, self.angle + image.rotation, self.expand, self.fill_color),
+            image.type)

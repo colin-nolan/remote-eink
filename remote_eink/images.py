@@ -44,17 +44,26 @@ class Image(metaclass=ABCMeta):
         """
         return self._type
 
-    def __init__(self, identifier: str, image_type: ImageType):
+    @property
+    def rotation(self) -> float:
+        """
+        TODO
+        :return:
+        """
+        return self._rotation
+
+    def __init__(self, identifier: str, image_type: ImageType, *, rotation: float = 0):
         """
         Constructor.
         :param identifier: image identifier
-        :param image_type: the type of the image (e.g. PNG)z
+        :param image_type: the type of the image (e.g. PNG)
+        :param rotation: clockwise rotation of the image in degrees, relative to upright
         """
         self._identifier = identifier
         self._type = image_type
+        self._rotation = rotation
 
     def __repr__(self) -> str:
-        # return repr(dict(identifier=self.identifier, data=self.data))
         return repr(dict(identifier=self.identifier))
 
     def __eq__(self, other: Any) -> bool:
@@ -76,14 +85,14 @@ class DataBasedImage(Image):
     def data(self) -> bytes:
         return self._data
 
-    def __init__(self, identifier: str, data: bytes, image_type: ImageType):
+    def __init__(self, identifier: str, data: bytes, image_type: ImageType, *, rotation: float = 0):
         """
         TODO
         :param identifier: see `Image.__init__`
         :param data: image data
         :param image_type: see `Image.__init__`
         """
-        super().__init__(identifier, image_type)
+        super().__init__(identifier, image_type, rotation=rotation)
         self._data = data
 
 
@@ -95,12 +104,12 @@ class FunctionBasedImage(Image):
     def data(self) -> bytes:
         return self._data_reader()
 
-    def __init__(self, identifier: str, data_reader: ImageDataReader, image_type: ImageType):
+    def __init__(self, identifier: str, data_reader: ImageDataReader, image_type: ImageType, *, rotation: float = 0):
         """
         Constructor.
         :param identifier: see `Image.__init__`
         :param data_reader: (reusable) callable that can be used to read a copy of the image data
         :param image_type: see `Image.__init__`
         """
-        super().__init__(identifier, image_type)
+        super().__init__(identifier, image_type, rotation=rotation)
         self._data_reader = data_reader

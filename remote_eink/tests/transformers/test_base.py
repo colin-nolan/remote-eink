@@ -20,7 +20,7 @@ class AbstractTest:
         Tests for `ImageTransformer`.
         """
         @abstractmethod
-        def create_image_transformer(self) -> ImageTransformerType:
+        def create_image_transformer(self, *args, **kwargs) -> ImageTransformerType:
             """
             Create an image transformer to test.
             :return: the created image transformer
