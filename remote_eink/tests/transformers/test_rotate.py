@@ -54,7 +54,8 @@ def _calculate_new_size(image_size: Tuple[int, int], angle: float) -> Tuple[int,
 
 
 @unittest.skipIf(not IMAGE_TOOLS_INSTALLED, "Optional `image-tools` not installed")
-class BaseTest(Generic[RotatingImageTransformerType], AbstractTest.TestImageTransformer[RotatingImageTransformerType]):
+class BaseTest(Generic[RotatingImageTransformerType], AbstractTest.TestImageTransformer[RotatingImageTransformerType],
+               metaclass=ABCMeta):
     """
     Test for `RotateImageTransformer`.
     """
@@ -137,6 +138,8 @@ class TestImageRotationAwareRotateImageTransformer(BaseTest[ImageRotationAwareRo
         expected_size = _calculate_new_size(_get_size(image), 45 + 45)
         self.assertEqual(expected_size, _get_size(rotated_image))
 
+
+del BaseTest
 
 if __name__ == "__main__":
     unittest.main()
