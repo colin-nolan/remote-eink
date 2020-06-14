@@ -24,32 +24,31 @@ class ImageStore(Collection[Image], metaclass=ABCMeta):
     @abstractmethod
     def get(self, image_id: str) -> Optional[Image]:
         """
-        TODO
-        :param image_id:
-        :return:
+        Gets the image with the given ID.
+        :param image_id: ID of the image to get
+        :return: the matched image else `None` if image with the given ID is not in the store
         """
 
     @abstractmethod
     def list(self) -> List[Image]:
         """
-        TODO
-        :return:
+        Gets list of image in the store.
+        :return: list of images
         """
 
     @abstractmethod
     def add(self, image: Image):
         """
-        TODO
-        :param image:
-        :return:
+        Adds the given image to the image store.
+        :param image: image to add
         """
 
     @abstractmethod
     def remove(self, image_id: str) -> bool:
         """
-        TODO
-        :param image_id:
-        :return:
+        Removes the image with the given ID from the collection.
+        :param image_id: ID of image to remove
+        :return: `True` if an image was matched and removed, else `False`
         """
 
 

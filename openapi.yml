@@ -142,6 +142,26 @@ paths:
                 items:
                   $ref: "#/components/schemas/ResourceId"
 
+    post:
+      summary: Uploads an image onto the device
+      operationId: postDisplayImage
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+      requestBody:
+        content:
+          image/*:
+            schema:
+              format: binary
+      responses:
+        201:
+          description: Image created.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ResourceId"
+
   /display/{displayId}/image/{imageId}:
     get:
       summary: Get data for an image that can be displayed
@@ -159,9 +179,9 @@ paths:
         404:
           description: Image not found.
 
-    post:
-      summary: Uploads an image onto the device
-      operationId: postDisplayImage
+    put:
+      summary: Updates an image onto the device
+      operationId: putDisplayImage
       parameters:
         - $ref: "#/components/parameters/displayId"
         - $ref: "#/components/parameters/imageId"
@@ -171,14 +191,11 @@ paths:
             schema:
               format: binary
       responses:
+        200:
+          description: Image updated.
         201:
           description: Image created.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ResourceId"
+
 
     delete:
       summary: Delete an image from the device

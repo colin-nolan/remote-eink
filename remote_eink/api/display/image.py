@@ -1,4 +1,6 @@
 from http import HTTPStatus
+from uuid import uuid4
+
 from typing import Optional, Tuple
 
 from io import BytesIO
@@ -37,14 +39,19 @@ def _get(display_controller: DisplayController, imageId: str) -> Optional[Tuple[
     return BytesIO(image.data), ImageTypeToMimeType[image.type]
 
 
+def put(*args, **kwargs):
+    kwargs["content_type"] = request.headers.get(CONTENT_TYPE_HEADER)
+    return _put(*args, **kwargs, overwrite=True)
+
+
 def post(*args, **kwargs):
     kwargs["content_type"] = request.headers.get(CONTENT_TYPE_HEADER)
-    return _post(*args, **kwargs)
+    return _put(*args, **kwargs, imageId=str(uuid4()), overwrite=False)
 
 
 @to_target_process
 @display_id_handler
-def _post(display_controller: DisplayController, content_type: str, imageId: str, body: bytes) \
+def _put(display_controller: DisplayController, content_type: str, imageId: str, body: bytes, *, overwrite: bool) \
         -> Tuple[str, HTTPStatus]:
     if content_type is None:
         return f"{CONTENT_TYPE_HEADER} header is required", HTTPStatus.BAD_REQUEST
@@ -54,12 +61,16 @@ def _post(display_controller: DisplayController, content_type: str, imageId: str
         return f"Unsupported image format: {image_type}", HTTPStatus.UNSUPPORTED_MEDIA_TYPE
 
     image = FunctionBasedImage(imageId, lambda: body, image_type)
+    updated = False
+    # FIXME: lock over both of these is required!
+    if overwrite:
+        updated = display_controller.image_store.remove(image.identifier)
     try:
         display_controller.image_store.add(image)
     except ImageAlreadyExistsError:
         return f"Image with same ID already exists: {imageId}", HTTPStatus.CONFLICT
 
-    return f"Created {imageId}", HTTPStatus.CREATED
+    return imageId, HTTPStatus.CREATED if not updated else HTTPStatus.OK
 
 
 @to_target_process

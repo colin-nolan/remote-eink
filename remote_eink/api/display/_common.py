@@ -58,18 +58,30 @@ def to_target_process(wrappable: Callable) -> Callable:
 
     def wrapped(*args, **kwargs) -> Any:
         assert kwargs.get("target_process") is None
-
         with current_app.app_context():
             app_id = current_app.config[APP_ID_PROPERTY]
-
-        app_data = apps_data[app_id]
-        communication_pipe = app_data.communication_pipe
-
         kwargs["target_process"] = True
         kwargs["app_id"] = app_id
-        return communication_pipe.sender.communicate(unwrapped, *args, **kwargs)
+        return on_target_progress(unwrapped, *args, **kwargs)
 
     return wrapped
+
+
+def on_target_progress(callable: Callable, *args, **kwargs) -> Any:
+    """
+    TODO
+    :param callable:
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    with current_app.app_context():
+        app_id = current_app.config[APP_ID_PROPERTY]
+
+    app_data = apps_data[app_id]
+    communication_pipe = app_data.communication_pipe
+
+    return communication_pipe.sender.communicate(callable, *args, **kwargs)
 
 
 def display_controllers_handler(wrappable: Callable) -> Callable:
