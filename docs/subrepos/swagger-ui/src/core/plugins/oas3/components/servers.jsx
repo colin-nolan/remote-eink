@@ -21,18 +21,18 @@ export default class Servers extends React.Component {
       return
     }
 
-    //fire 'change' event to set default 'value' of select
-    this.setServer(servers.first().get("url"))
+    // fire 'change' event to set default 'value' of select
+    this.setServer(servers.first()?.get("url"))
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     let {
       servers,
       setServerVariableValue,
       getServerVariable
-    } = this.props
+    } = nextProps
 
-    if(this.props.currentServer !== nextProps.currentServer) {
+    if (this.props.currentServer !== nextProps.currentServer || this.props.servers !== nextProps.servers) {
       // Server has changed, we may need to set default values
       let currentServerDefinition = servers
         .find(v => v.get("url") === nextProps.currentServer)
@@ -95,7 +95,7 @@ export default class Servers extends React.Component {
     } = this.props
 
 
-    let currentServerDefinition = servers.find(v => v.get("url") === currentServer) || OrderedMap()
+    let currentServerDefinition = servers.find(s => s.get("url") === currentServer) || OrderedMap()
 
     let currentServerVariableDefs = currentServerDefinition.get("variables") || OrderedMap()
 
@@ -104,7 +104,7 @@ export default class Servers extends React.Component {
     return (
       <div className="servers">
         <label htmlFor="servers">
-          <select onChange={ this.onServerChange }>
+          <select onChange={ this.onServerChange } value={currentServer}>
             { servers.valueSeq().map(
               ( server ) =>
               <option
@@ -129,7 +129,7 @@ export default class Servers extends React.Component {
             <table>
               <tbody>
                 {
-                  currentServerVariableDefs.map((val, name) => {
+                  currentServerVariableDefs.entrySeq().map(([name, val]) => {
                     return <tr key={name}>
                       <td>{name}</td>
                       <td>

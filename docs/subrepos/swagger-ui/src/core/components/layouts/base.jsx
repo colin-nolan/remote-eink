@@ -28,6 +28,7 @@ export default class BaseLayout extends React.Component {
     const SchemesContainer = getComponent("SchemesContainer", true)
     const AuthorizeBtnContainer = getComponent("AuthorizeBtnContainer", true)
     const FilterContainer = getComponent("FilterContainer", true)
+    const ErrorBoundary = getComponent("ErrorBoundary", true)
     let isSwagger2 = specSelectors.isSwagger2()
     let isOAS3 = specSelectors.isOAS3()
 
@@ -36,7 +37,7 @@ export default class BaseLayout extends React.Component {
     const loadingStatus = specSelectors.loadingStatus()
 
     let loadingMessage = null
-  
+
     if(loadingStatus === "loading") {
       loadingMessage = <div className="info">
         <div className="loading-container">
@@ -57,7 +58,7 @@ export default class BaseLayout extends React.Component {
     if (loadingStatus === "failedConfig") {
       const lastErr = errSelectors.lastError()
       const lastErrMsg = lastErr ? lastErr.get("message") : ""
-      loadingMessage = <div className="info" style={{ maxWidth: "880px", marginLeft: "auto", marginRight: "auto", textAlign: "center" }}>
+      loadingMessage = <div className="info failed-config">
         <div className="loading-container">
           <h4 className="title">Failed to load remote configuration.</h4>
           <p>{lastErrMsg}</p>
@@ -85,8 +86,8 @@ export default class BaseLayout extends React.Component {
     const hasSecurityDefinitions = !!specSelectors.securityDefinitions()
 
     return (
-
       <div className='swagger-ui'>
+        <ErrorBoundary targetName="BaseLayout">
           <SvgAssets />
           <VersionPragmaFilter isSwagger2={isSwagger2} isOAS3={isOAS3} alsoShow={<Errors/>}>
             <Errors/>
@@ -119,7 +120,8 @@ export default class BaseLayout extends React.Component {
               </Col>
             </Row>
           </VersionPragmaFilter>
-        </div>
-      )
+        </ErrorBoundary>
+      </div>
+    )
   }
 }
