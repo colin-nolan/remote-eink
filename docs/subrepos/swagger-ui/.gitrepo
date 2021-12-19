@@ -5,7 +5,7 @@
 ;
 [subrepo]
 	remote = https://github.com/swagger-api/swagger-ui.git
-	branch = v3.25.3
+	branch = v4.1.3
 	commit = b85ae033abbac44a1890f59ac1fd9f27fb787968
 	parent = 2d86d63c50a6aad7d7dc0bc21993d22f9f067152
 	method = merge
