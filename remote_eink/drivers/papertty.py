@@ -12,7 +12,7 @@ try:
     from papertty.papertty import PaperTTY, display_image
     from PIL import Image as PILImage
 except ImportError:
-    logger.error("\"papertty\" extra not installed")
+    logger.error('"papertty" extra not installed')
     raise
 
 
@@ -20,6 +20,7 @@ class PaperTtyDisplayDriver(BaseDisplayDriver):
     """
     PaperTTY-based device driver.
     """
+
     def __init__(self, device_driver: Type[DeviceDisplayDriver]):
         """
         Constructor.

@@ -21,9 +21,11 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
     """
     Tests for `DisplayController` implementations.
     """
+
     @abstractmethod
-    def create_display_controller(self, image_store: Optional[ImageStore] = None, *args, **kwargs) \
-            -> _DisplayControllerType:
+    def create_display_controller(
+        self, image_store: Optional[ImageStore] = None, *args, **kwargs
+    ) -> _DisplayControllerType:
         """
         Creates display controller to test.
         :param image_store: image store that the display controller is to have
@@ -47,7 +49,8 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
             display_semaphore.release()
 
         self.display_controller.driver.event_listeners.add_listener(
-            on_image_display, ListenableDisplayDriver.Event.DISPLAY)
+            on_image_display, ListenableDisplayDriver.Event.DISPLAY
+        )
         self.display_controller.image_store.add(WHITE_IMAGE)
         self.display_controller.display(WHITE_IMAGE.identifier)
         self.assertTrue(display_semaphore.acquire(timeout=10))
@@ -59,7 +62,8 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
         self.display_controller.image_store.add(WHITE_IMAGE)
         self.display_controller.display(WHITE_IMAGE.identifier)
         self.display_controller.driver.event_listeners.add_listener(
-            display_listener, ListenableDisplayDriver.Event.DISPLAY)
+            display_listener, ListenableDisplayDriver.Event.DISPLAY
+        )
         self.display_controller.display(WHITE_IMAGE.identifier)
         self.assertFalse(display_listener.called)
 
@@ -115,6 +119,7 @@ class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType],
     def test_sleep_after_no_use(self):
         controller = self.create_display_controller(sleep_after_seconds=0.5)
 
+
 # FIXME: tests for `BaseDisplayController`?!
 
 
@@ -122,10 +127,13 @@ class TestCyclableDisplayController(_TestDisplayController[CyclableDisplayContro
     """
     Test for `CyclableDisplayController`.
     """
-    def create_display_controller(self, image_store: Optional[ImageStore] = None, *args, **kwargs) \
-            -> CyclableDisplayController:
-        return CyclableDisplayController(DummyBaseDisplayDriver(),
-                                         image_store if image_store is not None else InMemoryImageStore())
+
+    def create_display_controller(
+        self, image_store: Optional[ImageStore] = None, *args, **kwargs
+    ) -> CyclableDisplayController:
+        return CyclableDisplayController(
+            DummyBaseDisplayDriver(), image_store if image_store is not None else InMemoryImageStore()
+        )
 
     def test_display_next_image_when_no_images(self):
         self.assertIsNone(self.display_controller.display_next_image())
@@ -178,6 +186,7 @@ class TestAutoCyclingDisplayController(_TestDisplayController[AutoCyclingDisplay
     """
     Test for `AutoCyclingDisplayController`.
     """
+
     def setUp(self):
         self._display_controllers = []
         super().setUp()
@@ -187,11 +196,14 @@ class TestAutoCyclingDisplayController(_TestDisplayController[AutoCyclingDisplay
             display_controller.stop()
         super().tearDown()
 
-    def create_display_controller(self, image_store: Optional[ImageStore] = None, *args, **kwargs) \
-            -> AutoCyclingDisplayController:
+    def create_display_controller(
+        self, image_store: Optional[ImageStore] = None, *args, **kwargs
+    ) -> AutoCyclingDisplayController:
         display_controller = AutoCyclingDisplayController(
-            DummyBaseDisplayDriver(), image_store if image_store is not None else InMemoryImageStore(),
-            cycle_image_after_seconds=0.001)
+            DummyBaseDisplayDriver(),
+            image_store if image_store is not None else InMemoryImageStore(),
+            cycle_image_after_seconds=0.001,
+        )
         self._display_controllers.append(display_controller)
         return display_controller
 
@@ -228,6 +240,7 @@ class TestAutoCyclingDisplayController(_TestDisplayController[AutoCyclingDisplay
         end_changes = changes
         sleep(display_controller.cycle_image_after_seconds * 25)
         self.assertEqual(end_changes, changes)
+
 
 # TODO: test `SleepyDisplayController`
 

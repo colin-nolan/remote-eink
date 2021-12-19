@@ -27,7 +27,7 @@ def put(display_controller: DisplayController, body: Dict):
         return f"Body must be a map, got: {body}", HTTPStatus.BAD_REQUEST
     image_id = body.get("id")
     if image_id is None:
-        return f"\"id\" field missing: {body}", HTTPStatus.BAD_REQUEST
+        return f'"id" field missing: {body}', HTTPStatus.BAD_REQUEST
     if display_controller.image_store.get(image_id) is None:
         return f"Image not found: {image_id}", HTTPStatus.BAD_REQUEST
     display_controller.display(image_id)

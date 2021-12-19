@@ -7,8 +7,13 @@ from io import BytesIO
 
 from flask import make_response, request, send_file
 
-from remote_eink.api.display._common import ImageTypeToMimeType, CONTENT_TYPE_HEADER, display_id_handler, ImageSchema, \
-    to_target_process
+from remote_eink.api.display._common import (
+    ImageTypeToMimeType,
+    CONTENT_TYPE_HEADER,
+    display_id_handler,
+    ImageSchema,
+    to_target_process,
+)
 from remote_eink.controllers import DisplayController
 from remote_eink.images import FunctionBasedImage
 from remote_eink.storage.images import ImageAlreadyExistsError
@@ -51,8 +56,9 @@ def post(*args, **kwargs):
 
 @to_target_process
 @display_id_handler
-def _put(display_controller: DisplayController, content_type: str, imageId: str, body: bytes, *, overwrite: bool) \
-        -> Tuple[str, HTTPStatus]:
+def _put(
+    display_controller: DisplayController, content_type: str, imageId: str, body: bytes, *, overwrite: bool
+) -> Tuple[str, HTTPStatus]:
     if content_type is None:
         return f"{CONTENT_TYPE_HEADER} header is required", HTTPStatus.BAD_REQUEST
 

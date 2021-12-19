@@ -14,7 +14,7 @@ try:
     from cheroot import wsgi
     from connexion import FlaskApp
 except ImportError:
-    _logger.error("\"webserver\" extra not installed")
+    _logger.error('"webserver" extra not installed')
     raise
 
 
@@ -26,11 +26,17 @@ class Server:
     """
     Model of the WSGI server.
     """
+
     @property
     def url(self) -> str:
         return f"http://{self.interface}:{self.port}"
 
-    def __init__(self, app: Flask, interface: str, port: int, ):
+    def __init__(
+        self,
+        app: Flask,
+        interface: str,
+        port: int,
+    ):
         """
         Constructor.
         :param app: copy of app ran on the server

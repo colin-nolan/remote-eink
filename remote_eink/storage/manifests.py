@@ -13,6 +13,7 @@ class ManifestAlreadyExistsError(ValueError):
     """
     Raised when an manifest for the image already exists when not allowed.
     """
+
     def __init__(self, image_id: str):
         super().__init__(f"Manifest for the image already exists: {image_id}")
 
@@ -22,6 +23,7 @@ class ManifestRecord:
     """
     Record in the image storage manifest.
     """
+
     identifier: str
     image_type: ImageType
     storage_location: str
@@ -34,6 +36,7 @@ class _ManifestRecordSchema(Schema):
     """
     Marshmallow schema for `ManifestRecord`.
     """
+
     identifier = fields.Str(data_key="id")
     image_type = EnumField(ImageType, data_key="image_type")
     storage_location = fields.Str(data_key="storage_location")
@@ -47,6 +50,7 @@ class Manifest(metaclass=ABCMeta):
     """
     Image manifest, linking image identifiers to storage information.
     """
+
     @abstractmethod
     def get_by_image_id(self, image_id: str) -> Optional[ManifestRecord]:
         """
@@ -92,6 +96,7 @@ class InMemoryManifest(Manifest):
     """
     In memory manifest implementation.
     """
+
     def __init__(self):
         """
         Constructor.
@@ -104,8 +109,12 @@ class InMemoryManifest(Manifest):
     def get_by_storage_location(self, storage_location: str) -> Optional[ManifestRecord]:
         # Not optimising here unless actually required
         try:
-            return next(filter(lambda manifest_record: manifest_record.storage_location == storage_location,
-                               self._manifest_records.values()))
+            return next(
+                filter(
+                    lambda manifest_record: manifest_record.storage_location == storage_location,
+                    self._manifest_records.values(),
+                )
+            )
         except StopIteration:
             return None
 
@@ -129,6 +138,7 @@ class TinyDbManifest(Manifest):
     """
     TinyDB backed manifest implementation.
     """
+
     _MANIFEST_RECORD_SCHEMA = _ManifestRecordSchema()
 
     @property

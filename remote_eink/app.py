@@ -54,4 +54,3 @@ def destroy_app(app: Optional[Flask] = None):
     """
     app_data = get_app_data(app)
     app_data.destroy()
-

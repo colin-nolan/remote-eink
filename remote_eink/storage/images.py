@@ -13,6 +13,7 @@ class ImageAlreadyExistsError(ValueError):
     """
     Raised when an image already exists when not allowed.
     """
+
     def __init__(self, image_id: str):
         super().__init__(f"Image with the same ID already exists: {image_id}")
 
@@ -21,6 +22,7 @@ class ImageStore(Collection[Image], metaclass=ABCMeta):
     """
     Store of images.
     """
+
     @abstractmethod
     def get(self, image_id: str) -> Optional[Image]:
         """
@@ -56,6 +58,7 @@ class SimpleImageStore(ImageStore):
     """
     Store of images.
     """
+
     @abstractmethod
     def _get(self, image_id: str) -> Optional[Image]:
         """
@@ -124,6 +127,7 @@ class InMemoryImageStore(SimpleImageStore):
     """
     In memory image store.
     """
+
     def __init__(self, images: Iterable[Image] = ()):
         self._images: Dict[str, Image] = {}
         super().__init__(images)
@@ -155,6 +159,7 @@ class ManifestBasedImageStore(SimpleImageStore, metaclass=ABCMeta):
 
     Relies on a manifest to keep track of where images have been stored.
     """
+
     @abstractmethod
     def _get_image_reader(self, storage_location: str) -> ImageDataReader:
         """
@@ -226,11 +231,13 @@ class FileSystemImageStore(ManifestBasedImageStore):
     """
     File system based image store.
     """
+
     def __init__(self, root_directory: str, images: Iterable[Image] = (), manifest: Optional[Manifest] = None):
         self.root_directory = root_directory
         # self._cache = {}
-        manifest = manifest if manifest is not None else \
-            TinyDbManifest(os.path.join(self.root_directory, "manifest.json"))
+        manifest = (
+            manifest if manifest is not None else TinyDbManifest(os.path.join(self.root_directory, "manifest.json"))
+        )
         super().__init__(images, manifest)
 
     # # FIXME: putting it in a "cache" is really just a hack to keep the reference alive when held only through a proxy
@@ -295,6 +302,7 @@ class ListenableImageStore(ImageStore):
     """
     Listenable image store.
     """
+
     @unique
     class Event(Enum):
         ADD = auto()

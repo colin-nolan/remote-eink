@@ -10,6 +10,7 @@ class ImageType(Enum):
     """
     Image type.
     """
+
     BMP = "bmp"
     JPG = "jpg"
     PNG = "png"
@@ -20,6 +21,7 @@ class Image(metaclass=ABCMeta):
     """
     TODO
     """
+
     @property
     @abstractmethod
     def data(self) -> bytes:
@@ -81,6 +83,7 @@ class DataBasedImage(Image):
     """
     TODO
     """
+
     @property
     def data(self) -> bytes:
         return self._data
@@ -100,6 +103,7 @@ class FunctionBasedImage(Image):
     """
     Immutable model of an image.
     """
+
     @property
     def data(self) -> bytes:
         return self._data_reader()

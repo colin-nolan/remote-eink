@@ -11,7 +11,7 @@ _logger = logging.getLogger(__name__)
 try:
     from PIL import Image as PilImage
 except ImportError:
-    _logger.error("\"image-tools\" extra not installed")
+    _logger.error('"image-tools" extra not installed')
     raise
 
 
@@ -20,6 +20,7 @@ class RotateConfigurationParameter(Enum):
     """
     Configuration parameters that can be used to alter the function of a `RotateImageTransformer`.
     """
+
     ANGLE = "angle"
     EXPAND = "expand"
     FILL_COLOR = "fill_color"
@@ -29,6 +30,7 @@ class RotateImageTransformer(BaseImageTransformer):
     """
     Transformer that rotates the image by a common angle (the rotation on the image itself is ignored).
     """
+
     @staticmethod
     def rotate(image: Image, angle: float, expand: bool, fill_color: str) -> bytes:
         """
@@ -53,15 +55,21 @@ class RotateImageTransformer(BaseImageTransformer):
         return {
             RotateConfigurationParameter.ANGLE.value: self.angle,
             RotateConfigurationParameter.EXPAND.value: self.expand,
-            RotateConfigurationParameter.FILL_COLOR.value: self.fill_color
+            RotateConfigurationParameter.FILL_COLOR.value: self.fill_color,
         }
 
     @property
     def description(self) -> str:
         return f"Rotates an image (currently by {self.angle} degrees)"
 
-    def __init__(self, identifier: str = "rotate", active: bool = True, angle: float = 0.0, expand: bool = True,
-                 fill_color: str = "white"):
+    def __init__(
+        self,
+        identifier: str = "rotate",
+        active: bool = True,
+        angle: float = 0.0,
+        expand: bool = True,
+        fill_color: str = "white",
+    ):
         """
         Constructor.
         :param identifier: transformer's identifier
@@ -89,20 +97,26 @@ class RotateImageTransformer(BaseImageTransformer):
     def _transform(self, image: Image) -> Image:
         return FunctionBasedImage(
             image.identifier,
-            lambda: RotateImageTransformer.rotate(image, self.angle, self.expand, self.fill_color), image.type)
+            lambda: RotateImageTransformer.rotate(image, self.angle, self.expand, self.fill_color),
+            image.type,
+        )
 
 
 class ImageRotationAwareRotateImageTransformer(RotateImageTransformer):
     """
     Transformer that rotates the image by a common angle in addition to the specific rotation set on the image.
     """
+
     @property
     def description(self) -> str:
-        return f"Rotates an image (currently by {self.angle} degrees, in addition to applying the image specific " \
-               f"rotation)"
+        return (
+            f"Rotates an image (currently by {self.angle} degrees, in addition to applying the image specific "
+            f"rotation)"
+        )
 
     def _transform(self, image: Image) -> Image:
         return FunctionBasedImage(
             image.identifier,
             lambda: RotateImageTransformer.rotate(image, self.angle + image.rotation, self.expand, self.fill_color),
-            image.type)
+            image.type,
+        )

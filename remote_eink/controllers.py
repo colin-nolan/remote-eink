@@ -21,6 +21,7 @@ class ImageNotFoundError(ValueError):
     """
     Raised when an image cannot be found when expected.
     """
+
     def __init__(self, image_id: str):
         super().__init__(f"Image cannot be found: {image_id}")
 
@@ -29,6 +30,7 @@ class DisplayController(metaclass=ABCMeta):
     """
     Display controller.
     """
+
     @property
     @abstractmethod
     def identifier(self) -> str:
@@ -98,6 +100,7 @@ class ListenableDisplayController(DisplayController, metaclass=ABCMeta):
     """
     Display controller with listenable events.
     """
+
     @unique
     class Event(Enum):
         DISPLAY_CHANGE = auto()
@@ -123,6 +126,7 @@ class BaseDisplayController(DisplayController):
     """
     Display controller.
     """
+
     @property
     def identifier(self) -> str:
         return self._identifier
@@ -149,8 +153,13 @@ class BaseDisplayController(DisplayController):
     def event_listeners(self) -> EventListenerController["ListenableDisplayController.Event"]:
         return self._event_listeners
 
-    def __init__(self, driver: DisplayDriver, image_store: ImageStore, identifier: Optional[str] = None,
-                 image_transformers: Sequence[ImageTransformer] = ()):
+    def __init__(
+        self,
+        driver: DisplayDriver,
+        image_store: ImageStore,
+        identifier: Optional[str] = None,
+        image_transformers: Sequence[ImageTransformer] = (),
+    ):
         """
         Constructor.
         :param driver: display driver
@@ -226,8 +235,14 @@ class CyclableDisplayController(BaseDisplayController):
     """
     Display controller that can cycle through the image that it displays.
     """
-    def __init__(self, driver: DisplayDriver, image_store: ImageStore, identifier: Optional[str] = None,
-                 image_transformers: Sequence[ImageTransformer] = ()):
+
+    def __init__(
+        self,
+        driver: DisplayDriver,
+        image_store: ImageStore,
+        identifier: Optional[str] = None,
+        image_transformers: Sequence[ImageTransformer] = (),
+    ):
         """
         Constructor.
         :param driver: `BaseDisplayController.__init__`
@@ -239,7 +254,8 @@ class CyclableDisplayController(BaseDisplayController):
         self._image_queue = []
         # Note: the superclass converts the image store to a `ListenableImageStore`
         self.image_store.event_listeners.add_listener(
-            lambda image: self._add_to_queue(image.identifier), ListenableImageStore.Event.ADD)
+            lambda image: self._add_to_queue(image.identifier), ListenableImageStore.Event.ADD
+        )
         for image in self.image_store.list():
             self._add_to_queue(image.identifier)
 
@@ -284,9 +300,15 @@ class AutoCyclingDisplayController(CyclableDisplayController):
     """
     Display controller that auto cycles through images.
     """
-    def __init__(self, driver: DisplayDriver, image_store: ImageStore,
-                 identifier: Optional[str] = None, image_transformers: Sequence[ImageTransformer] = (),
-                 cycle_image_after_seconds: float = DEFAULT_SECONDS_BETWEEN_CYCLE):
+
+    def __init__(
+        self,
+        driver: DisplayDriver,
+        image_store: ImageStore,
+        identifier: Optional[str] = None,
+        image_transformers: Sequence[ImageTransformer] = (),
+        cycle_image_after_seconds: float = DEFAULT_SECONDS_BETWEEN_CYCLE,
+    ):
         """
         Constructor.
         :param driver: see `CyclableDisplayController.__init__`
@@ -316,6 +338,7 @@ class SleepyDisplayController(ListenableDisplayController):
     """
     TODO
     """
+
     @property
     def identifier(self) -> str:
         return self._display_controller.identifier

@@ -10,6 +10,7 @@ class RequestReceiver:
     """
     TODO
     """
+
     RUN_POISON = "+kill"
 
     def __init__(self, connection: Connection):
@@ -44,6 +45,7 @@ class RequestSender:
     """
     TODO
     """
+
     def __init__(self, connection: Connection):
         """
         TODO
@@ -80,6 +82,7 @@ class CommunicationPipe:
     """
     TODO
     """
+
     @property
     def sender(self) -> RequestSender:
         return self._sender

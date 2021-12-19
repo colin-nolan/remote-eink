@@ -10,12 +10,7 @@ from remote_eink.images import Image, ImageType
 
 logger = logging.getLogger(__name__)
 
-ImageTypeToPillowFormat = {
-    ImageType.BMP: "BMP",
-    ImageType.JPG: "JPEG",
-    ImageType.PNG: "PNG",
-    ImageType.WEBP: "WEBP"
-}
+ImageTypeToPillowFormat = {ImageType.BMP: "BMP", ImageType.JPG: "JPEG", ImageType.PNG: "PNG", ImageType.WEBP: "WEBP"}
 assert len(ImageTypeToPillowFormat) == len(ImageType)
 
 
@@ -37,6 +32,7 @@ class ImageTransformer(metaclass=ABCMeta):
     """
     Image transformer.
     """
+
     @property
     @abstractmethod
     def active(self) -> bool:
@@ -121,6 +117,7 @@ class BaseImageTransformer(ImageTransformer, metaclass=ABCMeta):
     """
     Image transformer.
     """
+
     @property
     def active(self) -> bool:
         return self._active
@@ -147,6 +144,7 @@ class ListenableImageTransformer(ImageTransformer):
     """
     TODO
     """
+
     @unique
     class Event(Enum):
         ACTIVATE_STATE = auto()
@@ -194,6 +192,7 @@ class ImageTransformerSequence(Sequence[ImageTransformer], metaclass=ABCMeta):
     """
     TODO
     """
+
     @abstractmethod
     def get_by_id(self, image_transformer_id: str) -> Optional[ImageTransformer]:
         """
@@ -244,6 +243,7 @@ class SimpleImageTransformerSequence(ImageTransformerSequence):
     """
     Sequence of image transformers.
     """
+
     @unique
     class Event(Enum):
         ADD = auto()
@@ -313,6 +313,7 @@ class SimpleImageTransformer(BaseImageTransformer):
     """
     Simple image transformer implementation.
     """
+
     @property
     def configuration(self) -> Dict[str, Any]:
         return self._configuration
@@ -321,8 +322,14 @@ class SimpleImageTransformer(BaseImageTransformer):
     def description(self) -> str:
         return self._description
 
-    def __init__(self, transformer: Optional[Callable[[Image], Image]] = None, active: bool = True,
-                 configuration: Optional[Any] = None, description: Optional[str] = None, identifier: str = None):
+    def __init__(
+        self,
+        transformer: Optional[Callable[[Image], Image]] = None,
+        active: bool = True,
+        configuration: Optional[Any] = None,
+        description: Optional[str] = None,
+        identifier: str = None,
+    ):
         super().__init__(identifier if identifier is not None else str(uuid4()), active)
         self._transformer = transformer if transformer is not None else lambda image: image
         self._configuration = configuration if configuration is not None else {}

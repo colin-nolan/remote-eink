@@ -30,8 +30,9 @@ def create_image(image_type: Optional[ImageType] = None) -> Image:
     return FunctionBasedImage(identifier, lambda: WHITE_IMAGE.data, image_type)
 
 
-def create_dummy_display_controller(*, number_of_images: int = 0, number_of_image_transformers: int = 0, **kwargs) \
-        -> DisplayController:
+def create_dummy_display_controller(
+    *, number_of_images: int = 0, number_of_image_transformers: int = 0, **kwargs
+) -> DisplayController:
     """
     Creates a dummy display controller.
     :param number_of_images: number of images in the display controller's image store
@@ -46,8 +47,10 @@ def create_dummy_display_controller(*, number_of_images: int = 0, number_of_imag
 
     if number_of_image_transformers != 0:
         if "image_transformers" in kwargs:
-            raise ValueError("Cannot specify a number of image transformers to be created in addition to passing in "
-                             "image transformers")
+            raise ValueError(
+                "Cannot specify a number of image transformers to be created in addition to passing in "
+                "image transformers"
+            )
         kwargs["image_transformers"] = [SimpleImageTransformer() for _ in range(number_of_image_transformers)]
 
     return BaseDisplayController(driver=DummyBaseDisplayDriver(), **kwargs)
@@ -70,6 +73,7 @@ class AppTestBase(TestCase, metaclass=ABCMeta):
     """
     Base class for tests against the Flask app.
     """
+
     @property
     def display_controller(self) -> DisplayController:
         return self._display_controllers[0]

@@ -14,6 +14,7 @@ def _use_only_in_created_process(wrappable: Callable) -> Callable:
     TODO
     :return:
     """
+
     def wrapped(self, *args, **kwargs) -> Any:
         if os.getpid() != self._created_pid:
             raise RuntimeError("Cannot access in process other than that which the app is created in")
@@ -26,6 +27,7 @@ class AppData:
     """
     TODO
     """
+
     @property
     def communication_pipe(self) -> CommunicationPipe:
         return self._communication_pipe
@@ -56,7 +58,7 @@ class AppData:
         TODO
         """
         if display_controller.identifier in self._display_controllers:
-            raise ValueError(f"Display controller with ID \"{display_controller.identifier}\" already in collection")
+            raise ValueError(f'Display controller with ID "{display_controller.identifier}" already in collection')
         self._display_controllers[display_controller.identifier] = display_controller
 
     @_use_only_in_created_process
@@ -65,7 +67,6 @@ class AppData:
         TODO
         """
         del self._display_controllers[display_controller.identifier]
-
 
     @_use_only_in_created_process
     def destroy(self):

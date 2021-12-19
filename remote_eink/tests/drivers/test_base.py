@@ -16,6 +16,7 @@ class AbstractTest:
         """
         Tests for `DisplayDriver`.
         """
+
         @abstractmethod
         def create_display_driver(self) -> DisplayDriverType:
             """
@@ -66,6 +67,7 @@ class TestBaseDisplayDriver(AbstractTest.TestDisplayDriver[BaseDisplayDriverType
     """
     Tests for `BaseDisplayDriver`.
     """
+
     def create_display_driver(self) -> DisplayDriverType:
         return DummyBaseDisplayDriver()
 
@@ -82,6 +84,7 @@ class TestListenableDisplayDriver(AbstractTest.TestDisplayDriver[ListenableDispl
     """
     Tests for `ListenableDisplayDriver`.
     """
+
     def setUp(self):
         super().setUp()
         self.listener = MagicMock()
@@ -93,7 +96,7 @@ class TestListenableDisplayDriver(AbstractTest.TestDisplayDriver[ListenableDispl
         self.display_driver.event_listeners.add(self.listener, ListenableDisplayDriver.Event.DISPLAY)
         self.display_driver.display(WHITE_IMAGE)
         self.assertEqual(1, self.listener.call_count)
-        self.assertEqual((WHITE_IMAGE, ), self.listener.call_args.args)
+        self.assertEqual((WHITE_IMAGE,), self.listener.call_args.args)
 
     def test_listener_clear(self):
         self.display_driver.event_listeners.add(self.listener, ListenableDisplayDriver.Event.CLEAR)

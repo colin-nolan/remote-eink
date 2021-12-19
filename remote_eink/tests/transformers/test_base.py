@@ -3,9 +3,15 @@ from abc import abstractmethod, ABCMeta
 from threading import Semaphore
 from typing import TypeVar, Generic, Sequence
 
-from remote_eink.transformers.base import ImageTransformer, ImageTransformerSequence, \
-    InvalidConfigurationError, InvalidPositionError, ListenableImageTransformer, SimpleImageTransformerSequence, \
-    SimpleImageTransformer
+from remote_eink.transformers.base import (
+    ImageTransformer,
+    ImageTransformerSequence,
+    InvalidConfigurationError,
+    InvalidPositionError,
+    ListenableImageTransformer,
+    SimpleImageTransformerSequence,
+    SimpleImageTransformer,
+)
 
 ImageTransformerType = TypeVar("ImageTransformerType", bound=ImageTransformer)
 ImageTransformerSequenceType = TypeVar("ImageTransformerSequenceType", bound=ImageTransformerSequence)
@@ -15,10 +21,12 @@ class AbstractTest:
     """
     https://stackoverflow.com/questions/4566910/abstract-test-case-using-python-unittest
     """
+
     class TestImageTransformer(Generic[ImageTransformerType], unittest.TestCase, metaclass=ABCMeta):
         """
         Tests for `ImageTransformer`.
         """
+
         @abstractmethod
         def create_image_transformer(self, *args, **kwargs) -> ImageTransformerType:
             """
@@ -43,9 +51,11 @@ class AbstractTest:
         """
         Tests for `ImageTransformerSequence`.
         """
+
         @abstractmethod
-        def create_image_transformer_sequence(self, image_transformers: Sequence[ImageTransformer]) \
-                -> ImageTransformerSequenceType:
+        def create_image_transformer_sequence(
+            self, image_transformers: Sequence[ImageTransformer]
+        ) -> ImageTransformerSequenceType:
             """
             TODO
             :return:
@@ -53,9 +63,14 @@ class AbstractTest:
 
         def setUp(self):
             super().setUp()
-            self.image_transformers_list = [SimpleImageTransformer(), SimpleImageTransformer(), SimpleImageTransformer()]
+            self.image_transformers_list = [
+                SimpleImageTransformer(),
+                SimpleImageTransformer(),
+                SimpleImageTransformer(),
+            ]
             self.image_transformers: ImageTransformerSequenceType = self.create_image_transformer_sequence(
-                self.image_transformers_list)
+                self.image_transformers_list
+            )
 
         def test_len(self):
             self.assertEqual(len(self.image_transformers_list), len(self.image_transformers))
@@ -104,11 +119,11 @@ class AbstractTest:
 
         def test_set_position_when_image_transformer_not_in_sequence(self):
             with self.assertRaises(KeyError):
-                 self.image_transformers.set_position(SimpleImageTransformer(), 0)
+                self.image_transformers.set_position(SimpleImageTransformer(), 0)
 
         def test_set_position_less_than_zero(self):
             with self.assertRaises(InvalidPositionError):
-                 self.image_transformers.set_position(self.image_transformers[0], -1)
+                self.image_transformers.set_position(self.image_transformers[0], -1)
 
         def test_add(self):
             image_transformer = SimpleImageTransformer()
@@ -142,6 +157,7 @@ class TestListenableImageTransformer(unittest.TestCase):
     """
     Tests for `ListenableImageTransformer`.
     """
+
     def setUp(self):
         self.image_transformer = ListenableImageTransformer(SimpleImageTransformer())
 
@@ -154,8 +170,7 @@ class TestListenableImageTransformer(unittest.TestCase):
             changed.release()
 
         self.image_transformer.active = False
-        self.image_transformer.event_listeners.add_listener(
-            on_change, ListenableImageTransformer.Event.ACTIVATE_STATE)
+        self.image_transformer.event_listeners.add_listener(on_change, ListenableImageTransformer.Event.ACTIVATE_STATE)
         self.image_transformer.active = True
         self.assertTrue(changed.acquire(timeout=15))
 
@@ -164,8 +179,10 @@ class TestSimpleImageTransformerSequence(AbstractTest.TestImageTransformerSequen
     """
     Tests `SimpleImageTransformerSequence`.
     """
-    def create_image_transformer_sequence(self, image_transformers: Sequence[ImageTransformer])\
-            -> ImageTransformerSequenceType:
+
+    def create_image_transformer_sequence(
+        self, image_transformers: Sequence[ImageTransformer]
+    ) -> ImageTransformerSequenceType:
         return SimpleImageTransformerSequence(image_transformers)
 
     def test_add_event(self):

@@ -5,6 +5,7 @@ class DummyBaseDisplayDriver(BaseDisplayDriver):
     """
     TODO
     """
+
     def _display(self, image_data: bytes):
         pass
 

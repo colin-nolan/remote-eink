@@ -16,6 +16,7 @@ class ModifiableParameter(Enum):
     """
     TODO
     """
+
     POSITION = "position"
     CONFIGURATION = "configuration"
 
@@ -33,6 +34,7 @@ def image_transformer_id_handler(wrappable: Callable) -> Callable:
     :param wrappable: handler to wrap
     :return: TODO
     """
+
     def wrapped(display_controller: DisplayController, imageTransformerId: str, **kwargs):
         image_transformer = display_controller.image_transformers.get_by_id(imageTransformerId)
         if image_transformer is None:
@@ -48,10 +50,12 @@ def image_transformer_position_handler(wrappable: Callable) -> Callable:
     :param wrappable: handler to wrap
     :return: TODO
     """
+
     def wrapped(display_controller: DisplayController, image_transformer: ImageTransformer, **kwargs):
         position = display_controller.image_transformers.get_position(image_transformer)
         return wrappable(
-            display_controller=display_controller, image_transformer=image_transformer, position=position, **kwargs)
+            display_controller=display_controller, image_transformer=image_transformer, position=position, **kwargs
+        )
 
     return wrapped
 

@@ -10,6 +10,7 @@ class DisplayDriver(metaclass=ABCMeta):
     """
     Device display driver.
     """
+
     @property
     @abstractmethod
     def sleeping(self) -> bool:
@@ -65,6 +66,7 @@ class BaseDisplayDriver(DisplayDriver, metaclass=ABCMeta):
 
     Not thread safe.
     """
+
     @property
     def sleeping(self) -> bool:
         return self._sleeping
@@ -154,6 +156,7 @@ class ListenableDisplayDriver(DisplayDriver):
     """
     Listenable interface composed on a display driver.
     """
+
     @unique
     class Event(Enum):
         DISPLAY = auto()

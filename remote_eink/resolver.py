@@ -8,6 +8,7 @@ class CustomRestResolver(Resolver):
     """
     Custom rest resolver.
     """
+
     DEFAULT_COLLECTION_ENDPOINT = "search"
 
     def __init__(self, default_module_name: str, collection_endpoint_name: str = DEFAULT_COLLECTION_ENDPOINT):
