@@ -146,10 +146,25 @@ paths:
       parameters:
         - $ref: "#/components/parameters/displayId"
       requestBody:
+        required: true
         content:
-          image/*:
+#          image/*:
+#            schema:
+#              format: binary
+          multipart/form-data:
             schema:
-              format: binary
+              type: object
+              properties:
+                metadata:
+                  $ref: "#/components/schemas/ImageMetadata"
+                image:
+                  type: string
+                  format: binary
+            encoding:
+              metadata:
+                contentType: application/json
+              image:
+                contentType: image/*
       responses:
         201:
           description: Image created.
@@ -306,4 +321,10 @@ components:
         cycleRandomly:
           type: boolean
         cycleAfterSeconds:
+          type: integer
+
+    ImageMetadata:
+      type: object
+      properties:
+        rotation:
           type: integer

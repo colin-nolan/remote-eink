@@ -58,13 +58,26 @@ def put(*args, **kwargs):
 
 
 def post(*args, **kwargs):
-    kwargs["content_type"] = request.headers.get(CONTENT_TYPE_HEADER)
+    print(request.stream.read())
+    content_type = request.headers.get(CONTENT_TYPE_HEADER)
+
+    if content_type.startswith("multipart/form-data"):
+        kwargs["image_data"] = kwargs["body"]["image"]
+        kwargs["content_type"] = kwargs["body"]["image"]
+        kwargs["rotation"] = kwargs["body"]["metadata"]["rotation"]
+    else:
+        kwargs["image_data"] = kwargs["body"]
+        kwargs["content_type"] = content_type
+
+    del kwargs["body"]
+
+    kwargs["content_type"] = content_type
     return _put(*args, **kwargs, imageId=str(uuid4()), overwrite=False)
 
 
 @to_target_process
 @display_id_handler
-def _put(display_controller: DisplayController, content_type: str, imageId: str, body: bytes, *, overwrite: bool):
+def _put(display_controller: DisplayController, content_type: str, imageId: str, body: bytes, rotation: float = 0, *, overwrite: bool):
     if content_type is None:
         return f"{CONTENT_TYPE_HEADER} header is required", HTTPStatus.BAD_REQUEST
 
@@ -82,7 +95,7 @@ def _put(display_controller: DisplayController, content_type: str, imageId: str,
             HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
         )
 
-    image = FunctionBasedImage(imageId, lambda: body, image_type)
+    image = FunctionBasedImage(imageId, lambda: image_data, image_type, rotation=rotation)
     updated = False
     # FIXME: lock over both of these is required!
     if overwrite:

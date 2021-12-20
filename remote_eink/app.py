@@ -1,12 +1,15 @@
 import os
+from io import BytesIO
+
 from uuid import uuid4
 
 from typing import Collection, Optional
 
 import connexion
 from connexion import FlaskApp
-from flask import Flask, current_app
+from flask import Flask, current_app, Request
 from flask_cors import CORS
+from werkzeug.formparser import FormDataParser, MultiPartParser
 
 from remote_eink.app_data import apps_data, AppData
 from remote_eink.controllers import DisplayController
@@ -17,6 +20,29 @@ OPEN_API_LOCATION = os.path.join(os.path.dirname(os.path.realpath(__file__)), ".
 APP_ID_PROPERTY = "APP_ID"
 
 
+class MyMultiPartParser(MultiPartParser):
+    def form_storage_builder(self, name, container, part_charset, headers):
+        return b"".join(container).decode(part_charset, self.errors)
+
+
+class MyFormDataParser(FormDataParser):
+    multi_part_parser_class = MyMultiPartParser
+
+    # def parse(self, stream, mimetype, content_length, options=None):
+    #     if mimetype == "multipart/form-data":
+    #         data = stream.read(content_length)
+    #         print(data)
+    #         result = super().parse(BytesIO(data), mimetype, content_length, options)
+    #         print(result)
+    #         return result
+    #     else:
+    #         return super().parse(stream, mimetype, content_length, options)
+
+
+class MyRequest(Request):
+    form_data_parser_class = MyFormDataParser
+
+
 def create_app(display_controllers: Collection[DisplayController]) -> FlaskApp:
     """
     Creates the Flask app.
@@ -24,12 +50,15 @@ def create_app(display_controllers: Collection[DisplayController]) -> FlaskApp:
     :return: Flask app
     """
     app = connexion.App(__name__, options=dict(swagger_ui=True))
-    app.add_api(OPEN_API_LOCATION, resolver=CustomRestResolver("remote_eink.api"), strict_validation=True)
+    # Turning off strict validation due to bug: https://github.com/zalando/connexion/issues/1020#issuecomment-574437207
+    app.add_api(OPEN_API_LOCATION, resolver=CustomRestResolver("remote_eink.api"), strict_validation=False)
     CORS(app.app)
 
     identifier = str(uuid4())
     with app.app.app_context():
         app.app.config[APP_ID_PROPERTY] = identifier
+
+    app.app.request_class = MyRequest
 
     apps_data[identifier] = AppData(display_controllers)
 
