@@ -14,8 +14,6 @@ from remote_eink.images import Image
 from remote_eink.storage.images import ImageStore, ListenableImageStore
 from remote_eink.transformers.base import ImageTransformer, ImageTransformerSequence, SimpleImageTransformerSequence
 
-DEFAULT_SECONDS_BETWEEN_CYCLE = float(60 * 60)
-
 
 class ImageNotFoundError(ValueError):
     """
@@ -285,13 +283,16 @@ class CyclableDisplayController(BaseDisplayController):
 
     def _add_to_queue(self, image_id: str):
         """
-        Adds the image with the given ID
-        :param image_id:
-        :return:
+        Adds the image with the given ID to the queue.
+        :param image_id: ID of the image to add to the queue
         """
         self._image_queue.append(image_id)
 
     def _on_remove_image(self, image_id: str):
+        """
+        Called when the image with the given ID is removed.
+        :param image_id: ID of the image that was removed
+        """
         if self.current_image and self.current_image.identifier == image_id:
             self.display_next_image()
 
@@ -300,6 +301,7 @@ class AutoCyclingDisplayController(CyclableDisplayController):
     """
     Display controller that auto cycles through images.
     """
+    DEFAULT_SECONDS_BETWEEN_CYCLE = float(60 * 60)
 
     def __init__(
         self,
@@ -336,7 +338,7 @@ class AutoCyclingDisplayController(CyclableDisplayController):
 
 class SleepyDisplayController(ListenableDisplayController):
     """
-    TODO
+    Listenable display controller that sleeps the display driver a period of time after the display is updated.
     """
 
     @property
@@ -374,9 +376,9 @@ class SleepyDisplayController(ListenableDisplayController):
 
     def __init__(self, display_controller: ListenableDisplayController, sleep_after_seconds: float = 300):
         """
-        TODO
-        :param display_controller:
-        :param sleep_after_seconds:
+        Constructor.
+        :param display_controller: the listenable display controller to wrap
+        :param sleep_after_seconds: the number of seconds after the display changes to sleep the device
         """
         self._display_controller = display_controller
         self._sleep_after_seconds = sleep_after_seconds

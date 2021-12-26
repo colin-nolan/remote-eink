@@ -3,8 +3,6 @@ import time
 from threading import Thread, Semaphore
 from typing import Optional
 
-from flask import Flask
-
 from remote_eink.app import destroy_app
 
 _logger = logging.getLogger(__name__)
@@ -33,7 +31,7 @@ class Server:
 
     def __init__(
         self,
-        app: Flask,
+        app: FlaskApp,
         interface: str,
         port: int,
     ):
@@ -43,7 +41,7 @@ class Server:
         :param interface: interface server is bound to
         :param port: port the server is using
         """
-        self.app: Optional[Flask] = app
+        self.app: Optional[FlaskApp] = app
         self.interface = interface
         self.port = port
         self.server_set = Semaphore(0)

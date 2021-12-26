@@ -2,7 +2,53 @@
 [![Code Coverage](https://codecov.io/gh/colin-nolan/remote-eink/branch/master/graph/badge.svg)](https://codecov.io/gh/colin-nolan/remote-eink)
 
 # Remote eInk
+_A server that can be used to remotely control a display, such as eink screen._
 
 ## OpenAPI
 The OpenAPI specification can be viewed here:
 [https://colin-nolan.github.io/remote-eink/swagger-ui/](https://colin-nolan.github.io/remote-eink/swagger-ui/)
+
+
+## Troubleshooting
+### RPi.GPIO gcc10 issue
+A generic error when compiling [RPi.GPIO](https://pypi.org/project/RPi.GPIO/) may be
+[caused by a change in gcc10](https://forum.manjaro.org/t/pip-install-rpi-gpio-fail/25788/5):
+``` 
+collect2: error: ld returned 1 exit status
+error: command '/usr/bin/arm-linux-gnueabihf-gcc' failed with exit code 1
+```
+It can be avoided by setting `CFLAGS`, e.g.:
+```
+CFLAGS="-fcommon" poetry install
+```
+
+
+## Development
+### Implementation
+`Flask` app:
+- Takes multiple `DisplayController` instances.
+- Is associated to `AppData`.
+
+`Server`:
+- Operates a `Flask` app.
+- Can be used with `run` (blocking) or `start` (non-blocking).
+
+A `DisplayController`:
+- Controls the display of an `Image` within a `ImageStore` using a `DisplayDriver`. 
+- Knows what the `current_image` being displayed is.
+- May apply transformations to the image using `ImageTransformerSequence`.
+- Has `ListenableDisplayController`, `CyclableDisplayController`, and `SleepyDisplayController`
+  variants.
+
+An `Image`:
+- Allows access to data representing an image.
+- Is of a particular type (e.g. `png`).
+
+An `ImageTransformer`:
+- Takes an `Image` and modifies it to produce a variation (e.g. a rotated copy of the image).
+- Multiple transformers can be put together using an `ImageTransformerSequence`.
+
+A `DisplayDriver`:
+- A driver for a display device.
+- Can set an image to be displayed; clear the display; sleep/wake the display.
+

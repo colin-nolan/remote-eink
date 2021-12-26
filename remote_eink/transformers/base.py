@@ -37,17 +37,16 @@ class ImageTransformer(metaclass=ABCMeta):
     @abstractmethod
     def active(self) -> bool:
         """
-        TODO
-        :return:
+        Whether the transformer is active.
+        :return: active status
         """
 
     @active.setter
     @abstractmethod
     def active(self, active: bool):
         """
-        TODO
-        :param active:
-        :return:
+        Sets the active status of the transformer.
+        :param active: active status where `True` is active
         """
 
     @property
@@ -62,7 +61,7 @@ class ImageTransformer(metaclass=ABCMeta):
     @abstractmethod
     def description(self) -> str:
         """
-        Description of the transformer
+        Description of the transformer.
         :return: description
         """
 
@@ -70,8 +69,8 @@ class ImageTransformer(metaclass=ABCMeta):
     @abstractmethod
     def identifier(self) -> str:
         """
-        TODO
-        :return:
+        Identifier for the transformer.
+        :return: identifier
         """
 
     @abstractmethod
@@ -132,7 +131,7 @@ class BaseImageTransformer(ImageTransformer, metaclass=ABCMeta):
 
     def __init__(self, identifier: str, active: bool = True):
         """
-        Constructor
+        Constructor.
         :param identifier: transformer identifier
         :param active: whether the transformer is active
         """
@@ -142,7 +141,7 @@ class BaseImageTransformer(ImageTransformer, metaclass=ABCMeta):
 
 class ListenableImageTransformer(ImageTransformer):
     """
-    TODO
+    Wraps an image transformer to make it listenable.
     """
 
     @unique
@@ -173,8 +172,8 @@ class ListenableImageTransformer(ImageTransformer):
 
     def __init__(self, image_transformer: ImageTransformer):
         """
-        Constructor
-        :param image_transformer: TODO
+        Constructor.
+        :param image_transformer: the image transformer to wrap
         """
         self._image_transformer = image_transformer
         self.event_listeners = EventListenerController[ListenableImageTransformer.Event]()
@@ -188,9 +187,44 @@ class ListenableImageTransformer(ImageTransformer):
         return transformed_image
 
 
+class SimpleImageTransformer(BaseImageTransformer):
+    """
+    Simple image transformer.
+    """
+
+    @property
+    def configuration(self) -> Dict[str, Any]:
+        return self._configuration
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    def __init__(
+            self,
+            transformer: Optional[Callable[[Image], Image]] = None,
+            active: bool = True,
+            configuration: Optional[Any] = None,
+            description: Optional[str] = None,
+            identifier: str = None,
+    ):
+        super().__init__(identifier if identifier is not None else str(uuid4()), active)
+        self._transformer = transformer if transformer is not None else lambda image: image
+        self._configuration = configuration if configuration is not None else {}
+        self._description = description if description is not None else ""
+
+    def modify_configuration(self, configuration: Dict[str, Any]):
+        if "invalid-config-property" in configuration:
+            raise InvalidConfigurationError(configuration)
+        self._configuration = configuration
+
+    def _transform(self, image: Image) -> Image:
+        return self._transformer(image)
+
+
 class ImageTransformerSequence(Sequence[ImageTransformer], metaclass=ABCMeta):
     """
-    TODO
+    A sequence of `ImageTransformer`.
     """
 
     @abstractmethod
@@ -241,7 +275,7 @@ class ImageTransformerSequence(Sequence[ImageTransformer], metaclass=ABCMeta):
 
 class SimpleImageTransformerSequence(ImageTransformerSequence):
     """
-    Sequence of image transformers.
+    A basic sequence of image transformers.
     """
 
     @unique
@@ -308,37 +342,3 @@ class SimpleImageTransformerSequence(ImageTransformerSequence):
         self.event_listeners.call_listeners(SimpleImageTransformerSequence.Event.REMOVE, [image_transformer, removed])
         return removed
 
-
-class SimpleImageTransformer(BaseImageTransformer):
-    """
-    Simple image transformer implementation.
-    """
-
-    @property
-    def configuration(self) -> Dict[str, Any]:
-        return self._configuration
-
-    @property
-    def description(self) -> str:
-        return self._description
-
-    def __init__(
-        self,
-        transformer: Optional[Callable[[Image], Image]] = None,
-        active: bool = True,
-        configuration: Optional[Any] = None,
-        description: Optional[str] = None,
-        identifier: str = None,
-    ):
-        super().__init__(identifier if identifier is not None else str(uuid4()), active)
-        self._transformer = transformer if transformer is not None else lambda image: image
-        self._configuration = configuration if configuration is not None else {}
-        self._description = description if description is not None else ""
-
-    def modify_configuration(self, configuration: Dict[str, Any]):
-        if "invalid-config-property" in configuration:
-            raise InvalidConfigurationError(configuration)
-        self._configuration = configuration
-
-    def _transform(self, image: Image) -> Image:
-        return self._transformer(image)

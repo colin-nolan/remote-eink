@@ -11,11 +11,11 @@ apps_data: Dict[str, "AppData"] = {}
 
 def _use_only_in_created_process(wrappable: Callable) -> Callable:
     """
-    TODO
-    :return:
+    Wraps the given `AppData` method such that it can only be called in the process that created it.
+    :return: wrapped callable
     """
 
-    def wrapped(self, *args, **kwargs) -> Any:
+    def wrapped(self: "AppData", *args, **kwargs) -> Any:
         if os.getpid() != self._created_pid:
             raise RuntimeError("Cannot access in process other than that which the app is created in")
         return wrappable(self, *args, **kwargs)
@@ -25,7 +25,7 @@ def _use_only_in_created_process(wrappable: Callable) -> Callable:
 
 class AppData:
     """
-    TODO
+    Data used in Flask application.
     """
 
     @property
@@ -40,7 +40,7 @@ class AppData:
     def __init__(self, display_controllers: Iterable[DisplayController]):
         """
         Constructor.
-        :param display_controllers: TODO
+        :param display_controllers: display controllers
         """
         self._display_controllers: Dict[str, DisplayController] = {}
 
@@ -55,7 +55,9 @@ class AppData:
     @_use_only_in_created_process
     def add_display_controller(self, display_controller: DisplayController):
         """
-        TODO
+        Adds the given display controller to the app data.
+        :param display_controller: display controller to add
+        :raises ValueError: if the given display controller is already in the display controllers data
         """
         if display_controller.identifier in self._display_controllers:
             raise ValueError(f'Display controller with ID "{display_controller.identifier}" already in collection')
@@ -64,15 +66,14 @@ class AppData:
     @_use_only_in_created_process
     def remove_display_controller(self, display_controller: DisplayController):
         """
-        TODO
+        Removes the given display controller from the data.
         """
         del self._display_controllers[display_controller.identifier]
 
     @_use_only_in_created_process
     def destroy(self):
         """
-        TODO
-        :return:
+        Functionally destroy the app data by clearing its data and stopping the communication receiver.
         """
         self.communication_pipe.sender.stop_receiver()
         self._communication_pipe = None
