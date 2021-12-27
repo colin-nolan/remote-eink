@@ -77,7 +77,15 @@ def post(*args, **kwargs):
 
 @to_target_process
 @display_id_handler
-def _put(display_controller: DisplayController, content_type: str, imageId: str, body: bytes, rotation: float = 0, *, overwrite: bool):
+def _put(
+    display_controller: DisplayController,
+    content_type: str,
+    imageId: str,
+    body: bytes,
+    rotation: float = 0,
+    *,
+    overwrite: bool,
+):
     if content_type is None:
         return f"{CONTENT_TYPE_HEADER} header is required", HTTPStatus.BAD_REQUEST
 

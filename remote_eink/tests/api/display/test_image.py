@@ -56,8 +56,11 @@ class TestDisplayImage(AppTestBase):
 
     def test_post(self):
         assert self.image not in self.display_controller.image_store
-        result = self.client.post(f"/display/{self.display_controller.identifier}/image",
-                                  data=self.image.data, headers=set_content_type_header(self.image))
+        result = self.client.post(
+            f"/display/{self.display_controller.identifier}/image",
+            data=self.image.data,
+            headers=set_content_type_header(self.image),
+        )
         self.assertEqual(HTTPStatus.CREATED, result.status_code, result)
         image_identifier = result.json
         expected_image = FunctionBasedImage(image_identifier, lambda: self.image.data, self.image.type)
@@ -66,10 +69,13 @@ class TestDisplayImage(AppTestBase):
     def test_post_as_multipart_form(self):
         image = create_image(rotation=90)
         # We're interacting with Flask-Testing _not_ requests so the format is different
-        files = {"metadata": (BytesIO(str.encode(json.dumps({"rotation": image.rotation}))), None, "application/json"),
-                 "image": (BytesIO(self.image.data), None, ImageTypeToMimeType[self.image.type])}
+        files = {
+            "metadata": (BytesIO(str.encode(json.dumps({"rotation": image.rotation}))), None, "application/json"),
+            "image": (BytesIO(self.image.data), None, ImageTypeToMimeType[self.image.type]),
+        }
         result = self.client.post(
-            f"/display/{self.display_controller.identifier}/image", data=files, content_type="multipart/form-data")
+            f"/display/{self.display_controller.identifier}/image", data=files, content_type="multipart/form-data"
+        )
         self.assertEqual(HTTPStatus.CREATED, result.status_code)
         self.assertEqual(image, self.display_controller.image_store.get(self.image.identifier))
 
@@ -86,16 +92,21 @@ class TestDisplayImage(AppTestBase):
         # finally:
         #     server.stop()
 
-
     def test_post_to_specific_id(self):
-        result = self.client.post(f"/display/{self.display_controller.identifier}/image/{self.image.identifier}",
-                                  data=self.image.data, headers=set_content_type_header(self.image))
+        result = self.client.post(
+            f"/display/{self.display_controller.identifier}/image/{self.image.identifier}",
+            data=self.image.data,
+            headers=set_content_type_header(self.image),
+        )
         self.assertEqual(HTTPStatus.METHOD_NOT_ALLOWED, result.status_code)
 
     def test_put(self):
         assert self.image not in self.display_controller.image_store
-        result = self.client.put(f"/display/{self.display_controller.identifier}/image/{self.image.identifier}",
-                                 data=self.image.data, headers=set_content_type_header(self.image))
+        result = self.client.put(
+            f"/display/{self.display_controller.identifier}/image/{self.image.identifier}",
+            data=self.image.data,
+            headers=set_content_type_header(self.image),
+        )
         self.assertEqual(HTTPStatus.CREATED, result.status_code)
         self.assertEqual(self.image, self.display_controller.image_store.get(self.image.identifier))
 
@@ -116,8 +127,9 @@ class TestDisplayImage(AppTestBase):
         self.assertEqual(image_2.data, self.display_controller.image_store.get(image_1.identifier).data)
 
     def test_put_no_content_type_header(self):
-        result = self.client.put(f"/display/{self.display_controller.identifier}/image/{self.image.identifier}",
-                                 data=self.image.data)
+        result = self.client.put(
+            f"/display/{self.display_controller.identifier}/image/{self.image.identifier}", data=self.image.data
+        )
         self.assertEqual(HTTPStatus.BAD_REQUEST, result.status_code)
 
     def test_put_display_not_exist(self):
