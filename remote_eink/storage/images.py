@@ -22,6 +22,7 @@ class ImageStore(Collection[Image], metaclass=ABCMeta):
     """
     Store of images.
     """
+
     @property
     @abstractmethod
     def friendly_type_name(self) -> str:
@@ -134,6 +135,7 @@ class InMemoryImageStore(SimpleImageStore):
     """
     In memory image store.
     """
+
     @property
     def friendly_type_name(self) -> str:
         return "InMemory"
@@ -240,6 +242,7 @@ class FileSystemImageStore(ManifestBasedImageStore):
     """
     File system based image store.
     """
+
     @property
     def friendly_type_name(self) -> str:
         return "FileSystem"
@@ -315,6 +318,7 @@ class ListenableImageStore(ImageStore):
     """
     Listenable image store.
     """
+
     @property
     def friendly_type_name(self) -> str:
         return f"Listenable{self._image_store.friendly_type_name}"

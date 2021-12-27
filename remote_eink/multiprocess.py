@@ -78,7 +78,7 @@ class RequestSender:
 
 class CommunicationPipe:
     """
-    Communication pipe that can be used to connect two multiprocessor threads.
+    Communication pipe that can be used to connect two multiprocessor processes.
     """
 
     @property

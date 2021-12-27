@@ -201,12 +201,12 @@ class SimpleImageTransformer(BaseImageTransformer):
         return self._description
 
     def __init__(
-            self,
-            transformer: Optional[Callable[[Image], Image]] = None,
-            active: bool = True,
-            configuration: Optional[Any] = None,
-            description: Optional[str] = None,
-            identifier: str = None,
+        self,
+        transformer: Optional[Callable[[Image], Image]] = None,
+        active: bool = True,
+        configuration: Optional[Any] = None,
+        description: Optional[str] = None,
+        identifier: str = None,
     ):
         super().__init__(identifier if identifier is not None else str(uuid4()), active)
         self._transformer = transformer if transformer is not None else lambda image: image
@@ -341,4 +341,3 @@ class SimpleImageTransformerSequence(ImageTransformerSequence):
             pass
         self.event_listeners.call_listeners(SimpleImageTransformerSequence.Event.REMOVE, [image_transformer, removed])
         return removed
-

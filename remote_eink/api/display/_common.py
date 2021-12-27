@@ -98,4 +98,3 @@ def _on_target_process(callable: Callable, *args, **kwargs) -> Any:
     communication_pipe = app_data.communication_pipe
 
     return communication_pipe.sender.communicate(callable, *args, **kwargs)
-

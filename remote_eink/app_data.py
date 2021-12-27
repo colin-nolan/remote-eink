@@ -17,7 +17,7 @@ def _use_only_in_created_process(wrappable: Callable) -> Callable:
 
     def wrapped(self: "AppData", *args, **kwargs) -> Any:
         if os.getpid() != self._created_pid:
-            raise RuntimeError("Cannot access in process other than that which the app is created in")
+            raise RuntimeError("Cannot call function in process other than that which the app is created in")
         return wrappable(self, *args, **kwargs)
 
     return wrapped
