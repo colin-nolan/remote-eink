@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "remote_eink"
-version = "0.0.1"
+version = "1.0.0"
 description = ""
 license = "AGPLv3.0"
 authors = [
@@ -20,16 +20,17 @@ flask-cors = "^3.0.8"
 marshmallow = "^3.14.1"
 marshmallow_enum = "^1.5.1"
 tinydb = "^4.5.2"
-python = "^3.8"
+python = "^3.10"
 apscheduler = "^3.8.1"
 multiprocessing_on_dill = "^3.5.0a4"
 # Optional production web-server
 cheroot = { version = "^8.5.2", optional = true }
 requests = { version = "^2.26.0", optional = true }
 # Optional image manipulation
-Pillow = { version = "^7.1.2", optional = true }      # XXX: upgrades are available but are not compatible with papertty
+Pillow = { version = "^8.4.0", optional = true }
 # Optional PaperTTY e-ink controller
-papertty = { version = "^0.1.7", optional = true }
+#papertty = { version = "^0.1.7", optional = true }
+papertty = { git = "https://github.com/colin-nolan/PaperTTY.git", tag = "0.1.8", optional = true }  # Has updated dependencies to upstream
 
 [tool.poetry.dev-dependencies]
 Flask-Testing = "^0.8.1"

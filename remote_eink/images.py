@@ -19,38 +19,38 @@ class ImageType(Enum):
 
 class Image(metaclass=ABCMeta):
     """
-    TODO
+    Image that can be displayed on a device.
     """
 
     @property
     @abstractmethod
     def data(self) -> bytes:
         """
-        TODO
-        :return:
+        Data that makes up the image.
+        :return: bytes of data
         """
 
     @property
     def identifier(self) -> str:
         """
-        TODO
-        :return:
+        Image identifier.
+        :return: identifier
         """
         return self._identifier
 
     @property
     def type(self) -> ImageType:
         """
-        TODO
-        :return:
+        Type of the image (e.g. png).
+        :return: image type
         """
         return self._type
 
     @property
     def rotation(self) -> float:
         """
-        TODO
-        :return:
+        The rotation of the image in degrees (clockwise).
+        :return: rotation
         """
         return self._rotation
 
@@ -81,7 +81,7 @@ class Image(metaclass=ABCMeta):
 
 class DataBasedImage(Image):
     """
-    TODO
+    An image based on data stored in memory.
     """
 
     @property
@@ -90,7 +90,7 @@ class DataBasedImage(Image):
 
     def __init__(self, identifier: str, data: bytes, image_type: ImageType, *, rotation: float = 0):
         """
-        TODO
+        Constructor.
         :param identifier: see `Image.__init__`
         :param data: image data
         :param image_type: see `Image.__init__`
@@ -101,7 +101,7 @@ class DataBasedImage(Image):
 
 class FunctionBasedImage(Image):
     """
-    Immutable model of an image.
+    Immutable model of an image attained via an `ImageDataReader` (callable).
     """
 
     @property

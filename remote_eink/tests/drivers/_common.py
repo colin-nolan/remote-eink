@@ -3,7 +3,7 @@ from remote_eink.drivers.base import BaseDisplayDriver
 
 class DummyBaseDisplayDriver(BaseDisplayDriver):
     """
-    TODO
+    Dummy display driver.
     """
 
     def _display(self, image_data: bytes):

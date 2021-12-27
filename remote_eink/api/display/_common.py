@@ -43,11 +43,28 @@ def display_id_handler(wrappable: Callable) -> Callable:
     return wrapped
 
 
+def display_controllers_handler(wrappable: Callable) -> Callable:
+    """
+    Injects the app's display controller as `display_controllers` to the callable.
+    :param wrappable: function to wrap
+    :return: wrapped function
+    """
+
+    def wrapped(app_id: str, *args, **kwargs) -> Any:
+        app_data = apps_data[app_id]
+        kwargs["display_controllers"] = app_data.display_controllers
+        return wrappable(*args, **kwargs)
+
+    return wrapped
+
+
 def to_target_process(wrappable: Callable) -> Callable:
     """
-    TODO
-    :param wrappable:
-    :return:
+    Wraps the given callable and arranges for it be executed on the "target" process (that which instantiated `AppData`
+    and is listening to requests on a `CommunicationPipe`).
+    :param wrappable: function to wrap
+    :return: wrapped function
+    :raises AssertionError: if called on the target process
     """
 
     def unwrapped(*args, **kwargs) -> Any:
@@ -56,23 +73,23 @@ def to_target_process(wrappable: Callable) -> Callable:
         return wrappable(*args, **kwargs)
 
     def wrapped(*args, **kwargs) -> Any:
-        assert kwargs.get("target_process") is None
+        if kwargs.get("target_process") is not None:
+            raise AssertionError("Wrapped callable is already executing on target process")
         with current_app.app_context():
             app_id = current_app.config[APP_ID_PROPERTY]
         kwargs["target_process"] = True
         kwargs["app_id"] = app_id
-        return on_target_progress(unwrapped, *args, **kwargs)
+        return _on_target_process(unwrapped, *args, **kwargs)
 
     return wrapped
 
 
-def on_target_progress(callable: Callable, *args, **kwargs) -> Any:
+def _on_target_process(callable: Callable, *args, **kwargs) -> Any:
     """
-    TODO
-    :param callable:
-    :param args:
-    :param kwargs:
-    :return:
+    Executes the given callable it on the "target" process (that which instantiated `AppData` and is  listening to
+    requests on a `CommunicationPipe`).
+    :param callable: callable to execute on target process
+    :return: return from the target process
     """
     with current_app.app_context():
         app_id = current_app.config[APP_ID_PROPERTY]
@@ -82,17 +99,3 @@ def on_target_progress(callable: Callable, *args, **kwargs) -> Any:
 
     return communication_pipe.sender.communicate(callable, *args, **kwargs)
 
-
-def display_controllers_handler(wrappable: Callable) -> Callable:
-    """
-    TODO
-    :param wrappable:
-    :return:
-    """
-
-    def wrapped(app_id: str, *args, **kwargs) -> Any:
-        app_data = apps_data[app_id]
-        kwargs["display_controllers"] = app_data.display_controllers
-        return wrappable(*args, **kwargs)
-
-    return wrapped

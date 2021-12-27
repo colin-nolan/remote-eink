@@ -22,7 +22,9 @@ try:
 except ImportError:
 
     class RotateImageTransformer(ImageTransformer, metaclass=ABCMeta):
-        """Stub class to please the type checker"""
+        """Stub"""
+    class ImageRotationAwareRotateImageTransformer(ImageTransformer, metaclass=ABCMeta):
+        """Stub"""
 
     IMAGE_TOOLS_INSTALLED = False
 

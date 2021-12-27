@@ -1,7 +1,6 @@
-from http import HTTPStatus
-from typing import Tuple, Optional, List
+from typing import Optional, List
 
-from threading import Thread, Event, Semaphore
+from threading import Thread, Semaphore
 
 import unittest
 

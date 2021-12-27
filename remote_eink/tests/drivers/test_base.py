@@ -20,8 +20,8 @@ class AbstractTest:
         @abstractmethod
         def create_display_driver(self) -> DisplayDriverType:
             """
-            TODO
-            :return:
+            Creates a display driver.
+            :return: created display driver
             """
 
         def setUp(self):

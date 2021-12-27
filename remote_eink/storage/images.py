@@ -163,33 +163,32 @@ class ManifestBasedImageStore(SimpleImageStore, metaclass=ABCMeta):
     @abstractmethod
     def _get_image_reader(self, storage_location: str) -> ImageDataReader:
         """
-        TODO
-        :param storage_location:
-        :return:
+        Gets reader for the given storage location.
+        :param storage_location: storage location
+        :return: image reader for the storage location
         """
 
     @abstractmethod
     def _add_to_storage_location(self, image: Image, suffix: str = "") -> str:
         """
-        TODO
-        :param image:
-        :param suffix:
-        :return:
+        Adds the given image to a storage location determined by this store.
+        :param image: image to store
+        :param suffix: suffix to add to the file name (e.g. f"/this/image-{suffix}.jpg")
+        :return: location where image has been stored
         """
 
     @abstractmethod
     def _remove_from_storage_location(self, storage_location: str):
         """
-        TODO
-        :param storage_location:
-        :return:
+        Removes the image at the given storage location.
+        :param storage_location: location of image to remove
         """
 
     def __init__(self, images: Iterable[Image] = (), manifest: Manifest = None):
         """
-        TODO
-        :param images:
-        :param manifest:
+        Constructor.
+        :param images: images to add to the store
+        :param manifest: optional manifest for the image store
         """
         self._manifest = manifest
         super().__init__(images)
@@ -219,9 +218,9 @@ class ManifestBasedImageStore(SimpleImageStore, metaclass=ABCMeta):
 
     def _get_image(self, manifest_record: ManifestRecord) -> Image:
         """
-        TODO
-        :param manifest_record:
-        :return:
+        Gets the image in the store associated to the given manifest record.
+        :param manifest_record: manifest record of the image
+        :return: the image
         """
         image_reader = self._get_image_reader(manifest_record.storage_location)
         return FunctionBasedImage(manifest_record.identifier, image_reader, manifest_record.image_type)
@@ -287,7 +286,8 @@ class FileSystemImageStore(ManifestBasedImageStore):
             return self._add_to_storage_location(image, suffix)
 
         path = os.path.join(self.root_directory, storage_location)
-        assert not os.path.exists(path)
+        if os.path.exists(path):
+            raise AssertionError(f"File already exists: {path}")
         with open(path, "wb") as file:
             file.write(image.data)
         return storage_location

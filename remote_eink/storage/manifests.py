@@ -11,7 +11,7 @@ from remote_eink.images import ImageType
 
 class ManifestAlreadyExistsError(ValueError):
     """
-    Raised when an manifest for the image already exists when not allowed.
+    Raised when a manifest for the image already exists but it is not allowed.
     """
 
     def __init__(self, image_id: str):
