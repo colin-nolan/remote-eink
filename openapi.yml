@@ -291,6 +291,10 @@ components:
       properties:
         id:
           type: string
+        type:
+          type: string
+        storageType:
+          type: string
         currentImage:
           $ref: "#/components/schemas/ResourceId"
         images:

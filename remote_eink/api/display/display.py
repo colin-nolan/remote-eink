@@ -14,6 +14,12 @@ from marshmallow import Schema, fields
 
 class _DisplayControllerSchema(Schema):
     identifier = fields.Str(data_key="id")
+    display_controller_type = fields.Function(
+        lambda display_controller: display_controller.friendly_type_name, data_key="type"
+    )
+    image_storage_type = fields.Function(
+        lambda display_controller: display_controller.image_store.friendly_type_name, data_key="storageType"
+    )
     current_image = fields.Nested(ImageSchema, only=["identifier"], data_key="currentImage")
     images = fields.Function(
         lambda display_controller: ImageSchema(only=["identifier"]).dump(

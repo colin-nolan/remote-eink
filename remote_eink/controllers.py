@@ -28,6 +28,13 @@ class DisplayController(metaclass=ABCMeta):
     """
     Display controller.
     """
+    @property
+    @abstractmethod
+    def friendly_type_name(self) -> str:
+        """
+        Gets the friendly name of the display controller type.
+        :return: name of display controller type
+        """
 
     @property
     @abstractmethod
@@ -94,6 +101,7 @@ class DisplayController(metaclass=ABCMeta):
         """
 
 
+# TODO: why is this abstract but listenable storage is not?
 class ListenableDisplayController(DisplayController, metaclass=ABCMeta):
     """
     Display controller with listenable events.
@@ -120,10 +128,14 @@ class ListenableDisplayController(DisplayController, metaclass=ABCMeta):
         """
 
 
+# TODO: the difference between simple and base is confusing (and possibly inconsistent)
 class BaseDisplayController(DisplayController):
     """
     Display controller.
     """
+    @property
+    def friendly_type_name(self) -> str:
+        return "Simple"
 
     @property
     def identifier(self) -> str:
@@ -233,6 +245,9 @@ class CyclableDisplayController(BaseDisplayController):
     """
     Display controller that can cycle through the image that it displays.
     """
+    @property
+    def friendly_type_name(self) -> str:
+        return "Cyclable"
 
     def __init__(
         self,
@@ -303,6 +318,10 @@ class AutoCyclingDisplayController(CyclableDisplayController):
     """
     DEFAULT_SECONDS_BETWEEN_CYCLE = float(60 * 60)
 
+    @property
+    def friendly_type_name(self) -> str:
+        return "AutoCycling"
+
     def __init__(
         self,
         driver: DisplayDriver,
@@ -340,6 +359,9 @@ class SleepyDisplayController(ListenableDisplayController):
     """
     Listenable display controller that sleeps the display driver a period of time after the display is updated.
     """
+    @property
+    def friendly_type_name(self) -> str:
+        return f"Sleepy{self._display_controller.friendly_type_name}"
 
     @property
     def identifier(self) -> str:

@@ -22,6 +22,13 @@ class ImageStore(Collection[Image], metaclass=ABCMeta):
     """
     Store of images.
     """
+    @property
+    @abstractmethod
+    def friendly_type_name(self) -> str:
+        """
+        Gets the name of this image store type.
+        :return: name of this image store type
+        """
 
     @abstractmethod
     def get(self, image_id: str) -> Optional[Image]:
@@ -127,6 +134,9 @@ class InMemoryImageStore(SimpleImageStore):
     """
     In memory image store.
     """
+    @property
+    def friendly_type_name(self) -> str:
+        return "InMemory"
 
     def __init__(self, images: Iterable[Image] = ()):
         self._images: Dict[str, Image] = {}
@@ -230,6 +240,9 @@ class FileSystemImageStore(ManifestBasedImageStore):
     """
     File system based image store.
     """
+    @property
+    def friendly_type_name(self) -> str:
+        return "FileSystem"
 
     def __init__(self, root_directory: str, images: Iterable[Image] = (), manifest: Optional[Manifest] = None):
         self.root_directory = root_directory
@@ -302,6 +315,9 @@ class ListenableImageStore(ImageStore):
     """
     Listenable image store.
     """
+    @property
+    def friendly_type_name(self) -> str:
+        return f"Listenable{self._image_store.friendly_type_name}"
 
     @unique
     class Event(Enum):
