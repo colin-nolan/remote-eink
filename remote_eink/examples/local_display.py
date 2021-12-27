@@ -36,7 +36,7 @@ def main():
     display_controller.start()
 
     app = create_app((display_controller,))
-    run(app, interface="localhost", port=8080)                # Blocking
+    run(app, interface="localhost", port=8080)  # Blocking
     # server = start(app, interface="localhost", port=8080)   # Non-blocking alternative
 
     # If we wanted to tear everything down (assuming non-blocking app)
