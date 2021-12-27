@@ -97,8 +97,7 @@ paths:
           content:
             application/json:
               schema:
-                items:
-                  $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/ResourceId"
         404:
           description: No current image set.
 
@@ -111,8 +110,7 @@ paths:
         content:
           application/json:
             schema:
-              items:
-                $ref: "#/components/schemas/ResourceId"
+              $ref: "#/components/schemas/ResourceId"
       responses:
         200:
           description: Set device's sleep status as instructed.
