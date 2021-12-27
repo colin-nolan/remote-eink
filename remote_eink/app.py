@@ -17,7 +17,7 @@ OPEN_API_LOCATION = os.path.join(os.path.dirname(os.path.realpath(__file__)), ".
 APP_ID_PROPERTY = "APP_ID"
 
 
-def create_app(display_controllers: Collection[DisplayController]) -> Flask:
+def create_app(display_controllers: Collection[DisplayController]) -> FlaskApp:
     """
     Creates the Flask app.
     :param display_controllers: display controllers that the created app should have

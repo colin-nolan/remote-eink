@@ -13,10 +13,6 @@ from remote_eink.transformers.base import InvalidConfigurationError, InvalidPosi
 
 @unique
 class ModifiableParameter(Enum):
-    """
-    TODO
-    """
-
     POSITION = "position"
     CONFIGURATION = "configuration"
 
@@ -30,9 +26,10 @@ class _ImageTransformerSchema(Schema):
 
 def image_transformer_id_handler(wrappable: Callable) -> Callable:
     """
-    TODO
-    :param wrappable: handler to wrap
-    :return: TODO
+    Gets the image transformer associated to the callable's given image transformer ID argument and injects the
+    transformer (instead of the ID) into the wrapped function.
+    :param wrappable: function to wrap
+    :return: wrapped function
     """
 
     def wrapped(display_controller: DisplayController, imageTransformerId: str, **kwargs):
@@ -46,9 +43,10 @@ def image_transformer_id_handler(wrappable: Callable) -> Callable:
 
 def image_transformer_position_handler(wrappable: Callable) -> Callable:
     """
-    TODO
-    :param wrappable: handler to wrap
-    :return: TODO
+    Gets the position in the image transformer sequence of the callable's given transforme argument and injects the
+    position into the wrapped function.
+    :param wrappable: function to wrap
+    :return: wrapped function
     """
 
     def wrapped(display_controller: DisplayController, image_transformer: ImageTransformer, **kwargs):

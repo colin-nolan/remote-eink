@@ -25,12 +25,14 @@ CFLAGS="-fcommon" poetry install
 
 ## Development
 ### Implementation
-`Flask` app:
+`FlaskApp` app:
 - Takes multiple `DisplayController` instances.
 - Is associated to `AppData`.
+- `AppData` stores the `DisplayController` instances. It provides a `CommunicationPipe` through which write operations
+  to the data _must_ be made in requests (as requests may be handled by different processes). 
 
 `Server`:
-- Operates a `Flask` app.
+- Operates a `FlaskApp` app.
 - Can be used with `run` (blocking) or `start` (non-blocking).
 
 A `DisplayController`:
