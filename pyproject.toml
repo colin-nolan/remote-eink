@@ -41,6 +41,7 @@ get-port = "^0.0.5"
 webserver = ["cheroot", "requests"]
 image-tools = ["Pillow"]
 papertty = ["papertty", "Pillow"]
+localdisplay = ["Pillow"]
 
 [build-system]
 requires = ["poetry>=0.12"]
