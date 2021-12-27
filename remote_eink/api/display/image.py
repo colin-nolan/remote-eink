@@ -1,3 +1,4 @@
+import io
 from http import HTTPStatus
 from uuid import uuid4
 
@@ -17,6 +18,13 @@ from remote_eink.api.display._common import (
 from remote_eink.controllers import DisplayController
 from remote_eink.images import FunctionBasedImage
 from remote_eink.storage.images import ImageAlreadyExistsError
+
+try:
+    from PIL import Image, UnidentifiedImageError
+
+    _HAS_IMAGE_TOOLS = True
+except ImportError:
+    _HAS_IMAGE_TOOLS = False
 
 
 @to_target_process
@@ -56,15 +64,23 @@ def post(*args, **kwargs):
 
 @to_target_process
 @display_id_handler
-def _put(
-    display_controller: DisplayController, content_type: str, imageId: str, body: bytes, *, overwrite: bool
-) -> Tuple[str, HTTPStatus]:
+def _put(display_controller: DisplayController, content_type: str, imageId: str, body: bytes, *, overwrite: bool):
     if content_type is None:
         return f"{CONTENT_TYPE_HEADER} header is required", HTTPStatus.BAD_REQUEST
 
     image_type = ImageTypeToMimeType.inverse.get(content_type)
+    if image_type is None and _HAS_IMAGE_TOOLS:
+        # Attempt to identify image type automatically
+        try:
+            image_mime = Image.MIME[Image.open(io.BytesIO(body)).format]
+            image_type = ImageTypeToMimeType.inverse.get(image_mime)
+        except UnidentifiedImageError:
+            pass
     if image_type is None:
-        return f"Unsupported image format: {image_type}", HTTPStatus.UNSUPPORTED_MEDIA_TYPE
+        return (
+            f"Unsupported image format: {image_type} (based on content type: {content_type})",
+            HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
+        )
 
     image = FunctionBasedImage(imageId, lambda: body, image_type)
     updated = False

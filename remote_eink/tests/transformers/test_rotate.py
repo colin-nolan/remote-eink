@@ -23,6 +23,7 @@ except ImportError:
 
     class RotateImageTransformer(ImageTransformer, metaclass=ABCMeta):
         """Stub"""
+
     class ImageRotationAwareRotateImageTransformer(ImageTransformer, metaclass=ABCMeta):
         """Stub"""
 

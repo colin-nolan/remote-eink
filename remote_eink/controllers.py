@@ -28,6 +28,7 @@ class DisplayController(metaclass=ABCMeta):
     """
     Display controller.
     """
+
     @property
     @abstractmethod
     def friendly_type_name(self) -> str:
@@ -133,6 +134,7 @@ class BaseDisplayController(DisplayController):
     """
     Display controller.
     """
+
     @property
     def friendly_type_name(self) -> str:
         return "Simple"
@@ -245,6 +247,7 @@ class CyclableDisplayController(BaseDisplayController):
     """
     Display controller that can cycle through the image that it displays.
     """
+
     @property
     def friendly_type_name(self) -> str:
         return "Cyclable"
@@ -316,6 +319,7 @@ class AutoCyclingDisplayController(CyclableDisplayController):
     """
     Display controller that auto cycles through images.
     """
+
     DEFAULT_SECONDS_BETWEEN_CYCLE = float(60 * 60)
 
     @property
@@ -359,6 +363,7 @@ class SleepyDisplayController(ListenableDisplayController):
     """
     Listenable display controller that sleeps the display driver a period of time after the display is updated.
     """
+
     @property
     def friendly_type_name(self) -> str:
         return f"Sleepy{self._display_controller.friendly_type_name}"
