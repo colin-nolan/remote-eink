@@ -1,6 +1,7 @@
 from http import HTTPStatus
-
 from typing import Dict
+
+from marshmallow import Schema, fields
 
 from remote_eink.api.display._common import (
     display_id_handler,
@@ -9,7 +10,18 @@ from remote_eink.api.display._common import (
     display_controllers_handler,
 )
 from remote_eink.controllers import DisplayController
-from marshmallow import Schema, fields
+
+
+@to_target_process
+@display_controllers_handler
+def search(display_controllers: Dict[str, DisplayController]):
+    return [{"id": identifier} for identifier in display_controllers.keys()], HTTPStatus.OK
+
+
+@to_target_process
+@display_id_handler
+def get(display_controller: DisplayController):
+    return _DisplayControllerSchema().dump(display_controller), HTTPStatus.OK
 
 
 class _DisplayControllerSchema(Schema):
@@ -30,15 +42,3 @@ class _DisplayControllerSchema(Schema):
     cycle_images = fields.Bool(data_key="cycleImages")
     cycle_images_randomly = fields.Bool(data_key="cycleRandomly")
     cycle_image_after_seconds = fields.Integer(data_key="cycleAfterSeconds")
-
-
-@to_target_process
-@display_controllers_handler
-def search(display_controllers: Dict[str, DisplayController]):
-    return [{"id": identifier} for identifier in display_controllers.keys()], HTTPStatus.OK
-
-
-@to_target_process
-@display_id_handler
-def get(display_controller: DisplayController):
-    return _DisplayControllerSchema().dump(display_controller), HTTPStatus.OK

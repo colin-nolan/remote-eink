@@ -19,15 +19,15 @@ from remote_eink.tests.storage._common import WHITE_IMAGE
 from remote_eink.transformers.base import SimpleImageTransformer
 
 
-def create_image(image_type: Optional[ImageType] = None) -> Image:
+def create_image(**kwargs) -> Image:
     """
     Creates image for testing.
     :return: created image
     """
-    if image_type is None:
-        image_type = random.choice(list(ImageType))
+    if "image_type" not in kwargs:
+        kwargs["image_type"] = random.choice(list(ImageType))
     identifier = str(uuid4())
-    return FunctionBasedImage(identifier, lambda: WHITE_IMAGE.data, image_type)
+    return FunctionBasedImage(identifier, lambda: WHITE_IMAGE.data, **kwargs)
 
 
 def create_dummy_display_controller(

@@ -49,6 +49,7 @@ An `Image`:
 An `ImageTransformer`:
 - Takes an `Image` and modifies it to produce a variation (e.g. a rotated copy of the image).
 - Multiple transformers can be put together using an `ImageTransformerSequence`.
+- Applied to all images (e.g. when display is rotated, all images can be rotated).
 
 A `DisplayDriver`:
 - A driver for a display device.

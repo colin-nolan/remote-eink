@@ -146,10 +146,17 @@ paths:
       parameters:
         - $ref: "#/components/parameters/displayId"
       requestBody:
+        required: true
         content:
-          image/*:
+          multipart/form-data:
             schema:
-              format: binary
+              type: object
+              $ref: "#/components/schemas/Image"
+            encoding:
+              metadata:
+                contentType: application/json
+              data:
+                contentType: image/*
       responses:
         201:
           description: Image created.
@@ -161,9 +168,60 @@ paths:
                   $ref: "#/components/schemas/ResourceId"
 
   /display/{displayId}/image/{imageId}:
+    put:
+      summary: Updates an image on the device
+      operationId: putDisplayImage
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+        - $ref: "#/components/parameters/imageId"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              $ref: "#/components/schemas/Image"
+            encoding:
+              metadata:
+                contentType: application/json
+              data:
+                contentType: image/*
+      responses:
+        200:
+          description: Image updated.
+        201:
+          description: Image created.
+
+    delete:
+      summary: Delete an image from the device
+      operationId: deleteDisplayImageById
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+        - $ref: "#/components/parameters/imageId"
+      responses:
+        200:
+          description: Image deleted.
+
+  /display/{displayId}/image/{imageId}/metadata:
+    get:
+      summary: Get metadata for an image that can be displayed
+      operationId: getDisplayImageMetadataById
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+        - $ref: "#/components/parameters/imageId"
+      responses:
+        200:
+          description: Image metadata retrived
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImageMetadata"
+        404:
+          description: Image not found.
+
+  /display/{displayId}/image/{imageId}/data:
     get:
       summary: Get data for an image that can be displayed
-      operationId: getDisplayImageById
+      operationId: getDisplayImageDataById
       parameters:
         - $ref: "#/components/parameters/displayId"
         - $ref: "#/components/parameters/imageId"
@@ -176,34 +234,6 @@ paths:
                 format: binary
         404:
           description: Image not found.
-
-    put:
-      summary: Updates an image onto the device
-      operationId: putDisplayImage
-      parameters:
-        - $ref: "#/components/parameters/displayId"
-        - $ref: "#/components/parameters/imageId"
-      requestBody:
-        content:
-          image/*:
-            schema:
-              format: binary
-      responses:
-        200:
-          description: Image updated.
-        201:
-          description: Image created.
-
-
-    delete:
-      summary: Delete an image from the device
-      operationId: deleteDisplayImageById
-      parameters:
-        - $ref: "#/components/parameters/displayId"
-        - $ref: "#/components/parameters/imageId"
-      responses:
-        200:
-          description: Image deleted.
 
   /display/{displayId}/sleep:
     get:
@@ -307,3 +337,18 @@ components:
           type: boolean
         cycleAfterSeconds:
           type: integer
+
+    ImageMetadata:
+      type: object
+      properties:
+        rotation:
+          type: number
+
+    Image:
+      type: object
+      properties:
+        metadata:
+          $ref: "#/components/schemas/ImageMetadata"
+        data:
+          type: string
+          format: binary

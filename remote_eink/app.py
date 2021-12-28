@@ -1,4 +1,6 @@
 import os
+from io import BytesIO
+
 from uuid import uuid4
 
 from typing import Collection, Optional
@@ -24,7 +26,8 @@ def create_app(display_controllers: Collection[DisplayController]) -> FlaskApp:
     :return: Flask app
     """
     app = connexion.App(__name__, options=dict(swagger_ui=True))
-    app.add_api(OPEN_API_LOCATION, resolver=CustomRestResolver("remote_eink.api"), strict_validation=True)
+    # Turning off strict validation due to bug: https://github.com/zalando/connexion/issues/1020#issuecomment-574437207
+    app.add_api(OPEN_API_LOCATION, resolver=CustomRestResolver("remote_eink.api"), strict_validation=False)
     CORS(app.app)
 
     identifier = str(uuid4())
@@ -36,7 +39,7 @@ def create_app(display_controllers: Collection[DisplayController]) -> FlaskApp:
     return app.app
 
 
-def get_app_data(app: Optional[Flask] = None) -> AppData:
+def get_app_data(app: Optional[FlaskApp] = None) -> AppData:
     """
     Gets the app data for the given Flask app.
     :param app: Flask app to get data for (defaults to current app)
