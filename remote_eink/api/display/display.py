@@ -42,4 +42,3 @@ class _DisplayControllerSchema(Schema):
     cycle_images = fields.Bool(data_key="cycleImages")
     cycle_images_randomly = fields.Bool(data_key="cycleRandomly")
     cycle_image_after_seconds = fields.Integer(data_key="cycleAfterSeconds")
-

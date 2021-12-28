@@ -11,7 +11,7 @@ from remote_eink.storage.images import InMemoryImageStore
 IMAGE_DIRECTORY = f"{os.path.dirname(__file__)}/../tests/_resources"
 
 
-def main(port: int=8080):
+def main(port: int = 8080):
     driver = LocalDisplayDriver()
     driver.start()
 

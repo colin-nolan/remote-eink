@@ -39,7 +39,7 @@ def create_app(display_controllers: Collection[DisplayController]) -> FlaskApp:
     return app.app
 
 
-def get_app_data(app: Optional[Flask] = None) -> AppData:
+def get_app_data(app: Optional[FlaskApp] = None) -> AppData:
     """
     Gets the app data for the given Flask app.
     :param app: Flask app to get data for (defaults to current app)
