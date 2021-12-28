@@ -1,7 +1,6 @@
 from http import HTTPStatus
 
-from remote_eink.api.display._common import ImageTypeToMimeType
-from remote_eink.images import ImageType, FunctionBasedImage
+from remote_eink.images import FunctionBasedImage
 from remote_eink.tests._common import create_image, set_content_type_header
 from remote_eink.tests.api.display.image._common import BaseTestDisplayImage, create_image_upload_content
 

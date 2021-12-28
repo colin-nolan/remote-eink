@@ -7,7 +7,7 @@ from remote_eink.events import EventListenerController
 from remote_eink.images import Image
 from remote_eink.storage.image.base import ListenableImageStore, ImageStore
 from remote_eink.transformers import ImageTransformerSequence, ImageTransformer
-from remote_eink.transformers.seqeuence import SimpleImageTransformerSequence
+from remote_eink.transformers.sequence import SimpleImageTransformerSequence
 
 
 class SimpleDisplayController(ListenableDisplayController):
