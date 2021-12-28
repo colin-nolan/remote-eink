@@ -1,9 +1,7 @@
 from http import HTTPStatus
-from uuid import uuid4
-
-from typing import Optional, Tuple
-
 from io import BytesIO
+from typing import Optional, Tuple
+from uuid import uuid4
 
 from flask import make_response, request, send_file
 
@@ -54,6 +52,7 @@ def put(*args, **kwargs):
         )
 
     content_type = kwargs["data"].content_type
+    # TODO: interaction with ImageMetadataSchema
     rotation = kwargs["body"]["metadata"]["rotation"]
     image_data = kwargs["data"].stream.read()
 

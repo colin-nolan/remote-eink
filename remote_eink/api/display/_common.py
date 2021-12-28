@@ -25,17 +25,21 @@ class ImageSchema(Schema):
 
 def display_id_handler(wrappable: Callable) -> Callable:
     """
-    Handles `displayId` in the response handler.
+    Converts `displayId` to `display_controller` in the response handler.
     :param wrappable: handler to wrap, where the `displayId` is the first positional or kwarg (with no args)
     :return: handler wrapped in layer to take display ID, validate it and then pass the corresponding display controller
              to the handler
     """
 
     def wrapped(displayId: str, *args, **kwargs):
-        app_id = kwargs.pop("app_id")
+        try:
+            app_id = kwargs.pop("app_id")
+        except KeyError as e:
+            raise AssertionError("Expected `app_id` data (is the annotation placed _after_ `to_target_process`?)") from e
         try:
             display_controller = apps_data[app_id].display_controllers[displayId]
-            assert isinstance(display_controller, DisplayController)
+            if not isinstance(display_controller, DisplayController):
+                raise AssertionError("Unexpected type of display controller")
         except KeyError:
             return f"Display not found: {displayId}", HTTPStatus.NOT_FOUND
         return wrappable(display_controller, *args, **kwargs)

@@ -1,6 +1,7 @@
 from http import HTTPStatus
-
 from typing import Dict
+
+from marshmallow import Schema, fields
 
 from remote_eink.api.display._common import (
     display_id_handler,
@@ -9,7 +10,6 @@ from remote_eink.api.display._common import (
     display_controllers_handler,
 )
 from remote_eink.controllers import DisplayController
-from marshmallow import Schema, fields
 
 
 @to_target_process

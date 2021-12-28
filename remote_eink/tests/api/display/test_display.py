@@ -2,8 +2,7 @@ from http import HTTPStatus
 
 import unittest
 
-from remote_eink.app import get_app_data
-from remote_eink.tests._common import AppTestBase, run_in_different_process
+from remote_eink.tests._common import AppTestBase
 
 
 class TestDisplayApi(AppTestBase):

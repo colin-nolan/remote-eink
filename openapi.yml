@@ -168,22 +168,6 @@ paths:
                   $ref: "#/components/schemas/ResourceId"
 
   /display/{displayId}/image/{imageId}:
-    get:
-      summary: Get data for an image that can be displayed
-      operationId: getDisplayImageById
-      parameters:
-        - $ref: "#/components/parameters/displayId"
-        - $ref: "#/components/parameters/imageId"
-      responses:
-        200:
-          description: Image retrieved
-          content:
-            image/*:
-              schema:
-                format: binary
-        404:
-          description: Image not found.
-
     put:
       summary: Updates an image on the device
       operationId: putDisplayImage
@@ -216,6 +200,40 @@ paths:
       responses:
         200:
           description: Image deleted.
+
+  /display/{displayId}/image/{imageId}/metadata:
+    get:
+      summary: Get metadata for an image that can be displayed
+      operationId: getDisplayImageMetadataById
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+        - $ref: "#/components/parameters/imageId"
+      responses:
+        200:
+          description: Image metadata retrived
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImageMetadata"
+        404:
+          description: Image not found.
+
+  /display/{displayId}/image/{imageId}/data:
+    get:
+      summary: Get data for an image that can be displayed
+      operationId: getDisplayImageDataById
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+        - $ref: "#/components/parameters/imageId"
+      responses:
+        200:
+          description: Image retrieved
+          content:
+            image/*:
+              schema:
+                format: binary
+        404:
+          description: Image not found.
 
   /display/{displayId}/sleep:
     get:
@@ -324,7 +342,7 @@ components:
       type: object
       properties:
         rotation:
-          type: integer
+          type: number
 
     Image:
       type: object
