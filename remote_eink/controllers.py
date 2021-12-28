@@ -12,7 +12,9 @@ from remote_eink.drivers.base import DisplayDriver, ListenableDisplayDriver
 from remote_eink.events import EventListenerController
 from remote_eink.images import Image
 from remote_eink.storage.images import ImageStore, ListenableImageStore
-from remote_eink.transformers.base import ImageTransformer, ImageTransformerSequence, SimpleImageTransformerSequence
+from remote_eink.transformers.base import ImageTransformer
+from remote_eink.transformers.seqeuence import SimpleImageTransformerSequence
+from remote_eink.transformers import ImageTransformerSequence
 
 
 class ImageNotFoundError(ValueError):
