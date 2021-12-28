@@ -5,7 +5,9 @@ import unittest
 from abc import abstractmethod, ABCMeta
 from typing import TypeVar, Generic
 
-from remote_eink.storage.manifests import Manifest, InMemoryManifest, ManifestRecord, TinyDbManifest
+from remote_eink.storage.manifest.base import Manifest, ManifestRecord
+from remote_eink.storage.manifest.memory import InMemoryManifest
+from remote_eink.storage.manifest.tiny_db import TinyDbManifest
 from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE
 
 _EXAMPLE_MANIFEST_RECORD_1 = ManifestRecord(WHITE_IMAGE.identifier, WHITE_IMAGE.type, "test/1.png")

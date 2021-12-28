@@ -8,7 +8,7 @@ from remote_eink.api.display._common import (
     to_target_process,
 )
 from remote_eink.api.display.image._common import ImageMetadataSchema
-from remote_eink.controllers import DisplayController
+from remote_eink.controllers.base import DisplayController
 from remote_eink.images import Image
 
 

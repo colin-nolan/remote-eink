@@ -7,8 +7,8 @@ from remote_eink.transformers.base import (
     ImageTransformer,
     InvalidConfigurationError,
     ListenableImageTransformer,
-    SimpleImageTransformer,
 )
+from remote_eink.transformers.simple import SimpleImageTransformer
 
 ImageTransformerType = TypeVar("ImageTransformerType", bound=ImageTransformer)
 
@@ -64,4 +64,3 @@ class TestListenableImageTransformer(unittest.TestCase):
         self.image_transformer.event_listeners.add_listener(on_change, ListenableImageTransformer.Event.ACTIVATE_STATE)
         self.image_transformer.active = True
         self.assertTrue(changed.acquire(timeout=15))
-

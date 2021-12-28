@@ -9,7 +9,7 @@ from remote_eink.api.display._common import (
     display_id_handler,
     to_target_process,
 )
-from remote_eink.controllers import DisplayController
+from remote_eink.controllers.base import DisplayController
 
 
 def search(displayId: str, imageId: str, *args, **kwargs):

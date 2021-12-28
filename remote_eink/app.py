@@ -7,11 +7,11 @@ from typing import Collection, Optional
 
 import connexion
 from connexion import FlaskApp
-from flask import Flask, current_app
+from flask import current_app
 from flask_cors import CORS
 
 from remote_eink.app_data import apps_data, AppData
-from remote_eink.controllers import DisplayController
+from remote_eink.controllers.base import DisplayController
 from remote_eink.resolver import CustomRestResolver
 
 OPEN_API_LOCATION = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../openapi.yml")

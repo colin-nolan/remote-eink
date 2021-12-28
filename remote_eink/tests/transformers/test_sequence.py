@@ -5,8 +5,9 @@ from typing import Sequence, TypeVar, Generic
 
 from remote_eink.transformers.base import (
     ImageTransformer,
-    SimpleImageTransformer, InvalidPositionError,
+    InvalidPositionError,
 )
+from remote_eink.transformers.simple import SimpleImageTransformer
 from remote_eink.transformers.seqeuence import SimpleImageTransformerSequence, ImageTransformerSequence
 
 ImageTransformerSequenceType = TypeVar("ImageTransformerSequenceType", bound=ImageTransformerSequence)
@@ -16,6 +17,7 @@ class AbstractTest:
     """
     https://stackoverflow.com/questions/4566910/abstract-test-case-using-python-unittest
     """
+
     class TestImageTransformerSequence(Generic[ImageTransformerSequenceType], unittest.TestCase, metaclass=ABCMeta):
         """
         Tests for `ImageTransformerSequence`.
@@ -23,7 +25,7 @@ class AbstractTest:
 
         @abstractmethod
         def create_image_transformer_sequence(
-                self, image_transformers: Sequence[ImageTransformer]
+            self, image_transformers: Sequence[ImageTransformer]
         ) -> ImageTransformerSequenceType:
             """
             Creates image transformer sequence to be tested.
@@ -128,7 +130,7 @@ class TestSimpleImageTransformerSequence(AbstractTest.TestImageTransformerSequen
     """
 
     def create_image_transformer_sequence(
-            self, image_transformers: Sequence[ImageTransformer]
+        self, image_transformers: Sequence[ImageTransformer]
     ) -> ImageTransformerSequenceType:
         return SimpleImageTransformerSequence(image_transformers)
 

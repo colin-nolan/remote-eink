@@ -8,7 +8,7 @@ from marshmallow import Schema, fields
 
 from remote_eink.app import APP_ID_PROPERTY
 from remote_eink.app_data import apps_data
-from remote_eink.controllers import DisplayController
+from remote_eink.controllers.base import DisplayController
 from remote_eink.images import ImageType
 
 CONTENT_TYPE_HEADER = "Content-Type"
@@ -35,7 +35,9 @@ def display_id_handler(wrappable: Callable) -> Callable:
         try:
             app_id = kwargs.pop("app_id")
         except KeyError as e:
-            raise AssertionError("Expected `app_id` data (is the annotation placed _after_ `to_target_process`?)") from e
+            raise AssertionError(
+                "Expected `app_id` data (is the annotation placed _after_ `to_target_process`?)"
+            ) from e
         try:
             display_controller = apps_data[app_id].display_controllers[displayId]
             if not isinstance(display_controller, DisplayController):

@@ -9,7 +9,7 @@ from remote_eink.api.display._common import (
     to_target_process,
     display_controllers_handler,
 )
-from remote_eink.controllers import DisplayController
+from remote_eink.controllers.base import DisplayController
 
 
 @to_target_process

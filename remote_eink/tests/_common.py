@@ -11,12 +11,13 @@ from uuid import uuid4
 from remote_eink.api.display._common import CONTENT_TYPE_HEADER, ImageTypeToMimeType
 from remote_eink.app import create_app, destroy_app, get_app_data
 from remote_eink.app_data import AppData
-from remote_eink.controllers import DisplayController, BaseDisplayController
+from remote_eink.controllers.base import DisplayController
+from remote_eink.controllers.simple import SimpleDisplayController
 from remote_eink.images import ImageType, Image, FunctionBasedImage
-from remote_eink.storage.images import InMemoryImageStore
+from remote_eink.storage.image.memory import InMemoryImageStore
 from remote_eink.tests.drivers._common import DummyBaseDisplayDriver
 from remote_eink.tests.storage._common import WHITE_IMAGE
-from remote_eink.transformers.base import SimpleImageTransformer
+from remote_eink.transformers.simple import SimpleImageTransformer
 
 
 def create_image(**kwargs) -> Image:
@@ -53,7 +54,7 @@ def create_dummy_display_controller(
             )
         kwargs["image_transformers"] = [SimpleImageTransformer() for _ in range(number_of_image_transformers)]
 
-    return BaseDisplayController(driver=DummyBaseDisplayDriver(), **kwargs)
+    return SimpleDisplayController(driver=DummyBaseDisplayDriver(), **kwargs)
 
 
 def set_content_type_header(image: Image, headers: Optional[Dict] = None):
@@ -106,7 +107,7 @@ class AppTestBase(TestCase, metaclass=ABCMeta):
         return display_controller
 
 
-def run_in_different_process(callable: Callable[[], Any], *args, **kwargs) -> Any:
+def run_in_different_process(callable: Callable, *args, **kwargs) -> Any:
     """
     Runs the given callable and arguments/keyword arguments in a different process and resturn the result.
     :param callable: callable to run

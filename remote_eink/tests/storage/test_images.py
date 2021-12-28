@@ -5,13 +5,13 @@ from abc import abstractmethod, ABCMeta
 from typing import TypeVar, Generic
 
 from remote_eink.images import FunctionBasedImage
-from remote_eink.storage.images import (
+from remote_eink.storage.image.base import (
     ImageStore,
-    InMemoryImageStore,
     ImageAlreadyExistsError,
-    FileSystemImageStore,
     ListenableImageStore,
 )
+from remote_eink.storage.image.memory import InMemoryImageStore
+from remote_eink.storage.image.file_system import FileSystemImageStore
 from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE
 
 _ImageStoreType = TypeVar("_ImageStoreType", bound=ImageStore)

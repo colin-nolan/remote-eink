@@ -3,7 +3,7 @@ from threading import Thread
 
 from typing import Dict, Callable, Any, Iterable, Mapping
 
-from remote_eink.controllers import DisplayController
+from remote_eink.controllers.base import DisplayController
 from remote_eink.multiprocess import CommunicationPipe
 
 apps_data: Dict[str, "AppData"] = {}

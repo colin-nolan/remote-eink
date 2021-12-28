@@ -6,7 +6,7 @@ from typing import Dict, Callable
 from marshmallow import Schema, fields
 
 from remote_eink.api.display._common import display_id_handler, to_target_process
-from remote_eink.controllers import DisplayController
+from remote_eink.controllers.base import DisplayController
 from remote_eink.transformers import ImageTransformer
 from remote_eink.transformers.base import InvalidConfigurationError, InvalidPositionError
 

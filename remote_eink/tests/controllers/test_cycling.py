@@ -1,129 +1,19 @@
 import unittest
-from abc import ABCMeta, abstractmethod
-from functools import partial
 from threading import Semaphore
 from time import sleep
-from typing import TypeVar, Generic, Optional
-from unittest.mock import MagicMock
+from typing import Optional
 
-from remote_eink.controllers import CyclableDisplayController, AutoCyclingDisplayController, DisplayController
+from remote_eink.controllers.cycling import CyclableDisplayController, AutoCyclingDisplayController
 from remote_eink.drivers.base import ListenableDisplayDriver
+from remote_eink.tests.controllers._common import AbstractTest
 from remote_eink.tests.drivers._common import DummyBaseDisplayDriver
 from remote_eink.images import Image
-from remote_eink.storage.images import InMemoryImageStore, ImageStore
-from remote_eink.transformers.base import SimpleImageTransformer
+from remote_eink.storage.image.base import ImageStore
+from remote_eink.storage.image.memory import InMemoryImageStore
 from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE
 
-_DisplayControllerType = TypeVar("_DisplayControllerType", bound=DisplayController)
 
-
-class _TestDisplayController(unittest.TestCase, Generic[_DisplayControllerType], metaclass=ABCMeta):
-    """
-    Tests for `DisplayController` implementations.
-    """
-
-    @abstractmethod
-    def create_display_controller(
-        self, image_store: Optional[ImageStore] = None, *args, **kwargs
-    ) -> _DisplayControllerType:
-        """
-        Creates display controller to test.
-        :param image_store: image store that the display controller is to have
-        :param args: positional arguments to pass to the display controller
-        :param kwargs: keyword arguments to pass to the display controller
-        :return: created display controller
-        """
-
-    def setUp(self):
-        super().setUp()
-        self.display_controller: _DisplayControllerType = self.create_display_controller()
-
-    def test_display_image(self):
-        display_semaphore = Semaphore(0)
-        display_image = None
-
-        def on_image_display(image):
-            nonlocal display_image
-            nonlocal display_semaphore
-            display_image = image
-            display_semaphore.release()
-
-        self.display_controller.driver.event_listeners.add_listener(
-            on_image_display, ListenableDisplayDriver.Event.DISPLAY
-        )
-        self.display_controller.image_store.add(WHITE_IMAGE)
-        self.display_controller.display(WHITE_IMAGE.identifier)
-        self.assertTrue(display_semaphore.acquire(timeout=10))
-        self.assertEqual(WHITE_IMAGE, self.display_controller.current_image)
-        self.assertEqual(WHITE_IMAGE, display_image)
-
-    def test_display_image_already_displayed(self):
-        display_listener = MagicMock()
-        self.display_controller.image_store.add(WHITE_IMAGE)
-        self.display_controller.display(WHITE_IMAGE.identifier)
-        self.display_controller.driver.event_listeners.add_listener(
-            display_listener, ListenableDisplayDriver.Event.DISPLAY
-        )
-        self.display_controller.display(WHITE_IMAGE.identifier)
-        self.assertFalse(display_listener.called)
-
-    def test_display_applies_transforms(self):
-        display_semaphore = Semaphore(0)
-        displayed_image = None
-
-        def on_display(image: Image):
-            nonlocal displayed_image, display_semaphore
-            displayed_image = image
-            display_semaphore.release()
-
-        transformer = SimpleImageTransformer(lambda _: BLACK_IMAGE)
-        self.display_controller.driver.event_listeners.add_listener(on_display, ListenableDisplayDriver.Event.DISPLAY)
-        self.display_controller.image_transformers.add(transformer)
-
-        self.display_controller.image_store.add(WHITE_IMAGE)
-        self.display_controller.display(WHITE_IMAGE.identifier)
-        self.assertTrue(display_semaphore.acquire(timeout=15))
-
-        self.assertEqual(WHITE_IMAGE, self.display_controller.current_image)
-        self.assertEqual(BLACK_IMAGE, displayed_image)
-
-    def test_image_transforms_when_none_defined(self):
-        self.assertEqual(WHITE_IMAGE, self.display_controller.apply_image_transforms(WHITE_IMAGE))
-
-    def test_image_transform(self):
-        transformer = SimpleImageTransformer(lambda _: BLACK_IMAGE)
-        self.display_controller.image_transformers.add(transformer)
-        self.assertEqual(BLACK_IMAGE, self.display_controller.apply_image_transforms(WHITE_IMAGE))
-
-    def test_image_transform_when_not_active(self):
-        transformer = SimpleImageTransformer(lambda _: BLACK_IMAGE, active=False)
-        self.display_controller.image_transformers.add(transformer)
-        self.assertEqual(WHITE_IMAGE, self.display_controller.apply_image_transforms(WHITE_IMAGE))
-
-    def test_image_transform_multi_transformers(self):
-        call_order = []
-
-        def transform(transformer_id: int, image: Image) -> Image:
-            call_order.append(transformer_id)
-            return image
-
-        transformers = []
-        for i in range(16):
-            transformer = SimpleImageTransformer(partial(transform, i), active=i % 4 != 0)
-            transformers.append(transformer)
-            self.display_controller.image_transformers.add(transformer)
-        self.display_controller.apply_image_transforms(WHITE_IMAGE)
-        self.assertEqual([i for i, transformer in enumerate(transformers) if transformer.active], call_order)
-
-    # FIXME
-    def test_sleep_after_no_use(self):
-        controller = self.create_display_controller(sleep_after_seconds=0.5)
-
-
-# FIXME: tests for `BaseDisplayController`?!
-
-
-class TestCyclableDisplayController(_TestDisplayController[CyclableDisplayController]):
+class TestCyclableDisplayController(AbstractTest.TestDisplayController[CyclableDisplayController]):
     """
     Test for `CyclableDisplayController`.
     """
@@ -182,7 +72,7 @@ class TestCyclableDisplayController(_TestDisplayController[CyclableDisplayContro
         self.assertEqual(BLACK_IMAGE, display_controller.current_image)
 
 
-class TestAutoCyclingDisplayController(_TestDisplayController[AutoCyclingDisplayController]):
+class TestAutoCyclingDisplayController(AbstractTest.TestDisplayController[AutoCyclingDisplayController]):
     """
     Test for `AutoCyclingDisplayController`.
     """
@@ -244,8 +134,6 @@ class TestAutoCyclingDisplayController(_TestDisplayController[AutoCyclingDisplay
 
 # TODO: test `SleepyDisplayController`
 
-
-del _TestDisplayController
 
 if __name__ == "__main__":
     unittest.main()
