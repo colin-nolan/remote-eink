@@ -53,26 +53,26 @@ def _get(display_controller: DisplayController, imageId: str) -> Optional[Tuple[
 
 
 def put(*args, **kwargs):
-    kwargs["content_type"] = request.headers.get(CONTENT_TYPE_HEADER)
-    return _put(*args, **kwargs, overwrite=True)
+    content_type = request.headers.get(CONTENT_TYPE_HEADER)
+
+    if not content_type.startswith("multipart/form-data"):
+        return f"Unsupported content type (expected 'multipart/form-data'): {CONTENT_TYPE_HEADER}", \
+               HTTPStatus.BAD_REQUEST
+
+    content_type = kwargs["data"].content_type
+    rotation = kwargs["body"]["metadata"]["rotation"]
+    image_data = kwargs["data"].stream.read()
+
+    # Removing as we've extracted what we wanted from these (keeping them does not help with multiprocessor
+    # serialisation!)
+    del kwargs["body"]
+    del kwargs["data"]
+
+    return _put(*args, **kwargs, data=image_data, content_type=content_type, rotation=rotation)
 
 
 def post(*args, **kwargs):
-    print(request.stream.read())
-    content_type = request.headers.get(CONTENT_TYPE_HEADER)
-
-    if content_type.startswith("multipart/form-data"):
-        kwargs["image_data"] = kwargs["body"]["image"]
-        kwargs["content_type"] = kwargs["body"]["image"]
-        kwargs["rotation"] = kwargs["body"]["metadata"]["rotation"]
-    else:
-        kwargs["image_data"] = kwargs["body"]
-        kwargs["content_type"] = content_type
-
-    del kwargs["body"]
-
-    kwargs["content_type"] = content_type
-    return _put(*args, **kwargs, imageId=str(uuid4()), overwrite=False)
+    return put(*args, **kwargs, imageId=str(uuid4()), overwrite=False)
 
 
 @to_target_process
@@ -81,19 +81,19 @@ def _put(
     display_controller: DisplayController,
     content_type: str,
     imageId: str,
-    body: bytes,
+    data: bytes,
     rotation: float = 0,
     *,
-    overwrite: bool,
+    overwrite: bool = True,
 ):
     if content_type is None:
         return f"{CONTENT_TYPE_HEADER} header is required", HTTPStatus.BAD_REQUEST
 
     image_type = ImageTypeToMimeType.inverse.get(content_type)
-    if image_type is None and _HAS_IMAGE_TOOLS:
+    if image_type is None and _HAS_IMAGE_TOOLS and content_type == "image/*":
         # Attempt to identify image type automatically
         try:
-            image_mime = Image.MIME[Image.open(io.BytesIO(body)).format]
+            image_mime = Image.MIME[Image.open(io.BytesIO(data)).format]
             image_type = ImageTypeToMimeType.inverse.get(image_mime)
         except UnidentifiedImageError:
             pass
@@ -103,7 +103,7 @@ def _put(
             HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
         )
 
-    image = FunctionBasedImage(imageId, lambda: image_data, image_type, rotation=rotation)
+    image = FunctionBasedImage(imageId, lambda: data, image_type, rotation=rotation)
     updated = False
     # FIXME: lock over both of these is required!
     if overwrite:

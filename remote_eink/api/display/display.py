@@ -12,6 +12,18 @@ from remote_eink.controllers import DisplayController
 from marshmallow import Schema, fields
 
 
+@to_target_process
+@display_controllers_handler
+def search(display_controllers: Dict[str, DisplayController]):
+    return [{"id": identifier} for identifier in display_controllers.keys()], HTTPStatus.OK
+
+
+@to_target_process
+@display_id_handler
+def get(display_controller: DisplayController):
+    return _DisplayControllerSchema().dump(display_controller), HTTPStatus.OK
+
+
 class _DisplayControllerSchema(Schema):
     identifier = fields.Str(data_key="id")
     display_controller_type = fields.Function(
@@ -31,14 +43,3 @@ class _DisplayControllerSchema(Schema):
     cycle_images_randomly = fields.Bool(data_key="cycleRandomly")
     cycle_image_after_seconds = fields.Integer(data_key="cycleAfterSeconds")
 
-
-@to_target_process
-@display_controllers_handler
-def search(display_controllers: Dict[str, DisplayController]):
-    return [{"id": identifier} for identifier in display_controllers.keys()], HTTPStatus.OK
-
-
-@to_target_process
-@display_id_handler
-def get(display_controller: DisplayController):
-    return _DisplayControllerSchema().dump(display_controller), HTTPStatus.OK

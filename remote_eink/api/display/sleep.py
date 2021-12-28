@@ -9,7 +9,7 @@ def search(display_controller: DisplayController):
 
 @to_target_process
 @display_id_handler
-def put(display_controller: DisplayController, body: bytes) -> tuple[bool, HTTPStatus]:
+def put(display_controller: DisplayController, body: bytes):
     if body and not display_controller.driver.sleeping:
         display_controller.driver.sleep()
     elif not body and display_controller.driver.sleeping:

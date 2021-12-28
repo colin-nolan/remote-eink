@@ -79,6 +79,8 @@ class RequestSender:
 class CommunicationPipe:
     """
     Communication pipe that can be used to connect two multiprocessor processes.
+
+    The forked process is expected to be the sender, and the original process is the receiver.
     """
 
     @property

@@ -148,22 +148,14 @@ paths:
       requestBody:
         required: true
         content:
-#          image/*:
-#            schema:
-#              format: binary
           multipart/form-data:
             schema:
               type: object
-              properties:
-                metadata:
-                  $ref: "#/components/schemas/ImageMetadata"
-                image:
-                  type: string
-                  format: binary
+              $ref: "#/components/schemas/Image"
             encoding:
               metadata:
                 contentType: application/json
-              image:
+              data:
                 contentType: image/*
       responses:
         201:
@@ -193,22 +185,27 @@ paths:
           description: Image not found.
 
     put:
-      summary: Updates an image onto the device
+      summary: Updates an image on the device
       operationId: putDisplayImage
       parameters:
         - $ref: "#/components/parameters/displayId"
         - $ref: "#/components/parameters/imageId"
       requestBody:
         content:
-          image/*:
+          multipart/form-data:
             schema:
-              format: binary
+              type: object
+              $ref: "#/components/schemas/Image"
+            encoding:
+              metadata:
+                contentType: application/json
+              data:
+                contentType: image/*
       responses:
         200:
           description: Image updated.
         201:
           description: Image created.
-
 
     delete:
       summary: Delete an image from the device
@@ -328,3 +325,12 @@ components:
       properties:
         rotation:
           type: integer
+
+    Image:
+      type: object
+      properties:
+        metadata:
+          $ref: "#/components/schemas/ImageMetadata"
+        data:
+          type: string
+          format: binary
