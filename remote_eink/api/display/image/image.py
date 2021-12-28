@@ -12,6 +12,7 @@ from remote_eink.api.display._common import (
     ImageSchema,
     to_target_process,
 )
+from remote_eink.api.display.image._common import ImageMetadataSchema
 from remote_eink.controllers import DisplayController
 from remote_eink.images import FunctionBasedImage
 from remote_eink.storage.images import ImageAlreadyExistsError
@@ -50,18 +51,24 @@ def put(*args, **kwargs):
             f"Unsupported content type (expected 'multipart/form-data'): {CONTENT_TYPE_HEADER}",
             HTTPStatus.BAD_REQUEST,
         )
+    try:
+        data = kwargs["data"]
+    except KeyError:
+        return (
+            f"No data supplied",
+            HTTPStatus.BAD_REQUEST,
+        )
 
     content_type = kwargs["data"].content_type
-    # TODO: interaction with ImageMetadataSchema
-    rotation = kwargs["body"]["metadata"]["rotation"]
-    image_data = kwargs["data"].stream.read()
+    image_metadata = ImageMetadataSchema().dump(kwargs["body"]["metadata"])
+    image_data = data.stream.read()
 
     # Removing as we've extracted what we wanted from these (keeping them does not help with multiprocessor
     # serialisation!)
     del kwargs["body"]
     del kwargs["data"]
 
-    return _put(*args, **kwargs, data=image_data, content_type=content_type, rotation=rotation)
+    return _put(*args, **kwargs, data=image_data, content_type=content_type, rotation=image_metadata["rotation"])
 
 
 def post(*args, **kwargs):
