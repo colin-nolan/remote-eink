@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/colin-nolan/remote-eink.svg?branch=master)](https://travis-ci.com/colin-nolan/remote-eink)
+![Tests](https://github.com/colin-nolan/remote-eink/actions/workflows/main.yml/badge.svg)
 [![Code Coverage](https://codecov.io/gh/colin-nolan/remote-eink/branch/master/graph/badge.svg)](https://codecov.io/gh/colin-nolan/remote-eink)
 
 # Remote eInk
