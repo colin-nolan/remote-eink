@@ -34,8 +34,7 @@ papertty = { git = "https://github.com/colin-nolan/PaperTTY.git", tag = "0.1.8",
 
 [tool.poetry.dev-dependencies]
 Flask-Testing = "^0.8.1"
-# Cannot be made optional on `webserver` extra: https://github.com/python-poetry/poetry/issues/129
-get-port = "^0.0.5"
+get-port = "^0.0.5"     # Cannot be made optional on `webserver` extra: https://github.com/python-poetry/poetry/issues/129
 requests-toolbelt = "^0.9.1"
 
 [tool.poetry.extras]
@@ -45,7 +44,7 @@ papertty = ["papertty", "Pillow"]
 localdisplay = ["Pillow"]
 
 [build-system]
-requires = ["poetry>=0.12"]
+requires = ["poetry>=1"]
 build-backend = "poetry.masonry.api"
 
 [tool.black]
