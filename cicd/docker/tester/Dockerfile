@@ -1,11 +1,14 @@
 FROM python:3.10
 
+RUN curl -fsSL https://uploader.codecov.io/latest/linux/codecov > /usr/local/bin/codecov \
+    && chmod +x /usr/local/bin/codecov
+
 RUN pip install poetry coverage
 RUN poetry config virtualenvs.create false
 
-WORKDIR /testing
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml poetry.lock /tmp/
 
-RUN poetry install -E webserver -E image-tools -E localdisplay
+RUN cd /tmp \
+    && poetry install -E webserver -E image-tools -E localdisplay
 
 

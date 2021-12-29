@@ -22,3 +22,9 @@ jobs:
 
       - name: Run Python tests
         run: cicd/jobs/test/run-python-tests.sh
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+#        with:
+#          fail_ci_if_error: true
+#          token: ${{ secrets.CODECOV_TOKEN }}
