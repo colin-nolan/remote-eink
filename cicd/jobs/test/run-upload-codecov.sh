@@ -15,5 +15,5 @@ if [[ "${RUN_TESTS}" -eq 1 ]]; then
     "${script_directory}/run-python-tests.sh"
 fi
 
-docker run -u $(id -u):$(id -g) -w "${repository_root_directory}" --rm -v "${repository_root_directory}":"${repository_root_directory}" tester \
+docker run -e CODECOV_TOKEN -u $(id -u):$(id -g) -w "${repository_root_directory}" --rm -v "${repository_root_directory}":"${repository_root_directory}" tester \
     scripts/test/run-upload-codecov.sh
