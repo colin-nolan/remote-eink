@@ -27,12 +27,3 @@ jobs:
         run: cicd/jobs/test/run-upload-codecov.sh
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-#      - name: Upload coverage to Codecov
-#        uses: codecov/codecov-action@v2
-#        with:
-#          files: .coverage
-#          verbose: true
-#        with:
-#          fail_ci_if_error: true
-#          token: ${{ secrets.CODECOV_TOKEN }}
