@@ -5,7 +5,9 @@ import unittest
 from abc import abstractmethod, ABCMeta
 from typing import TypeVar, Generic
 
-from remote_eink.storage.manifests import Manifest, InMemoryManifest, ManifestRecord, TinyDbManifest
+from remote_eink.storage.manifest.base import Manifest, ManifestRecord
+from remote_eink.storage.manifest.memory import InMemoryManifest
+from remote_eink.storage.manifest.tiny_db import TinyDbManifest
 from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE
 
 _EXAMPLE_MANIFEST_RECORD_1 = ManifestRecord(WHITE_IMAGE.identifier, WHITE_IMAGE.type, "test/1.png")
@@ -18,6 +20,7 @@ class _TestManifest(unittest.TestCase, Generic[_ManifestType], metaclass=ABCMeta
     """
     Tests for `Manifest` implementations.
     """
+
     @abstractmethod
     def create_manifest(self, *args, **kwargs) -> _ManifestType:
         """
@@ -33,16 +36,19 @@ class _TestManifest(unittest.TestCase, Generic[_ManifestType], metaclass=ABCMeta
 
     def test_get_by_id(self):
         self._add_record(_EXAMPLE_MANIFEST_RECORD_1)
-        self.assertEqual(_EXAMPLE_MANIFEST_RECORD_1,
-                         self.manifest.get_by_image_id(_EXAMPLE_MANIFEST_RECORD_1.identifier))
+        self.assertEqual(
+            _EXAMPLE_MANIFEST_RECORD_1, self.manifest.get_by_image_id(_EXAMPLE_MANIFEST_RECORD_1.identifier)
+        )
 
     def test_get_by_id_when_does_not_exist(self):
         self.assertIsNone(self.manifest.get_by_image_id("does-not-exist"))
 
     def test_get_by_storage_location(self):
         self._add_record(_EXAMPLE_MANIFEST_RECORD_1)
-        self.assertEqual(_EXAMPLE_MANIFEST_RECORD_1, self.manifest.get_by_storage_location(
-            _EXAMPLE_MANIFEST_RECORD_1.storage_location))
+        self.assertEqual(
+            _EXAMPLE_MANIFEST_RECORD_1,
+            self.manifest.get_by_storage_location(_EXAMPLE_MANIFEST_RECORD_1.storage_location),
+        )
 
     def test_get_by_storage_location_when_does_not_exist(self):
         self.assertIsNone(self.manifest.get_by_storage_location("does-not-exist"))
@@ -51,15 +57,18 @@ class _TestManifest(unittest.TestCase, Generic[_ManifestType], metaclass=ABCMeta
         self._add_record(_EXAMPLE_MANIFEST_RECORD_1)
         self._add_record(_EXAMPLE_MANIFEST_RECORD_2)
         self.assertEqual(
-            _EXAMPLE_MANIFEST_RECORD_1, self.manifest.get_by_image_id(_EXAMPLE_MANIFEST_RECORD_1.identifier))
+            _EXAMPLE_MANIFEST_RECORD_1, self.manifest.get_by_image_id(_EXAMPLE_MANIFEST_RECORD_1.identifier)
+        )
         self.assertEqual(
-            _EXAMPLE_MANIFEST_RECORD_2, self.manifest.get_by_image_id(_EXAMPLE_MANIFEST_RECORD_2.identifier))
+            _EXAMPLE_MANIFEST_RECORD_2, self.manifest.get_by_image_id(_EXAMPLE_MANIFEST_RECORD_2.identifier)
+        )
 
     def test_add_with_same_identifier(self):
         self._add_record(_EXAMPLE_MANIFEST_RECORD_1)
         self._add_record(_EXAMPLE_MANIFEST_RECORD_2)
         self.assertEqual(
-            _EXAMPLE_MANIFEST_RECORD_1, self.manifest.get_by_image_id(_EXAMPLE_MANIFEST_RECORD_1.identifier))
+            _EXAMPLE_MANIFEST_RECORD_1, self.manifest.get_by_image_id(_EXAMPLE_MANIFEST_RECORD_1.identifier)
+        )
 
     def test_remove(self):
         self._add_record(_EXAMPLE_MANIFEST_RECORD_1)
@@ -81,6 +90,7 @@ class TestInMemoryManifest(_TestManifest[InMemoryManifest]):
     """
     Tests `InMemoryManifest`.
     """
+
     def create_manifest(self, *args, **kwargs) -> InMemoryManifest:
         return InMemoryManifest()
 
@@ -89,6 +99,7 @@ class TestTinyDbManifest(_TestManifest[TinyDbManifest]):
     """
     Tests `TinyDbManifest`.
     """
+
     def setUp(self):
         self._temp_directories = []
         super().setUp()
@@ -106,8 +117,11 @@ class TestTinyDbManifest(_TestManifest[TinyDbManifest]):
         return manifest
 
     def test_re_open_manifest(self):
-        self.manifest.add(_EXAMPLE_MANIFEST_RECORD_1.identifier, _EXAMPLE_MANIFEST_RECORD_1.image_type,
-                          _EXAMPLE_MANIFEST_RECORD_1.storage_location)
+        self.manifest.add(
+            _EXAMPLE_MANIFEST_RECORD_1.identifier,
+            _EXAMPLE_MANIFEST_RECORD_1.image_type,
+            _EXAMPLE_MANIFEST_RECORD_1.storage_location,
+        )
         manifest = TinyDbManifest(self.manifest.database_location)
         self.assertEqual(_EXAMPLE_MANIFEST_RECORD_1, manifest.get_by_image_id(_EXAMPLE_MANIFEST_RECORD_1.identifier))
 

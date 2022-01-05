@@ -3,8 +3,6 @@ import time
 from threading import Thread, Semaphore
 from typing import Optional
 
-from flask import Flask
-
 from remote_eink.app import destroy_app
 
 _logger = logging.getLogger(__name__)
@@ -14,7 +12,7 @@ try:
     from cheroot import wsgi
     from connexion import FlaskApp
 except ImportError:
-    _logger.error("\"webserver\" extra not installed")
+    _logger.error('"webserver" extra not installed')
     raise
 
 
@@ -26,18 +24,24 @@ class Server:
     """
     Model of the WSGI server.
     """
+
     @property
     def url(self) -> str:
         return f"http://{self.interface}:{self.port}"
 
-    def __init__(self, app: Flask, interface: str, port: int, ):
+    def __init__(
+        self,
+        app: FlaskApp,
+        interface: str,
+        port: int,
+    ):
         """
         Constructor.
         :param app: copy of app ran on the server
         :param interface: interface server is bound to
         :param port: port the server is using
         """
-        self.app: Optional[Flask] = app
+        self.app: Optional[FlaskApp] = app
         self.interface = interface
         self.port = port
         self.server_set = Semaphore(0)

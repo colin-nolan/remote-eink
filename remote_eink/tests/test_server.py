@@ -1,7 +1,6 @@
-from http import HTTPStatus
-from typing import Tuple, Optional, List
+from typing import Optional, List
 
-from threading import Thread, Event, Semaphore
+from threading import Thread, Semaphore
 
 import unittest
 
@@ -9,6 +8,7 @@ try:
     from get_port import find_free_port
     from remote_eink.server import start
     import requests
+
     WEBSERVER_INSTALLED = False
 except ImportError:
     WEBSERVER_INSTALLED = True
@@ -25,6 +25,7 @@ class TestRun(AppTestBase):
     """
     Test for `run`.
     """
+
     def setUp(self):
         self.port, _ = find_free_port()
 
@@ -92,8 +93,6 @@ class TestRun(AppTestBase):
             pass
         finally:
             server.stop()
-
-
 
 
 if __name__ == "__main__":

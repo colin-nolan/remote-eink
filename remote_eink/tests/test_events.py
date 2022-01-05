@@ -8,6 +8,7 @@ class TestEventListenerController(unittest.TestCase):
     """
     Tests `EventListenerController`.
     """
+
     def setUp(self):
         self.event_listeners = EventListenerController[int]()
 

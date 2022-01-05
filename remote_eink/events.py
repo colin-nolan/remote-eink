@@ -17,6 +17,7 @@ class EventListenerController(Generic[EventType]):
     """
     Controller that links events to listeners.
     """
+
     def __init__(self):
         self._event_listeners = defaultdict(set)
 
@@ -43,12 +44,14 @@ class EventListenerController(Generic[EventType]):
         except KeyError:
             pass
 
-    def call(self, event: EventType, event_args: Sequence[Any] = (),
-             event_kwargs: Dict[str, Any] = MappingProxyType({})) -> Dict[Listener, ListenerReturn]:
+    def call(
+        self, event: EventType, event_args: Sequence[Any] = (), event_kwargs: Dict[str, Any] = MappingProxyType({})
+    ) -> Dict[Listener, ListenerReturn]:
         return self.call_listeners(event, event_args, event_kwargs)
 
-    def call_listeners(self, event: EventType, event_args: Sequence[Any] = (),
-                       event_kwargs: Dict[str, Any] = MappingProxyType({})) -> Dict[Listener, ListenerReturn]:
+    def call_listeners(
+        self, event: EventType, event_args: Sequence[Any] = (), event_kwargs: Dict[str, Any] = MappingProxyType({})
+    ) -> Dict[Listener, ListenerReturn]:
         listener_return_map: Dict[Listener, Any] = {}
         for listener in self._event_listeners[event]:
             assert listener not in listener_return_map.keys()

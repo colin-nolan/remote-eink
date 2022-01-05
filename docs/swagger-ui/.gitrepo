@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/swagger-api/swagger-ui.git
+	branch = v4.1.3
+	commit = 86e7f002c6dc55c935e18e82f9c5576dc48a7ff2
+	parent = 2d86d63c50a6aad7d7dc0bc21993d22f9f067152
+	method = merge
+	cmdver = 0.4.3

@@ -5,8 +5,13 @@ from abc import abstractmethod, ABCMeta
 from typing import TypeVar, Generic
 
 from remote_eink.images import FunctionBasedImage
-from remote_eink.storage.images import ImageStore, InMemoryImageStore, ImageAlreadyExistsError, FileSystemImageStore, \
-    ListenableImageStore
+from remote_eink.storage.image.base import (
+    ImageStore,
+    ImageAlreadyExistsError,
+    ListenableImageStore,
+)
+from remote_eink.storage.image.memory import InMemoryImageStore
+from remote_eink.storage.image.file_system import FileSystemImageStore
 from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE
 
 _ImageStoreType = TypeVar("_ImageStoreType", bound=ImageStore)
@@ -16,6 +21,7 @@ class _TestImageStore(unittest.TestCase, Generic[_ImageStoreType], metaclass=ABC
     """
     Tests for `ImageStore` implementations.
     """
+
     @abstractmethod
     def create_image_store(self, *args, **kwargs) -> _ImageStoreType:
         """
@@ -85,6 +91,7 @@ class TestInMemoryImageStore(_TestImageStore[InMemoryImageStore]):
     """
     Tests `InMemoryImageStore`.
     """
+
     def test_init_with_images(self):
         image_store = self.create_image_store([WHITE_IMAGE, BLACK_IMAGE])
         self.assertCountEqual((WHITE_IMAGE, BLACK_IMAGE), image_store.list())
@@ -97,6 +104,7 @@ class TestFileSystemImageStore(_TestImageStore[InMemoryImageStore]):
     """
     Tests `FileSystemImageStore`.
     """
+
     def test_init_with_images(self):
         image_store = self.create_image_store([WHITE_IMAGE, BLACK_IMAGE])
         self.assertCountEqual((WHITE_IMAGE, BLACK_IMAGE), image_store.list())
@@ -121,6 +129,7 @@ class TestListenableImageStore(_TestImageStore[ListenableImageStore]):
     """
     Tests `ListenableImageStore`.
     """
+
     def test_add_listener(self):
         added = None
 

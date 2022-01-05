@@ -10,6 +10,7 @@ class DisplayDriver(metaclass=ABCMeta):
     """
     Device display driver.
     """
+
     @property
     @abstractmethod
     def sleeping(self) -> bool:
@@ -53,7 +54,7 @@ class DisplayDriver(metaclass=ABCMeta):
 
     def display(self, image: Optional[Image]):
         """
-        Display the given image (alternative to `self.image = image`.
+        Display the given image (alternative to `self.image = image`).
         :param image: the image to display
         """
         self.image = image
@@ -61,10 +62,11 @@ class DisplayDriver(metaclass=ABCMeta):
 
 class BaseDisplayDriver(DisplayDriver, metaclass=ABCMeta):
     """
-    TODO
+    Base implementation of a display driver.
 
     Not thread safe.
     """
+
     @property
     def sleeping(self) -> bool:
         return self._sleeping
@@ -95,27 +97,15 @@ class BaseDisplayDriver(DisplayDriver, metaclass=ABCMeta):
         self.image = image
 
     def clear(self):
-        """
-        TODO
-        :return:
-        """
         self._clear()
         super().clear()
 
     def sleep(self):
-        """
-        TODO
-        :return:
-        """
         if not self.sleeping:
             self._sleep()
             self._sleeping = True
 
     def wake(self):
-        """
-        TODO
-        :return:
-        """
         if self.sleeping:
             self._wake()
             self._sleeping = False
@@ -123,30 +113,26 @@ class BaseDisplayDriver(DisplayDriver, metaclass=ABCMeta):
     @abstractmethod
     def _display(self, image_data: bytes):
         """
-        TODO
-        :param image_data:
-        :return:
+        Display an image using the given image data.
+        :param image_data: data of image to display
         """
 
     @abstractmethod
     def _clear(self):
         """
-        TODO
-        :return:
+        Clears the display.
         """
 
     @abstractmethod
     def _sleep(self):
         """
-        TODO
-        :return:
+        Put the device to sleep.
         """
 
     @abstractmethod
     def _wake(self):
         """
-        TODO
-        :return:
+        Wake the device.
         """
 
 
@@ -154,6 +140,7 @@ class ListenableDisplayDriver(DisplayDriver):
     """
     Listenable interface composed on a display driver.
     """
+
     @unique
     class Event(Enum):
         DISPLAY = auto()

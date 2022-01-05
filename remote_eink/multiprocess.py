@@ -8,21 +8,21 @@ from multiprocessing_on_dill.connection import Connection, Pipe
 
 class RequestReceiver:
     """
-    TODO
+    Receiver used to get requests over a multiprocessor pipe.
     """
+
     RUN_POISON = "+kill"
 
     def __init__(self, connection: Connection):
         """
-        TODO
-        :param connection:
+        Constructor.
+        :param connection: multiprocessor connection
         """
         self._connection = connection
 
     def run(self):
         """
-        TODO
-        :return:
+        Runs the receiver. Will exit when `RUN_POISON` is received as a message.
         """
         while True:
             received = self._connection.recv()
@@ -42,23 +42,24 @@ class RequestReceiver:
 
 class RequestSender:
     """
-    TODO
+    Sender of requests over a multiprocessor pipe.
     """
+
     def __init__(self, connection: Connection):
         """
-        TODO
-        :param connection:
+        Constructor.
+        :param connection: multiprocessor connection
         """
         self._connection = connection
         self._lock = Lock()
 
     def communicate(self, callable: Callable, *args, **kwargs) -> Any:
         """
-        TODO
-        :param callable:
-        :param args:
-        :param kwargs:
-        :return:
+        Communicates a callable via the connection.
+        :param callable: the callable
+        :param args: args for the callable
+        :param kwargs: kwargs for the callable
+        :return: the result received in response
         """
         with self._lock:
             self._connection.send((callable, args, kwargs))
@@ -69,8 +70,7 @@ class RequestSender:
 
     def stop_receiver(self):
         """
-        TODO
-        :return:
+        Stop the connected receiver.
         """
         with self._lock:
             self._connection.send(RequestReceiver.RUN_POISON)
@@ -78,8 +78,11 @@ class RequestSender:
 
 class CommunicationPipe:
     """
-    TODO
+    Communication pipe that can be used to connect two multiprocessor processes.
+
+    The forked process is expected to be the sender, and the original process is the receiver.
     """
+
     @property
     def sender(self) -> RequestSender:
         return self._sender
@@ -90,7 +93,7 @@ class CommunicationPipe:
 
     def __init__(self):
         """
-        TODO
+        Constructor.
         """
         parent_connection, child_connection = Pipe(duplex=True)
         self._receiver = RequestReceiver(parent_connection)

@@ -7,6 +7,7 @@ class TestDisplaySleep(AppTestBase):
     """
     Tests for the `/display/{displayId}/sleep` endpoint.
     """
+
     def test_get_when_not_sleeping(self):
         result = self.client.get(f"/display/{self.display_controller.identifier}/sleep")
         self.assertEqual(HTTPStatus.OK, result.status_code)

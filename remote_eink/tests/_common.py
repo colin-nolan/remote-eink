@@ -11,27 +11,29 @@ from uuid import uuid4
 from remote_eink.api.display._common import CONTENT_TYPE_HEADER, ImageTypeToMimeType
 from remote_eink.app import create_app, destroy_app, get_app_data
 from remote_eink.app_data import AppData
-from remote_eink.controllers import DisplayController, BaseDisplayController
+from remote_eink.controllers.base import DisplayController
+from remote_eink.controllers.simple import SimpleDisplayController
 from remote_eink.images import ImageType, Image, FunctionBasedImage
-from remote_eink.storage.images import InMemoryImageStore
+from remote_eink.storage.image.memory import InMemoryImageStore
 from remote_eink.tests.drivers._common import DummyBaseDisplayDriver
 from remote_eink.tests.storage._common import WHITE_IMAGE
-from remote_eink.transformers.base import SimpleImageTransformer
+from remote_eink.transformers.simple import SimpleImageTransformer
 
 
-def create_image(image_type: Optional[ImageType] = None) -> Image:
+def create_image(**kwargs) -> Image:
     """
     Creates image for testing.
     :return: created image
     """
-    if image_type is None:
-        image_type = random.choice(list(ImageType))
+    if "image_type" not in kwargs:
+        kwargs["image_type"] = random.choice(list(ImageType))
     identifier = str(uuid4())
-    return FunctionBasedImage(identifier, lambda: WHITE_IMAGE.data, image_type)
+    return FunctionBasedImage(identifier, lambda: WHITE_IMAGE.data, **kwargs)
 
 
-def create_dummy_display_controller(*, number_of_images: int = 0, number_of_image_transformers: int = 0, **kwargs) \
-        -> DisplayController:
+def create_dummy_display_controller(
+    *, number_of_images: int = 0, number_of_image_transformers: int = 0, **kwargs
+) -> DisplayController:
     """
     Creates a dummy display controller.
     :param number_of_images: number of images in the display controller's image store
@@ -46,11 +48,13 @@ def create_dummy_display_controller(*, number_of_images: int = 0, number_of_imag
 
     if number_of_image_transformers != 0:
         if "image_transformers" in kwargs:
-            raise ValueError("Cannot specify a number of image transformers to be created in addition to passing in "
-                             "image transformers")
+            raise ValueError(
+                "Cannot specify a number of image transformers to be created in addition to passing in "
+                "image transformers"
+            )
         kwargs["image_transformers"] = [SimpleImageTransformer() for _ in range(number_of_image_transformers)]
 
-    return BaseDisplayController(driver=DummyBaseDisplayDriver(), **kwargs)
+    return SimpleDisplayController(driver=DummyBaseDisplayDriver(), **kwargs)
 
 
 def set_content_type_header(image: Image, headers: Optional[Dict] = None):
@@ -70,6 +74,7 @@ class AppTestBase(TestCase, metaclass=ABCMeta):
     """
     Base class for tests against the Flask app.
     """
+
     @property
     def display_controller(self) -> DisplayController:
         return self._display_controllers[0]
@@ -102,7 +107,7 @@ class AppTestBase(TestCase, metaclass=ABCMeta):
         return display_controller
 
 
-def run_in_different_process(callable: Callable[[], Any], *args, **kwargs) -> Any:
+def run_in_different_process(callable: Callable, *args, **kwargs) -> Any:
     """
     Runs the given callable and arguments/keyword arguments in a different process and resturn the result.
     :param callable: callable to run

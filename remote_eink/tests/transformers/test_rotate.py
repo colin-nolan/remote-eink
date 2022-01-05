@@ -11,14 +11,21 @@ from remote_eink.tests.transformers.test_base import AbstractTest
 from remote_eink.transformers.base import ImageTransformer
 
 try:
-    from remote_eink.transformers.rotate import RotateImageTransformer, RotateConfigurationParameter, \
-    ImageRotationAwareRotateImageTransformer
+    from remote_eink.transformers.rotate import (
+        RotateImageTransformer,
+        RotateConfigurationParameter,
+        ImageRotationAwareRotateImageTransformer,
+    )
     from PIL import Image as PilImage
 
     IMAGE_TOOLS_INSTALLED = True
 except ImportError:
+
     class RotateImageTransformer(ImageTransformer, metaclass=ABCMeta):
-        """ Stub class to please the type checker """
+        """Stub"""
+
+    class ImageRotationAwareRotateImageTransformer(ImageTransformer, metaclass=ABCMeta):
+        """Stub"""
 
     IMAGE_TOOLS_INSTALLED = False
 
@@ -46,19 +53,21 @@ def _calculate_new_size(image_size: Tuple[int, int], angle: float) -> Tuple[int,
     :param angle: rotation angle in degrees
     :return: width, height tuple after translation
     """
-    new_width = abs(
-        image_size[0] * math.cos(math.radians(angle))) + abs(image_size[1] * math.sin(math.radians(angle)))
-    new_height = abs(
-        image_size[0] * math.sin(math.radians(angle))) + abs(image_size[1] * math.cos(math.radians(angle)))
+    new_width = abs(image_size[0] * math.cos(math.radians(angle))) + abs(image_size[1] * math.sin(math.radians(angle)))
+    new_height = abs(image_size[0] * math.sin(math.radians(angle))) + abs(image_size[1] * math.cos(math.radians(angle)))
     return int(new_width), int(new_height)
 
 
 @unittest.skipIf(not IMAGE_TOOLS_INSTALLED, "Optional `image-tools` not installed")
-class BaseTest(Generic[RotatingImageTransformerType], AbstractTest.TestImageTransformer[RotatingImageTransformerType],
-               metaclass=ABCMeta):
+class BaseTest(
+    Generic[RotatingImageTransformerType],
+    AbstractTest.TestImageTransformer[RotatingImageTransformerType],
+    metaclass=ABCMeta,
+):
     """
     Test for `RotateImageTransformer`.
     """
+
     def test_no_rotation(self):
         self.image_transformer.angle = 0
         image = self.image_transformer.transform(WHITE_IMAGE)
@@ -83,15 +92,21 @@ class BaseTest(Generic[RotatingImageTransformerType], AbstractTest.TestImageTran
 
     def test_configuration(self):
         image_transformer = self.create_image_transformer(
-            angle=EXAMPLE_ANGLE, expand=EXAMPLE_EXPAND, fill_color=EXAMPLE_FILL_COLOR)
+            angle=EXAMPLE_ANGLE, expand=EXAMPLE_EXPAND, fill_color=EXAMPLE_FILL_COLOR
+        )
         self.assertEqual(
-            {RotateConfigurationParameter.ANGLE.value: EXAMPLE_ANGLE,
-             RotateConfigurationParameter.EXPAND.value: EXAMPLE_EXPAND,
-             RotateConfigurationParameter.FILL_COLOR.value: EXAMPLE_FILL_COLOR}, image_transformer.configuration)
+            {
+                RotateConfigurationParameter.ANGLE.value: EXAMPLE_ANGLE,
+                RotateConfigurationParameter.EXPAND.value: EXAMPLE_EXPAND,
+                RotateConfigurationParameter.FILL_COLOR.value: EXAMPLE_FILL_COLOR,
+            },
+            image_transformer.configuration,
+        )
 
     def test_modify_configuration(self):
-        image_transformer = self.create_image_transformer(angle=EXAMPLE_EXPAND, expand=EXAMPLE_EXPAND,
-                                                          fill_color=EXAMPLE_FILL_COLOR)
+        image_transformer = self.create_image_transformer(
+            angle=EXAMPLE_EXPAND, expand=EXAMPLE_EXPAND, fill_color=EXAMPLE_FILL_COLOR
+        )
         assert image_transformer.configuration != self.image_transformer.configuration
         image_transformer.modify_configuration(self.image_transformer.configuration)
         self.assertEqual(self.image_transformer.configuration, image_transformer.configuration)
@@ -99,18 +114,27 @@ class BaseTest(Generic[RotatingImageTransformerType], AbstractTest.TestImageTran
     def test_modify_configuration_partially(self):
         image_transformer = self.create_image_transformer(angle=EXAMPLE_ANGLE)
         assert image_transformer.expand != EXAMPLE_EXPAND and image_transformer.fill_color != EXAMPLE_FILL_COLOR
-        image_transformer.modify_configuration({RotateConfigurationParameter.EXPAND.value: EXAMPLE_EXPAND,
-                                                RotateConfigurationParameter.FILL_COLOR.value: EXAMPLE_FILL_COLOR})
+        image_transformer.modify_configuration(
+            {
+                RotateConfigurationParameter.EXPAND.value: EXAMPLE_EXPAND,
+                RotateConfigurationParameter.FILL_COLOR.value: EXAMPLE_FILL_COLOR,
+            }
+        )
         self.assertEqual(
-            {RotateConfigurationParameter.ANGLE.value: EXAMPLE_ANGLE,
-             RotateConfigurationParameter.EXPAND.value: EXAMPLE_EXPAND,
-             RotateConfigurationParameter.FILL_COLOR.value: EXAMPLE_FILL_COLOR}, image_transformer.configuration)
+            {
+                RotateConfigurationParameter.ANGLE.value: EXAMPLE_ANGLE,
+                RotateConfigurationParameter.EXPAND.value: EXAMPLE_EXPAND,
+                RotateConfigurationParameter.FILL_COLOR.value: EXAMPLE_FILL_COLOR,
+            },
+            image_transformer.configuration,
+        )
 
 
 class TestRotateImageTransformer(BaseTest[RotateImageTransformer]):
     """
     Tests for `RotateImageTransformer`.
     """
+
     def create_image_transformer(self, *args, **kwargs) -> RotateImageTransformer:
         return RotateImageTransformer(*args, **kwargs)
 
@@ -128,6 +152,7 @@ class TestImageRotationAwareRotateImageTransformer(BaseTest[ImageRotationAwareRo
     """
     Tests for `ImageRotationAwareRotateImageTransformer`.
     """
+
     def create_image_transformer(self, *args, **kwargs) -> RotateImageTransformer:
         return ImageRotationAwareRotateImageTransformer(*args, **kwargs)
 
