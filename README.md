@@ -55,3 +55,8 @@ A `DisplayDriver`:
 - A driver for a display device.
 - Can set an image to be displayed; clear the display; sleep/wake the display.
 
+
+## Legal
+[AGPL v3.0](LICENSE). Copyright 2020, 2021, 2022 Colin Nolan.
+
+This work is in no way related to the company that I work for.
