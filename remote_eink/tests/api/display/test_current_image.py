@@ -1,6 +1,5 @@
-from http import HTTPStatus
-
 import unittest
+from http import HTTPStatus
 
 from remote_eink.tests._common import AppTestBase
 from remote_eink.tests.storage._common import WHITE_IMAGE

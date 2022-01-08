@@ -1,9 +1,6 @@
 import os
-from io import BytesIO
-
-from uuid import uuid4
-
 from typing import Collection, Optional
+from uuid import uuid4
 
 import connexion
 from connexion import FlaskApp

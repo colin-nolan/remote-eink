@@ -1,6 +1,5 @@
-from enum import unique, Enum, auto
-
 from abc import abstractmethod, ABCMeta
+from enum import unique, Enum, auto
 from threading import Timer
 from typing import Optional
 

@@ -1,9 +1,7 @@
 from http import HTTPStatus
-from io import BytesIO
-from typing import Optional, Tuple
 from uuid import uuid4
 
-from flask import make_response, request, send_file
+from flask import request
 
 from remote_eink.api.display._common import (
     ImageTypeToMimeType,

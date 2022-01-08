@@ -5,11 +5,11 @@ from typing import Optional
 
 from remote_eink.controllers.cycling import CyclableDisplayController, AutoCyclingDisplayController
 from remote_eink.drivers.base import ListenableDisplayDriver
-from remote_eink.tests.controllers._common import AbstractTest
-from remote_eink.tests.drivers._common import DummyBaseDisplayDriver
 from remote_eink.images import Image
 from remote_eink.storage.image.base import ImageStore
 from remote_eink.storage.image.memory import InMemoryImageStore
+from remote_eink.tests.controllers._common import AbstractTest
+from remote_eink.tests.drivers._common import DummyBaseDisplayDriver
 from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE
 
 

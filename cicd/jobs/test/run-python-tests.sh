@@ -11,7 +11,8 @@ if [[ "${BUILD_DOCKER_IMAGES}" -eq 0 ]]; then
     "${script_directory}/../setup/build-tester.sh"
 fi
 
-docker run -u $(id -u):$(id -g) -w "${repository_root_directory}" --rm -v "${repository_root_directory}":"${repository_root_directory}" tester \
+docker run -u $(id -u):$(id -g) -w "${repository_root_directory}" --rm \
+    -v "${repository_root_directory}":"${repository_root_directory}" tester \
     scripts/test/run-python-tests.sh
 
 

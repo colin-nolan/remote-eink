@@ -1,8 +1,7 @@
-from typing import Dict, Any
-
 import logging
 from abc import abstractmethod, ABCMeta
 from enum import unique, Enum, auto
+from typing import Dict, Any
 
 from remote_eink.events import EventListenerController
 from remote_eink.images import Image, ImageType

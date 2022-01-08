@@ -2,11 +2,11 @@ import os
 import sys
 
 from remote_eink.app import create_app
-from remote_eink.controllers import AutoCyclingDisplayController
+from remote_eink.controllers.cycling import AutoCyclingDisplayController
 from remote_eink.drivers.local import LocalDisplayDriver
 from remote_eink.images import DataBasedImage, ImageType
-from remote_eink.server import start, run
-from remote_eink.storage.images import InMemoryImageStore
+from remote_eink.server import run
+from remote_eink.storage.image.memory import InMemoryImageStore
 
 IMAGE_DIRECTORY = f"{os.path.dirname(__file__)}/../tests/_resources"
 

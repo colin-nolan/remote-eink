@@ -7,8 +7,8 @@ from remote_eink.transformers.base import (
     ImageTransformer,
     InvalidPositionError,
 )
-from remote_eink.transformers.simple import SimpleImageTransformer
 from remote_eink.transformers.sequence import SimpleImageTransformerSequence, ImageTransformerSequence
+from remote_eink.transformers.simple import SimpleImageTransformer
 
 ImageTransformerSequenceType = TypeVar("ImageTransformerSequenceType", bound=ImageTransformerSequence)
 

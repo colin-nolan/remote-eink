@@ -1,7 +1,6 @@
-from typing import Type
-
 import logging
 from io import BytesIO
+from typing import Type
 
 from remote_eink.drivers.base import BaseDisplayDriver
 

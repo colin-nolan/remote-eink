@@ -1,8 +1,6 @@
-from typing import Optional, List
-
-from threading import Thread, Semaphore
-
 import unittest
+from threading import Thread, Semaphore
+from typing import Optional, List
 
 try:
     from get_port import find_free_port

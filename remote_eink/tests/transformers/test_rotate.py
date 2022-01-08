@@ -1,9 +1,10 @@
 import itertools
-import math
 import unittest
 from abc import ABCMeta
 from io import BytesIO
 from typing import Tuple, TypeVar, Generic
+
+import math
 
 from remote_eink.images import Image, FunctionBasedImage
 from remote_eink.tests.storage._common import WHITE_IMAGE

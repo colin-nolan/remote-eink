@@ -1,6 +1,5 @@
 import os
 from threading import Thread
-
 from typing import Dict, Callable, Any, Iterable, Mapping
 
 from remote_eink.controllers.base import DisplayController

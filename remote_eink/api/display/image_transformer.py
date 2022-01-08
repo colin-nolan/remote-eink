@@ -1,6 +1,5 @@
 from enum import unique, Enum
 from http import HTTPStatus
-
 from typing import Dict, Callable
 
 from marshmallow import Schema, fields

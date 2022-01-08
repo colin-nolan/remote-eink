@@ -1,12 +1,11 @@
 import random
-
-from multiprocessing_on_dill.connection import Pipe
-
 from abc import ABCMeta
-from flask_testing import TestCase
-from multiprocessing_on_dill.context import Process
 from typing import Optional, Dict, Callable, Any
 from uuid import uuid4
+
+from flask_testing import TestCase
+from multiprocessing_on_dill.connection import Pipe
+from multiprocessing_on_dill.context import Process
 
 from remote_eink.api.display._common import CONTENT_TYPE_HEADER, ImageTypeToMimeType
 from remote_eink.app import create_app, destroy_app, get_app_data

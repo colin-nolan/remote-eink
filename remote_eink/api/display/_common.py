@@ -1,9 +1,8 @@
 from http import HTTPStatus
-
-from flask import current_app
 from typing import Callable, Any
 
 from bidict import bidict
+from flask import current_app
 from marshmallow import Schema, fields
 
 from remote_eink.app import APP_ID_PROPERTY
