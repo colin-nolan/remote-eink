@@ -1,6 +1,6 @@
 import logging
 from io import BytesIO
-from typing import Callable, TypeVar, ParamSpec
+from typing import Callable, TypeVar, ParamSpec, Optional, Type
 
 from remote_eink.drivers.base import BaseDisplayDriver
 
@@ -32,14 +32,14 @@ class PaperTtyDisplayDriver(BaseDisplayDriver):
     PaperTTY-based device driver.
     """
 
-    def __init__(self, device_driver: DeviceDisplayDriver):
+    def __init__(self, device_driver_type: Type[DeviceDisplayDriver]):
         """
         Constructor.
         :param device_driver: PaperTTY device display driver
         """
         super().__init__()
-        self._device_driver = device_driver
-        # self._papertty: Optional[PaperTTY] = None
+        self._device_driver_type = device_driver_type
+        self._papertty: Optional[PaperTTY] = None
         # Wake will initialise PaperTTY
         self._wake()
 
@@ -59,5 +59,5 @@ class PaperTtyDisplayDriver(BaseDisplayDriver):
 
     def _wake(self):
         if self._papertty is None:
-            self._papertty = PaperTTY(self._device_driver.__name__)
+            self._papertty = PaperTTY(self._device_driver_type.__name__)
             self._papertty.init_display()
