@@ -1,3 +1,4 @@
+import os
 import shutil
 import tempfile
 import unittest
@@ -123,6 +124,14 @@ class TestFileSystemImageStore(_TestImageStore[InMemoryImageStore]):
         temp_directory = tempfile.mkdtemp()
         self._temp_directories.append(temp_directory)
         return FileSystemImageStore(temp_directory, *args, **kwargs)
+
+    def test_when_directory_not_exist(self):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            storage_directory = f"{temp_directory}/does/not/exist"
+            assert not os.path.exists(storage_directory)
+            store = FileSystemImageStore(storage_directory)
+            store.list()
+            self.assertTrue(os.path.exists(storage_directory))
 
 
 class TestListenableImageStore(_TestImageStore[ListenableImageStore]):

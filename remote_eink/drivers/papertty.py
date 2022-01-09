@@ -35,7 +35,7 @@ class PaperTtyDisplayDriver(BaseDisplayDriver):
     def __init__(self, device_driver_type: Type[DeviceDisplayDriver]):
         """
         Constructor.
-        :param device_driver: PaperTTY device display driver
+        :param device_driver_type: type of PaperTTY device display driver
         """
         super().__init__()
         self._device_driver_type = device_driver_type

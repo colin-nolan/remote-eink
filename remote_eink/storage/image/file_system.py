@@ -1,5 +1,6 @@
 import hashlib
 import os
+import shutil
 from typing import Iterable, Optional
 
 from remote_eink.images import Image, ImageDataReader
@@ -18,10 +19,13 @@ class FileSystemImageStore(ManifestBasedImageStore):
         return "FileSystem"
 
     def __init__(self, root_directory: str, images: Iterable[Image] = (), manifest: Optional[Manifest] = None):
-        self.root_directory = root_directory
+        self._root_directory = root_directory
+        if not os.path.exists(self._root_directory):
+            os.makedirs(root_directory)
+
         # self._cache = {}
         manifest = (
-            manifest if manifest is not None else TinyDbManifest(os.path.join(self.root_directory, "manifest.json"))
+            manifest if manifest is not None else TinyDbManifest(os.path.join(self._root_directory, "manifest.json"))
         )
         super().__init__(images, manifest)
 
@@ -48,7 +52,7 @@ class FileSystemImageStore(ManifestBasedImageStore):
     #     return images
 
     def _get_image_reader(self, storage_location: str) -> ImageDataReader:
-        path = os.path.join(self.root_directory, storage_location)
+        path = os.path.join(self._root_directory, storage_location)
         assert os.path.exists(path)
 
         # Not using lambda as observing file not closed warnings
@@ -71,7 +75,7 @@ class FileSystemImageStore(ManifestBasedImageStore):
                 suffix = f"{suffix}{suffix[0:dash_index]}{int(suffix[dash_index:]) + 1}"
             return self._add_to_storage_location(image, suffix)
 
-        path = os.path.join(self.root_directory, storage_location)
+        path = os.path.join(self._root_directory, storage_location)
         if os.path.exists(path):
             raise AssertionError(f"File already exists: {path}")
         with open(path, "wb") as file:
@@ -79,6 +83,6 @@ class FileSystemImageStore(ManifestBasedImageStore):
         return storage_location
 
     def _remove_from_storage_location(self, storage_location: str):
-        path = os.path.join(self.root_directory, storage_location)
+        path = os.path.join(self._root_directory, storage_location)
         assert os.path.exists(path)
         os.remove(path)
