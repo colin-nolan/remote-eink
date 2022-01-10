@@ -22,7 +22,7 @@ def _assert_papertty_instantiated(to_wrap: Callable[_P, _T]) -> Callable[_P, _T]
     def wrapper(self, *args, **kwargs) -> _T:
         if self._papertty is None:
             raise AssertionError("PaperTTY is not instantiated")
-        return to_wrap(*args, **kwargs)
+        return to_wrap(self, *args, **kwargs)
 
     return wrapper
 
@@ -49,12 +49,12 @@ class PaperTtyDisplayDriver(BaseDisplayDriver):
 
     @_assert_papertty_instantiated
     def _clear(self):
-        self._papertty.clear()
+        self._papertty.driver.clear()
 
     @_assert_papertty_instantiated
     def _sleep(self):
         # XXX: `sleep` is not part of the `BaseDisplayDriver` superclass but it is defined on all the subclasses
-        self._papertty.sleep()
+        self._papertty.driver.sleep()
         self._papertty = None
 
     def _wake(self):
