@@ -8,7 +8,7 @@ from remote_eink.controllers.simple import SimpleDisplayController
 from remote_eink.drivers.base import DisplayDriver
 from remote_eink.images import Image
 from remote_eink.storage.image.base import ImageStore, ListenableImageStore
-from remote_eink.transformers import ImageTransformer
+from remote_eink.transformers import ImageTransformer, DEFAULT_TRANSFORMERS
 
 
 class CyclableDisplayController(SimpleDisplayController):
@@ -25,7 +25,7 @@ class CyclableDisplayController(SimpleDisplayController):
         driver: DisplayDriver,
         image_store: ImageStore,
         identifier: Optional[str] = None,
-        image_transformers: Sequence[ImageTransformer] = (),
+        image_transformers: Sequence[ImageTransformer] = DEFAULT_TRANSFORMERS,
     ):
         """
         Constructor.
@@ -99,7 +99,7 @@ class AutoCyclingDisplayController(CyclableDisplayController):
         driver: DisplayDriver,
         image_store: ImageStore,
         identifier: Optional[str] = None,
-        image_transformers: Sequence[ImageTransformer] = (),
+        image_transformers: Sequence[ImageTransformer] = DEFAULT_TRANSFORMERS,
         cycle_image_after_seconds: float = DEFAULT_SECONDS_BETWEEN_CYCLE,
     ):
         """

@@ -6,7 +6,7 @@ from remote_eink.drivers.base import ListenableDisplayDriver, DisplayDriver
 from remote_eink.events import EventListenerController
 from remote_eink.images import Image
 from remote_eink.storage.image.base import ListenableImageStore, ImageStore
-from remote_eink.transformers import ImageTransformerSequence, ImageTransformer
+from remote_eink.transformers import ImageTransformerSequence, ImageTransformer, DEFAULT_TRANSFORMERS
 from remote_eink.transformers.sequence import SimpleImageTransformerSequence
 
 
@@ -50,7 +50,7 @@ class SimpleDisplayController(ListenableDisplayController):
         driver: DisplayDriver,
         image_store: ImageStore,
         identifier: Optional[str] = None,
-        image_transformers: Sequence[ImageTransformer] = (),
+        image_transformers: Sequence[ImageTransformer] = DEFAULT_TRANSFORMERS,
     ):
         """
         Constructor.

@@ -7,6 +7,7 @@ from remote_eink.drivers.local import LocalDisplayDriver
 from remote_eink.images import DataBasedImage, ImageType
 from remote_eink.server import run
 from remote_eink.storage.image.memory import InMemoryImageStore
+from remote_eink.transformers import DEFAULT_TRANSFORMERS
 
 IMAGE_DIRECTORY = f"{os.path.dirname(__file__)}/../tests/_resources"
 
@@ -25,6 +26,7 @@ def main(port: int = 8080):
             "black",
             open(f"{IMAGE_DIRECTORY}/black.png", "rb").read(),
             ImageType.PNG,
+            rotation=90
         )
     )
     display_controller.image_store.add(

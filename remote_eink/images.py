@@ -46,6 +46,7 @@ class Image(metaclass=ABCMeta):
         """
         return self._type
 
+    # TODO: handle rotation as broader metadata
     @property
     def rotation(self) -> float:
         """
