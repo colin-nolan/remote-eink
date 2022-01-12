@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Optional
+from typing import Optional, Dict
 
 from flask import make_response
 
@@ -16,6 +16,16 @@ def search(*, imageId: str, **kwargs):
     if image is None:
         return make_response(f"Image not found: {imageId}", HTTPStatus.NOT_FOUND)
     return image.metadata, HTTPStatus.OK
+
+
+@to_target_process
+@display_id_handler
+def put(display_controller: DisplayController, imageId: str, body: Dict):
+    image = display_controller.image_store.get(imageId)
+    if image is None:
+        return make_response(f"Cannot put metadata as image does not exist: {imageId}", HTTPStatus.NOT_FOUND)
+
+    display_controller.image_store.add(image)
 
 
 @to_target_process

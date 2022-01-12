@@ -1,6 +1,6 @@
 ---
 
-openapi: 3.0.0
+openapi: 3.0.3
 info:
   version: 1.0.0
   title: Image Display Service
@@ -203,7 +203,7 @@ paths:
 
   /display/{displayId}/image/{imageId}/metadata:
     get:
-      summary: Get metadata for an image that can be displayed
+      summary: Get metadata for an image
       operationId: getDisplayImageMetadataById
       parameters:
         - $ref: "#/components/parameters/displayId"
@@ -218,9 +218,24 @@ paths:
         404:
           description: Image not found.
 
+    put:
+      summary: Updates metadata for an image
+      operationId: putDisplayImageMetadataById
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+        - $ref: "#/components/parameters/imageId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImageMetadata"
+      responses:
+        200:
+          description: Image metadata updated.
+
   /display/{displayId}/image/{imageId}/data:
     get:
-      summary: Get data for an image that can be displayed
+      summary: Get data for an image
       operationId: getDisplayImageDataById
       parameters:
         - $ref: "#/components/parameters/displayId"
@@ -234,6 +249,21 @@ paths:
                 format: binary
         404:
           description: Image not found.
+
+    put:
+      summary: Updates data for an image
+      operationId: putDisplayImageDataById
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+        - $ref: "#/components/parameters/imageId"
+      requestBody:
+        content:
+          image/*:
+            schema:
+              format: binary
+      responses:
+        200:
+          description: Image data updated.
 
   /display/{displayId}/sleep:
     get:
