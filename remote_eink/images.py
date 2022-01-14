@@ -1,8 +1,13 @@
+import hashlib
 from abc import ABCMeta, abstractmethod
 from enum import unique, Enum
-from typing import Any, Callable
+from types import MappingProxyType
+from typing import Any, Callable, Dict
+
+from typing_extensions import Self
 
 ImageDataReader = Callable[[], bytes]
+ImageMetadata = Dict[str, str | int | float | Self]
 
 
 @unique
@@ -46,33 +51,46 @@ class Image(metaclass=ABCMeta):
         """
         return self._type
 
-    # TODO: handle rotation as broader metadata
     @property
-    def rotation(self) -> float:
+    def metadata(self) -> ImageMetadata:
         """
-        The rotation of the image in degrees (clockwise).
-        :return: rotation
+        Metadata associated to the image (e.g. rotation).
+        :return: metadata
         """
-        return self._rotation
+        return self._metadata
 
-    def __init__(self, identifier: str, image_type: ImageType, *, rotation: float = 0):
+    def __init__(self, identifier: str, image_type: ImageType, *, metadata: ImageMetadata = MappingProxyType({})):
         """
         Constructor.
         :param identifier: image identifier
         :param image_type: the type of the image (e.g. PNG)
-        :param rotation: clockwise rotation of the image in degrees, relative to upright
+        :param metadata: metadata associated to the image
         """
+        if not isinstance(image_type, ImageType):
+            raise TypeError(f"image_type was of incorrect type: {type(image_type)}")
+        if metadata == MappingProxyType({}):
+            metadata = {}
         self._identifier = identifier
         self._type = image_type
-        self._rotation = rotation
+        self._metadata = metadata
 
     def __repr__(self) -> str:
-        return repr(dict(identifier=self.identifier))
+
+        return repr(
+            dict(
+                identifier=self.identifier,
+                metadata=self.metadata,
+                image_type=self.type,
+                data_md5=hashlib.md5(self.data).hexdigest(),
+            )
+        )
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Image):
             return False
         if other.identifier != self.identifier:
+            return False
+        if other.metadata != self.metadata:
             return False
         return other.data == self.data
 
@@ -89,14 +107,17 @@ class DataBasedImage(Image):
     def data(self) -> bytes:
         return self._data
 
-    def __init__(self, identifier: str, data: bytes, image_type: ImageType, *, rotation: float = 0):
+    def __init__(
+        self, identifier: str, data: bytes, image_type: ImageType, metadata: ImageMetadata = MappingProxyType({})
+    ):
         """
         Constructor.
         :param identifier: see `Image.__init__`
         :param data: image data
         :param image_type: see `Image.__init__`
+        :param metadata: see `Image.__init__`
         """
-        super().__init__(identifier, image_type, rotation=rotation)
+        super().__init__(identifier, image_type, metadata=metadata)
         self._data = data
 
 
@@ -109,12 +130,19 @@ class FunctionBasedImage(Image):
     def data(self) -> bytes:
         return self._data_reader()
 
-    def __init__(self, identifier: str, data_reader: ImageDataReader, image_type: ImageType, *, rotation: float = 0):
+    def __init__(
+        self,
+        identifier: str,
+        data_reader: ImageDataReader,
+        image_type: ImageType,
+        metadata: ImageMetadata = MappingProxyType({}),
+    ):
         """
         Constructor.
         :param identifier: see `Image.__init__`
         :param data_reader: (reusable) callable that can be used to read a copy of the image data
         :param image_type: see `Image.__init__`
+        :param metadata: see `Image.__init__`
         """
-        super().__init__(identifier, image_type, rotation=rotation)
+        super().__init__(identifier, image_type, metadata=metadata)
         self._data_reader = data_reader

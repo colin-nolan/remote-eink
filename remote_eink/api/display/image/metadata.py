@@ -7,7 +7,6 @@ from remote_eink.api.display._common import (
     display_id_handler,
     to_target_process,
 )
-from remote_eink.api.display.image._common import ImageMetadataSchema
 from remote_eink.controllers.base import DisplayController
 from remote_eink.images import Image
 
@@ -16,7 +15,7 @@ def search(*, imageId: str, **kwargs):
     image = _get_metadata(image_id=imageId, **kwargs)
     if image is None:
         return make_response(f"Image not found: {imageId}", HTTPStatus.NOT_FOUND)
-    return ImageMetadataSchema().dump(image), HTTPStatus.OK
+    return image.metadata, HTTPStatus.OK
 
 
 @to_target_process

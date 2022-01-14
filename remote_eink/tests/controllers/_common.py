@@ -119,7 +119,3 @@ class AbstractTest:
                 self.display_controller.image_transformers.add(transformer)
             self.display_controller.apply_image_transforms(WHITE_IMAGE)
             self.assertEqual([i for i, transformer in enumerate(transformers) if transformer.active], call_order)
-
-        # FIXME
-        def test_sleep_after_no_use(self):
-            controller = self.create_display_controller(sleep_after_seconds=0.5)

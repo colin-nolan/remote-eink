@@ -21,10 +21,6 @@ class TestFileSystemImageStore(AbstractTest.TestImageStore[InMemoryImageStore]):
     Tests `FileSystemImageStore`.
     """
 
-    def test_init_with_images(self):
-        image_store = self.create_image_store([WHITE_IMAGE, BLACK_IMAGE])
-        self.assertCountEqual((WHITE_IMAGE, BLACK_IMAGE), image_store.list())
-
     def setUp(self):
         self._temp_directories = []
         super().setUp()
@@ -39,6 +35,10 @@ class TestFileSystemImageStore(AbstractTest.TestImageStore[InMemoryImageStore]):
         temp_directory = tempfile.mkdtemp()
         self._temp_directories.append(temp_directory)
         return FileSystemImageStore(temp_directory, *args, **kwargs)
+
+    def test_init_with_images(self):
+        image_store = self.create_image_store([WHITE_IMAGE, BLACK_IMAGE])
+        self.assertCountEqual((WHITE_IMAGE, BLACK_IMAGE), image_store.list())
 
     def test_when_directory_not_exist(self):
         with tempfile.TemporaryDirectory() as temp_directory:

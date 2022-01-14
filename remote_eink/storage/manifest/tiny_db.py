@@ -4,7 +4,7 @@ from marshmallow import post_load, fields, Schema
 from marshmallow_enum import EnumField
 from tinydb import Query, TinyDB
 
-from remote_eink.images import ImageType
+from remote_eink.images import ImageType, ImageMetadata
 from remote_eink.storage.manifest.base import Manifest, ManifestRecord, ManifestAlreadyExistsError
 
 
@@ -14,8 +14,9 @@ class _ManifestRecordSchema(Schema):
     """
 
     identifier = fields.Str(data_key="id")
-    image_type = EnumField(ImageType, data_key="image_type")
-    storage_location = fields.Str(data_key="storage_location")
+    image_type = EnumField(ImageType)
+    metadata = fields.Dict()
+    storage_location = fields.Str()
 
     @post_load
     def make_manifest_record(self, data, **kwargs):
@@ -61,19 +62,19 @@ class TinyDbManifest(Manifest):
             records = database.all()
             return TinyDbManifest._MANIFEST_RECORD_SCHEMA.load(records, many=True)
 
-    def add(self, image_id: str, image_type: ImageType, storage_location: str):
+    def add(self, image_id: str, image_type: ImageType, image_metadata: ImageMetadata, storage_location: str):
         if self.get_by_image_id(image_id):
             raise ManifestAlreadyExistsError(image_id)
         assert storage_location is not None
-        manifest_record = ManifestRecord(image_id, image_type, storage_location)
+        manifest_record = ManifestRecord(image_id, image_type, image_metadata, storage_location)
         manifest_record_as_json = TinyDbManifest._MANIFEST_RECORD_SCHEMA.dump(manifest_record)
         with self._get_database_connection() as database:
             database.insert(manifest_record_as_json)
 
     def remove(self, image_id: str) -> bool:
         with self._get_database_connection() as database:
-            # FIXME: return type
-            return database.remove(Query().id == image_id)
+            deleted = database.remove(Query().id == image_id)
+            return len(deleted) > 0
 
     def _get_database_connection(self) -> TinyDB:
         """

@@ -182,7 +182,7 @@ class ManifestBasedImageStore(BaseImageStore, metaclass=ABCMeta):
         if self._manifest.get_by_image_id(image.identifier) is not None:
             raise ImageAlreadyExistsError(image.identifier)
         storage_location = self._add_to_storage_location(image)
-        self._manifest.add(image.identifier, image.type, storage_location)
+        self._manifest.add(image.identifier, image.type, image.metadata, storage_location)
 
     def _remove(self, image_id: str) -> bool:
         manifest_record = self._manifest.get_by_image_id(image_id)
@@ -199,7 +199,9 @@ class ManifestBasedImageStore(BaseImageStore, metaclass=ABCMeta):
         :return: the image
         """
         image_reader = self._get_image_reader(manifest_record.storage_location)
-        return FunctionBasedImage(manifest_record.identifier, image_reader, manifest_record.image_type)
+        return FunctionBasedImage(
+            manifest_record.identifier, image_reader, manifest_record.image_type, manifest_record.metadata
+        )
 
 
 class ListenableImageStore(ImageStore):

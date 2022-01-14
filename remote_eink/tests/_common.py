@@ -22,6 +22,7 @@ from remote_eink.transformers.simple import SimpleImageTransformer
 def create_image(**kwargs) -> Image:
     """
     Creates image for testing.
+    :param kwargs: keyword arguments to pass to `FunctionBasedImage.__init__`
     :return: created image
     """
     if "image_type" not in kwargs:

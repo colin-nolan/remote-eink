@@ -1,8 +1,8 @@
 from abc import ABCMeta, abstractmethod
-from dataclasses import dataclass
-from typing import List, Optional
+from dataclasses import dataclass, field
+from typing import List, Optional, Dict
 
-from remote_eink.images import ImageType
+from remote_eink.images import ImageType, ImageMetadata
 
 
 class ManifestAlreadyExistsError(ValueError):
@@ -22,6 +22,7 @@ class ManifestRecord:
 
     identifier: str
     image_type: ImageType
+    metadata: ImageMetadata
     storage_location: str
 
     def __hash__(self) -> int:
@@ -56,12 +57,14 @@ class Manifest(metaclass=ABCMeta):
         :return: all records
         """
 
+    # TODO: image_type is piece of image_metadata?
     @abstractmethod
-    def add(self, image_id: str, image_type: ImageType, storage_location: str):
+    def add(self, image_id: str, image_type: ImageType, image_metadata: ImageMetadata, storage_location: str):
         """
         Adds manifest for the image with the given ID, given type that is stored in the given location.
         :param image_id: ID of the image
         :param image_type: type of the image
+        :param image_metadata: metadata associated to the image
         :param storage_location: where the image is stored
         """
 

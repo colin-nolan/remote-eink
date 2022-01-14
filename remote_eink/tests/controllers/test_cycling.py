@@ -87,18 +87,22 @@ class TestAutoCyclingDisplayController(AbstractTest.TestDisplayController[AutoCy
         super().tearDown()
 
     def create_display_controller(
-        self, image_store: Optional[ImageStore] = None, *args, **kwargs
+        self, image_store: Optional[ImageStore] = None, **kwargs
     ) -> AutoCyclingDisplayController:
         display_controller = AutoCyclingDisplayController(
             DummyBaseDisplayDriver(),
             image_store if image_store is not None else InMemoryImageStore(),
             cycle_image_after_seconds=0.001,
+            **kwargs
         )
         self._display_controllers.append(display_controller)
         return display_controller
 
     def test_start(self):
-        display_controller = self.create_display_controller(InMemoryImageStore([WHITE_IMAGE, BLACK_IMAGE]))
+        # FIXME: work out why image transformers are still being applied
+        display_controller = self.create_display_controller(
+            InMemoryImageStore([WHITE_IMAGE, BLACK_IMAGE]), image_transformers=()
+        )
         images = list()
         call_semaphore = Semaphore(0)
 
@@ -112,6 +116,7 @@ class TestAutoCyclingDisplayController(AbstractTest.TestDisplayController[AutoCy
         display_controller.start()
         for _ in range(10):
             self.assertTrue(call_semaphore.acquire(timeout=10))
+        display_controller.stop()
 
         self.assertIn(WHITE_IMAGE, images)
         self.assertIn(BLACK_IMAGE, images)

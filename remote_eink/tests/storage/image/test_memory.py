@@ -10,12 +10,12 @@ class TestInMemoryImageStore(AbstractTest.TestImageStore[InMemoryImageStore]):
     Tests `InMemoryImageStore`.
     """
 
+    def create_image_store(self, *args, **kwargs) -> InMemoryImageStore:
+        return InMemoryImageStore(*args, **kwargs)
+
     def test_init_with_images(self):
         image_store = self.create_image_store([WHITE_IMAGE, BLACK_IMAGE])
         self.assertCountEqual((WHITE_IMAGE, BLACK_IMAGE), image_store.list())
-
-    def create_image_store(self, *args, **kwargs) -> InMemoryImageStore:
-        return InMemoryImageStore(*args, **kwargs)
 
 
 if __name__ == "__main__":

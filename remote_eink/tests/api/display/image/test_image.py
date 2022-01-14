@@ -32,7 +32,9 @@ class TestDisplayImage(BaseTestDisplayImage):
         )
         self.assertEqual(HTTPStatus.CREATED, result.status_code, result)
         image_identifier = result.json
-        expected_image = FunctionBasedImage(image_identifier, lambda: self.image.data, self.image.type)
+        expected_image = FunctionBasedImage(
+            image_identifier, lambda: self.image.data, self.image.type, self.image.metadata
+        )
         self.assertEqual(expected_image, self.display_controller.image_store.get(image_identifier))
 
     def test_post_to_specific_id(self):
