@@ -4,10 +4,9 @@ from enum import unique, Enum
 from types import MappingProxyType
 from typing import Any, Callable, Dict
 
-from typing_extensions import Self
-
 ImageDataReader = Callable[[], bytes]
-ImageMetadata = Dict[str, str | int | float | Self]
+# XXX: ideally want to limit Dict to "Self"
+ImageMetadata = Dict[str, str | int | float | Dict]
 
 
 @unique
