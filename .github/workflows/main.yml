@@ -20,6 +20,9 @@ jobs:
       - name: Build tester
         run: cicd/jobs/setup/build-tester.sh
 
+      - name: Run Python style checks
+        run: cicd/jobs/test/run-python-style-check.sh
+
       - name: Run Python tests
         run: cicd/jobs/test/run-python-tests.sh
 

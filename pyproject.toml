@@ -36,6 +36,7 @@ papertty = { git = "https://github.com/colin-nolan/PaperTTY.git", tag = "0.1.8",
 Flask-Testing = "^0.8.1"
 get-port = "^0.0.5"     # Cannot be made optional on `webserver` extra: https://github.com/python-poetry/poetry/issues/129
 requests-toolbelt = "^0.9.1"
+black = "^21.12b0"
 
 [tool.poetry.extras]
 webserver = ["cheroot", "requests"]

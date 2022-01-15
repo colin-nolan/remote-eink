@@ -5,9 +5,9 @@ set -euf -o pipefail
 : "${CODECOV_TOKEN:?}"
 
 script_directory="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null 2>&1 && pwd)"
-src_directory="${script_directory}/../.."
+repository_root_directory="$(cd "${script_directory}" && git rev-parse --show-toplevel)"
 
-pushd "${src_directory}" > /dev/null
+pushd "${repository_root_directory}" > /dev/null
 
 coverage xml
 codecov

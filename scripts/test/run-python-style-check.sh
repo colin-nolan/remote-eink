@@ -7,8 +7,6 @@ repository_root_directory="$(cd "${script_directory}" && git rev-parse --show-to
 
 pushd "${repository_root_directory}" > /dev/null
 
-PYTHONPATH=. coverage run -m unittest discover -v -s remote_eink/tests
-coverage combine -a
-coverage report
+black .
 
 popd > /dev/null
