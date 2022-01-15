@@ -1,6 +1,5 @@
 import hashlib
 import os
-import shutil
 from typing import Iterable, Optional
 
 from remote_eink.images import Image, ImageDataReader
@@ -53,7 +52,8 @@ class FileSystemImageStore(ManifestBasedImageStore):
 
     def _get_image_reader(self, storage_location: str) -> ImageDataReader:
         path = os.path.join(self._root_directory, storage_location)
-        assert os.path.exists(path)
+        if not os.path.exists(path):
+            raise AssertionError(f"Expected image to exist at location: {path}")
 
         # Not using lambda as observing file not closed warnings
         def reader() -> bytes:

@@ -10,9 +10,8 @@ from remote_eink.api.display._common import (
     ImageSchema,
     to_target_process,
 )
-from remote_eink.api.display.image._common import ImageMetadataSchema
 from remote_eink.controllers.base import DisplayController
-from remote_eink.images import FunctionBasedImage
+from remote_eink.images import FunctionBasedImage, ImageMetadata
 from remote_eink.storage.image.base import ImageAlreadyExistsError
 
 
@@ -40,7 +39,7 @@ def put(*args, **kwargs):
         )
 
     content_type = kwargs["data"].content_type
-    image_metadata = ImageMetadataSchema().dump(kwargs["body"]["metadata"])
+    image_metadata = kwargs["body"]["metadata"]
     image_data = data.stream.read()
 
     # Removing as we've extracted what we wanted from these (keeping them does not help with multiprocessor
@@ -48,7 +47,7 @@ def put(*args, **kwargs):
     del kwargs["body"]
     del kwargs["data"]
 
-    return _put(*args, **kwargs, data=image_data, content_type=content_type, rotation=image_metadata["rotation"])
+    return _put(*args, **kwargs, data=image_data, content_type=content_type, metadata=image_metadata)
 
 
 def post(*args, **kwargs):
@@ -62,7 +61,7 @@ def _put(
     content_type: str,
     imageId: str,
     data: bytes,
-    rotation: float = 0,
+    metadata: ImageMetadata,
     *,
     overwrite: bool = True,
 ):
@@ -76,7 +75,7 @@ def _put(
             HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
         )
 
-    image = FunctionBasedImage(imageId, lambda: data, image_type, rotation=rotation)
+    image = FunctionBasedImage(imageId, lambda: data, image_type, metadata)
     updated = False
     # FIXME: lock over both of these is required!
     if overwrite:

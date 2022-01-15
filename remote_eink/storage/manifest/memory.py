@@ -1,6 +1,6 @@
 from typing import Dict, Optional, List
 
-from remote_eink.images import ImageType
+from remote_eink.images import ImageType, ImageMetadata
 from remote_eink.storage.manifest.base import Manifest, ManifestRecord, ManifestAlreadyExistsError
 
 
@@ -33,10 +33,10 @@ class InMemoryManifest(Manifest):
     def list(self) -> List[ManifestRecord]:
         return list(self._manifest_records.values())
 
-    def add(self, image_id: str, image_type: ImageType, storage_location: str):
+    def add(self, image_id: str, image_type: ImageType, image_metadata: ImageMetadata, storage_location: str):
         if image_id in self._manifest_records:
             raise ManifestAlreadyExistsError(image_id)
-        self._manifest_records[image_id] = ManifestRecord(image_id, image_type, storage_location)
+        self._manifest_records[image_id] = ManifestRecord(image_id, image_type, image_metadata, storage_location)
 
     def remove(self, image_id: str) -> bool:
         try:

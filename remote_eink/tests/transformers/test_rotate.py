@@ -16,6 +16,7 @@ try:
         RotateImageTransformer,
         RotateConfigurationParameter,
         ImageRotationAwareRotateImageTransformer,
+        ROTATION_METADATA_KEY,
     )
     from PIL import Image as PilImage
 
@@ -159,7 +160,12 @@ class TestImageRotationAwareRotateImageTransformer(BaseTest[ImageRotationAwareRo
 
     def test_rotate(self):
         self.image_transformer.angle = 45
-        image = FunctionBasedImage(WHITE_IMAGE.identifier, lambda: WHITE_IMAGE.data, WHITE_IMAGE.type, rotation=45)
+        image = FunctionBasedImage(
+            WHITE_IMAGE.identifier,
+            lambda: WHITE_IMAGE.data,
+            WHITE_IMAGE.type,
+            {**WHITE_IMAGE.metadata, ROTATION_METADATA_KEY: 45},
+        )
         rotated_image = self.image_transformer.transform(image)
         expected_size = _calculate_new_size(_get_size(image), 45 + 45)
         self.assertEqual(expected_size, _get_size(rotated_image))

@@ -18,8 +18,9 @@ class TestDisplayImageMetadata(BaseTestDisplayImage):
                 display_controller.image_store.add(image)
                 result = self.client.get(f"/display/{display_controller.identifier}/image/{image.identifier}/metadata")
                 self.assertEqual(HTTPStatus.OK, result.status_code)
+                # TODO: below assertion?
                 # self.assertEqual(ImageTypeToMimeType[image_type], result)
-                self.assertEqual(display_controller.image_store.get(image.identifier).rotation, result.json["rotation"])
+                self.assertEqual(display_controller.image_store.get(image.identifier).metadata, result.json)
 
     def test_get_when_does_not_exist(self):
         controller = self.create_display_controller()

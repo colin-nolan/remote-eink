@@ -14,6 +14,8 @@ except ImportError:
     _logger.error('"image-tools" extra not installed')
     raise
 
+ROTATION_METADATA_KEY = "rotation"
+
 
 @unique
 class RotateConfigurationParameter(Enum):
@@ -115,8 +117,10 @@ class ImageRotationAwareRotateImageTransformer(RotateImageTransformer):
         )
 
     def _transform(self, image: Image) -> Image:
+        image_rotation = image.metadata.get(ROTATION_METADATA_KEY, 0)
         return FunctionBasedImage(
             image.identifier,
-            lambda: RotateImageTransformer.rotate(image, self.angle + image.rotation, self.expand, self.fill_color),
+            lambda: RotateImageTransformer.rotate(image, self.angle + image_rotation, self.expand, self.fill_color),
             image.type,
+            image.metadata,
         )
