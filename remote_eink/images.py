@@ -75,7 +75,6 @@ class Image(metaclass=ABCMeta):
         self._metadata = metadata
 
     def __repr__(self) -> str:
-
         return repr(
             dict(
                 identifier=self.identifier,
@@ -91,6 +90,8 @@ class Image(metaclass=ABCMeta):
         if other.identifier != self.identifier:
             return False
         if other.metadata != self.metadata:
+            return False
+        if other.type != self.type:
             return False
         return other.data == self.data
 
