@@ -1,5 +1,8 @@
+import json
 from http import HTTPStatus
+from io import BytesIO
 
+from remote_eink.api.display._common import ImageTypeToMimeType
 from remote_eink.images import FunctionBasedImage
 from remote_eink.tests._common import create_image, set_content_type_header
 from remote_eink.tests.api.display.image._common import BaseTestDisplayImage, create_image_upload_content
@@ -29,6 +32,21 @@ class TestDisplayImage(BaseTestDisplayImage):
         result = self.client.post(
             f"/display/{self.display_controller.identifier}/image",
             data=create_image_upload_content(self.image),
+        )
+        self.assertEqual(HTTPStatus.CREATED, result.status_code, result)
+        image_identifier = result.json
+        expected_image = FunctionBasedImage(
+            image_identifier, lambda: self.image.data, self.image.type, self.image.metadata
+        )
+        self.assertEqual(expected_image, self.display_controller.image_store.get(image_identifier))
+
+    def test_post_with_unspecific_image_content_type(self):
+        result = self.client.post(
+            f"/display/{self.display_controller.identifier}/image",
+            data={
+                "metadata": (BytesIO(str.encode(json.dumps(self.image.metadata))), None, "application/json"),
+                "data": (BytesIO(self.image.data), "blob", "application/octet-stream"),
+            },
         )
         self.assertEqual(HTTPStatus.CREATED, result.status_code, result)
         image_identifier = result.json

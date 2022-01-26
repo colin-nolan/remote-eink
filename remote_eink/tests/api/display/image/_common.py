@@ -1,5 +1,6 @@
 import json
 from io import BytesIO
+from typing import Dict, Tuple, Optional
 
 from remote_eink.api.display._common import ImageTypeToMimeType
 from remote_eink.images import Image
@@ -13,7 +14,7 @@ class BaseTestDisplayImage(AppTestBase):
         self.image = create_image(metadata={ROTATION_METADATA_KEY: 90})
 
 
-def create_image_upload_content(image: Image):
+def create_image_upload_content(image: Image) -> Dict[str, Tuple[BytesIO, Optional[str], str]]:
     return {
         "metadata": (BytesIO(str.encode(json.dumps(image.metadata))), None, "application/json"),
         "data": (BytesIO(image.data), "blob", ImageTypeToMimeType[image.type]),

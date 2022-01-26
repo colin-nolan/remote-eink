@@ -26,7 +26,7 @@ def create_image(**kwargs) -> Image:
     :return: created image
     """
     if "image_type" not in kwargs:
-        kwargs["image_type"] = random.choice(list(ImageType))
+        kwargs["image_type"] = WHITE_IMAGE.type
     identifier = str(uuid4())
     return FunctionBasedImage(identifier, lambda: WHITE_IMAGE.data, **kwargs)
 
