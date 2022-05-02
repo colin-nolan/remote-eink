@@ -15,7 +15,7 @@ from remote_eink.tests.storage._common import WHITE_IMAGE, BLACK_IMAGE
 
 class TestCyclableDisplayController(AbstractTest.TestDisplayController[CyclableDisplayController]):
     """
-    Test for `CyclableDisplayController`.
+    Tests for `CyclableDisplayController`.
     """
 
     def create_display_controller(

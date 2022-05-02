@@ -3,7 +3,10 @@ from remote_eink.transformers.sequence import SimpleImageTransformerSequence, Im
 from remote_eink.transformers.rotate import (
     RotateConfigurationParameter,
     RotateImageTransformer,
-    ImageRotationAwareRotateImageTransformer,
+    ImageRotationAwareRotateImageTransformer, ROTATION_IMAGE_TRANSFORMER_AVAILABLE,
 )
 
-DEFAULT_TRANSFORMERS = (ImageRotationAwareRotateImageTransformer(),)
+_transformers = []
+if ROTATION_IMAGE_TRANSFORMER_AVAILABLE:
+    _transformers.append(ImageRotationAwareRotateImageTransformer())
+DEFAULT_TRANSFORMERS = tuple(_transformers)
