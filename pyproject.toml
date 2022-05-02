@@ -27,7 +27,7 @@ tinydb = "^4.5.2"
 cheroot = { version = "^8.5.2", optional = true }
 requests = { version = "^2.26.0", optional = true }
 # Optional image manipulation
-Pillow = { version = "^9.1.1", optional = true }
+Pillow = "^9.1.1"
 # Optional PaperTTY e-ink controller
 #papertty = { version = "^0.1.7", optional = true }
 papertty = { git = "https://github.com/colin-nolan/PaperTTY.git", tag = "0.1.8", optional = true }  # Has updated dependencies to upstream
@@ -39,9 +39,7 @@ get-port = "^0.0.5"     # Cannot be made optional on `webserver` extra: https://
 requests-toolbelt = "^0.9.1"
 
 [tool.poetry.extras]
-image-tools = ["Pillow"]
-localdisplay = ["Pillow"]
-papertty = ["papertty", "Pillow"]
+papertty = ["papertty"]
 webserver = ["cheroot", "requests"]
 
 [build-system]

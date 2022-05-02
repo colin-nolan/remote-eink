@@ -10,7 +10,7 @@ from remote_eink.api.display._common import (
     ImageSchema,
     to_target_process,
 )
-from remote_eink.api.display.image._common import ImageMetadataSchema, put_image
+from remote_eink.api.display.image._common import put_image
 from remote_eink.controllers.base import DisplayController
 
 try:
@@ -53,7 +53,11 @@ def put(*args, **kwargs):
     del kwargs["body"]
     del kwargs["data"]
 
-    return put_image(*args, **kwargs, data=image_data, content_type=content_type, rotation=image_metadata["rotation"])
+    extras = {}
+    if "rotation" in image_metadata:
+        extras["rotation"] = image_metadata["rotation"]
+
+    return put_image(*args, **kwargs, data=image_data, content_type=content_type, **extras)
 
 
 def post(*args, **kwargs):

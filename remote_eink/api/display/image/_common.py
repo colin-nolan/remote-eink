@@ -14,7 +14,7 @@ _T = TypeVar("_T")
 
 
 class ImageMetadataSchema(Schema):
-    rotation = fields.Float(data_key="rotation", default=0)
+    rotation = fields.Float(data_key="rotation", dump_default=0)
 
 
 # def image_id_handler(to_wrap: Callable[..., _T]) -> Callable[..., _T]:
@@ -47,7 +47,7 @@ def put_image(
             HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
         )
 
-    image = FunctionBasedImage(imageId, lambda: data, image_type, rotation=rotation)
+    image = FunctionBasedImage(imageId, lambda: data, image_type, metadata=dict(rotation=rotation))
     updated = False
     # FIXME: lock over both of these is required!
     if overwrite:
@@ -58,4 +58,3 @@ def put_image(
         return f"Image with same ID already exists: {imageId}", HTTPStatus.CONFLICT
 
     return imageId, HTTPStatus.CREATED if not updated else HTTPStatus.OK
-
