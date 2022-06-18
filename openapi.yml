@@ -113,7 +113,7 @@ paths:
               $ref: "#/components/schemas/ResourceId"
       responses:
         200:
-          description: Set device's sleep status as instructed.
+          description: Current image set.
 
     delete:
       summary: Clear display of the current image
