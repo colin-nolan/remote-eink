@@ -715,15 +715,17 @@ test = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 
 [extras]
-image-tools = ["Pillow"]
-localdisplay = ["Pillow"]
-papertty = ["papertty", "Pillow"]
+papertty = ["papertty"]
 webserver = ["cheroot", "requests"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
+<<<<<<< HEAD
 content-hash = "b797d32d83abdc640d7d1c385295911ff923750df85f60a5de7f9604f33a8a87"
+=======
+content-hash = "af9c22645ef8442cf9bed92cb81793197e304b431b5efc3a479a867a67b94474"
+>>>>>>> Fixing post rebase.
 
 [metadata.files]
 apscheduler = [

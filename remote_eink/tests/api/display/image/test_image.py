@@ -48,12 +48,7 @@ class TestDisplayImage(BaseTestDisplayImage):
                 "data": (BytesIO(self.image.data), "blob", "application/octet-stream"),
             },
         )
-        self.assertEqual(HTTPStatus.CREATED, result.status_code, result)
-        image_identifier = result.json
-        expected_image = FunctionBasedImage(
-            image_identifier, lambda: self.image.data, self.image.type, self.image.metadata
-        )
-        self.assertEqual(expected_image, self.display_controller.image_store.get(image_identifier))
+        self.assertEqual(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, result.status_code, result)
 
     def test_post_to_specific_id(self):
         result = self.client.post(

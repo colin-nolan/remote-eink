@@ -8,14 +8,8 @@ from remote_eink.transformers.base import ImageTypeToPillowFormat, InvalidConfig
 
 _logger = logging.getLogger(__name__)
 
-try:
-    from PIL import Image as PilImage
+from PIL import Image as PilImage
 
-    ROTATION_IMAGE_TRANSFORMER_AVAILABLE = True
-except ImportError:
-    _logger.info('"image-tools" extra not installed')
-    ROTATION_IMAGE_TRANSFORMER_AVAILABLE = False
-    # TODO: handle `ROTATION_IMAGE_TRANSFORMER_AVAILABLE == False`
 
 ROTATION_METADATA_KEY = "rotation"
 

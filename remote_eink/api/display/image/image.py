@@ -5,15 +5,13 @@ from uuid import uuid4
 from flask import request
 
 from remote_eink.api.display._common import (
-    ImageTypeToMimeType,
     CONTENT_TYPE_HEADER,
     display_id_handler,
     ImageSchema,
     to_target_process,
 )
+from remote_eink.api.display.image._common import put_image
 from remote_eink.controllers.base import DisplayController
-from remote_eink.images import FunctionBasedImage, ImageMetadata
-from remote_eink.storage.image.base import ImageAlreadyExistsError
 
 try:
     from PIL import Image, UnidentifiedImageError
@@ -55,50 +53,15 @@ def put(*args, **kwargs):
     del kwargs["body"]
     del kwargs["data"]
 
-    return _put(*args, **kwargs, data=image_data, content_type=content_type, metadata=image_metadata)
+    extras = {}
+    if "rotation" in image_metadata:
+        extras["rotation"] = image_metadata["rotation"]
+
+    return put_image(*args, **kwargs, data=image_data, content_type=content_type, **extras)
 
 
 def post(*args, **kwargs):
     return put(*args, **kwargs, imageId=str(uuid4()), overwrite=False)
-
-
-@to_target_process
-@display_id_handler
-def _put(
-    display_controller: DisplayController,
-    content_type: str,
-    imageId: str,
-    data: bytes,
-    metadata: ImageMetadata,
-    *,
-    overwrite: bool = True,
-):
-    # TODO: are we always going to have image tools?
-    if content_type.lower() == "application/octet-stream" and _HAS_IMAGE_TOOLS:
-        # Attempt to identify image type automatically
-        try:
-            content_type = Image.MIME[Image.open(io.BytesIO(data)).format]
-        except UnidentifiedImageError:
-            pass
-
-    image_type = ImageTypeToMimeType.inverse.get(content_type)
-    if image_type is None:
-        return (
-            f"Unsupported image format: {image_type} (based on content type: {content_type})",
-            HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
-        )
-
-    image = FunctionBasedImage(imageId, lambda: data, image_type, metadata)
-    updated = False
-    # FIXME: lock over both of these is required!
-    if overwrite:
-        updated = display_controller.image_store.remove(image.identifier)
-    try:
-        display_controller.image_store.add(image)
-    except ImageAlreadyExistsError:
-        return f"Image with same ID already exists: {imageId}", HTTPStatus.CONFLICT
-
-    return imageId, HTTPStatus.CREATED if not updated else HTTPStatus.OK
 
 
 @to_target_process
