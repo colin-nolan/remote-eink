@@ -7,7 +7,8 @@ from flask import make_response, send_file, request
 from remote_eink.api.display._common import (
     ImageTypeToMimeType,
     display_id_handler,
-    to_target_process, CONTENT_TYPE_HEADER,
+    to_target_process,
+    CONTENT_TYPE_HEADER,
 )
 from remote_eink.controllers.base import DisplayController
 
