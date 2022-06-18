@@ -27,7 +27,7 @@ paths:
   /display/{displayId}:
     get:
       summary: Get a display
-      operationId: getDisplayById
+      operationId: getDisplay
       parameters:
         - $ref: "#/components/parameters/displayId"
       responses:
@@ -215,7 +215,7 @@ paths:
 
     delete:
       summary: Delete an image from the device
-      operationId: deleteDisplayImageById
+      operationId: deleteDisplayImage
       parameters:
         - $ref: "#/components/parameters/displayId"
         - $ref: "#/components/parameters/imageId"
@@ -226,7 +226,7 @@ paths:
   /display/{displayId}/image/{imageId}/metadata:
     get:
       summary: Get metadata for an image
-      operationId: getDisplayImageMetadataById
+      operationId: getDisplayImageMetadata
       parameters:
         - $ref: "#/components/parameters/displayId"
         - $ref: "#/components/parameters/imageId"
@@ -242,7 +242,7 @@ paths:
 
     put:
       summary: Updates metadata for an image
-      operationId: putDisplayImageMetadataById
+      operationId: putDisplayImageMetadata
       parameters:
         - $ref: "#/components/parameters/displayId"
         - $ref: "#/components/parameters/imageId"
@@ -258,7 +258,7 @@ paths:
   /display/{displayId}/image/{imageId}/data:
     get:
       summary: Get data for an image
-      operationId: getDisplayImageDataById
+      operationId: getDisplayImageData
       parameters:
         - $ref: "#/components/parameters/displayId"
         - $ref: "#/components/parameters/imageId"
@@ -274,7 +274,7 @@ paths:
 
     put:
       summary: Updates data for an image
-      operationId: putDisplayImageDataById
+      operationId: putDisplayImageData
       parameters:
         - $ref: "#/components/parameters/displayId"
         - $ref: "#/components/parameters/imageId"
