@@ -1,15 +1,19 @@
+import json
 from http import HTTPStatus
+from io import BytesIO
 from uuid import uuid4
 
-from flask import request
+from flask import request, Response
+from requests_toolbelt import MultipartEncoder
 
 from remote_eink.api.display._common import (
     CONTENT_TYPE_HEADER,
     display_id_handler,
     ImageSchema,
     to_target_process,
+    ImageTypeToMimeTypes,
 )
-from remote_eink.api.display.image._common import put_image
+from remote_eink.api.display.image._common import put_image, get_image
 from remote_eink.controllers.base import DisplayController
 
 
@@ -18,6 +22,21 @@ from remote_eink.controllers.base import DisplayController
 def search(display_controller: DisplayController):
     images = display_controller.image_store.list()
     return ImageSchema(only=["identifier"]).dump(images, many=True), HTTPStatus.OK
+
+
+def get(displayId: str, imageId: str):
+    image = get_image(image_id=imageId, displayId=displayId)
+    if not image:
+        return f"Image not found: {imageId}", HTTPStatus.NOT_FOUND
+
+    multipart_content = MultipartEncoder(
+        fields={
+            "metadata": (None, json.dumps(image.metadata), "application/json"),
+            "data": (None, BytesIO(image.data), ImageTypeToMimeTypes[image.type][0]),
+        }
+    )
+
+    return Response(multipart_content.to_string(), mimetype=multipart_content.content_type)
 
 
 def put(*args, **kwargs):

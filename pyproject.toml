@@ -20,26 +20,26 @@ flask-cors = "^3.0.8"
 marshmallow = "^3.14.1"
 marshmallow_enum = "^1.5.1"
 multiprocessing_on_dill = "^3.5.0a4"
+Pillow = "^9.1.1"
 python = "^3.10"
+requests-toolbelt = "^0.9.1"
 tinydb = "^4.5.2"
 # Optional production web-server
 cheroot = { version = "^8.5.2", optional = true }
 requests = { version = "^2.26.0", optional = true }
-# Optional image manipulation
-Pillow = "^9.1.1"
 # Optional PaperTTY e-ink controller
 #papertty = { version = "^0.1.7", optional = true }
 papertty = { git = "https://github.com/colin-nolan/PaperTTY.git", tag = "0.1.8", optional = true }  # Has updated dependencies to upstream
+
+[tool.poetry.extras]
+papertty = ["papertty"]
+webserver = ["cheroot", "requests"]
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
 Flask-Testing = "^0.8.1"
 get-port = "^0.0.5"     # Cannot be made optional on `webserver` extra: https://github.com/python-poetry/poetry/issues/129
 requests-toolbelt = "^0.9.1"
-
-[tool.poetry.extras]
-papertty = ["papertty"]
-webserver = ["cheroot", "requests"]
 
 [build-system]
 requires = ["poetry>=1"]

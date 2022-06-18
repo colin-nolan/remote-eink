@@ -168,6 +168,28 @@ paths:
                   $ref: "#/components/schemas/ResourceId"
 
   /display/{displayId}/image/{imageId}:
+    get:
+      summary: Gets an image on the device
+      operationId: getDisplayImage
+      parameters:
+        - $ref: "#/components/parameters/displayId"
+        - $ref: "#/components/parameters/imageId"
+      responses:
+        200:
+          description: Image found.
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                $ref: "#/components/schemas/Image"
+              encoding:
+                metadata:
+                  contentType: application/json
+                data:
+                  contentType: image/*
+        404:
+          description: Image not found.
+
     put:
       summary: Updates an image on the device
       operationId: putDisplayImage
@@ -210,13 +232,13 @@ paths:
         - $ref: "#/components/parameters/imageId"
       responses:
         200:
-          description: Image metadata retrived
+          description: Image metadata retrieved
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ImageMetadata"
         404:
-          description: Image not found.
+          description: Image to get metadata for not found.
 
     put:
       summary: Updates metadata for an image
@@ -248,7 +270,7 @@ paths:
               schema:
                 format: binary
         404:
-          description: Image not found.
+          description: Image to get data of not found.
 
     put:
       summary: Updates data for an image

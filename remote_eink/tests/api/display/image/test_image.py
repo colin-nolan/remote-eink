@@ -2,10 +2,15 @@ import json
 from http import HTTPStatus
 from io import BytesIO
 
+from requests_toolbelt import MultipartDecoder
+from requests_toolbelt.multipart import decoder
+from requests_toolbelt.multipart.decoder import BodyPart
+
 from remote_eink.api.display._common import ImageTypeToMimeTypes
 from remote_eink.images import FunctionBasedImage, ImageType
 from remote_eink.tests._common import create_image, set_content_type_header
 from remote_eink.tests.api.display.image._common import BaseTestDisplayImage, create_image_upload_content
+from remote_eink.transformers.rotate import ROTATION_METADATA_KEY
 
 
 class TestDisplayImage(BaseTestDisplayImage):
@@ -25,6 +30,28 @@ class TestDisplayImage(BaseTestDisplayImage):
 
     def test_list_when_display_does_not_exist(self):
         result = self.client.get(f"/display/does-not-exist/image")
+        self.assertEqual(HTTPStatus.NOT_FOUND, result.status_code)
+
+    def test_get(self):
+        metadata = {ROTATION_METADATA_KEY: 42}
+        image = create_image(metadata=metadata)
+        self.display_controller.image_store.add(image)
+        result = self.client.get(f"/display/{self.display_controller.identifier}/image/{image.identifier}")
+        self.assertEqual(HTTPStatus.OK, result.status_code)
+
+        multipart_data = MultipartDecoder(result.data, result.content_type)
+        metadata_part = tuple(
+            filter(lambda part: b'name="metadata"' in part.headers[b"Content-Disposition"], multipart_data.parts)
+        )[0]
+        data_part = tuple(
+            filter(lambda part: b'name="data"' in part.headers[b"Content-Disposition"], multipart_data.parts)
+        )[0]
+
+        self.assertEqual(metadata, json.loads(metadata_part.text))
+        self.assertEqual(image.data, data_part.content)
+
+    def test_get_when_does_not_exist(self):
+        result = self.client.get(f"/display/{self.display_controller.identifier}/image/does-not-exist")
         self.assertEqual(HTTPStatus.NOT_FOUND, result.status_code)
 
     def test_post(self):

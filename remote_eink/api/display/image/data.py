@@ -21,8 +21,6 @@ def search(displayId: str, imageId: str, *args, **kwargs):
     return send_file(*result)
 
 
-# @to_target_process
-# @display_id_handler
 def put(body: bytes, **kwargs):
     kwargs["content_type"] = request.headers.get(CONTENT_TYPE_HEADER)
     pass

@@ -1,14 +1,15 @@
 import io
 from http import HTTPStatus
-from typing import TypeVar
+from typing import TypeVar, Optional
 
-from PIL import Image, UnidentifiedImageError
+from PIL import UnidentifiedImageError
+from PIL import Image as PilImage
 from marshmallow import Schema, fields
 
 from remote_eink.api.display import to_target_process, display_id_handler
 from remote_eink.api.display._common import CONTENT_TYPE_HEADER, MimeTypeToImageType
 from remote_eink.controllers.base import DisplayController
-from remote_eink.images import FunctionBasedImage
+from remote_eink.images import FunctionBasedImage, Image
 from remote_eink.storage.image.base import ImageAlreadyExistsError
 
 _T = TypeVar("_T")
@@ -16,15 +17,6 @@ _T = TypeVar("_T")
 
 class ImageMetadataSchema(Schema):
     rotation = fields.Float(data_key="rotation", dump_default=0)
-
-
-# def image_id_handler(to_wrap: Callable[..., _T]) -> Callable[..., _T]:
-#     def wrapped(app_id: str, *args, **kwargs) -> _T:
-#         app_data = apps_data[app_id]
-#         kwargs["image_id"] = app_data.display_controllers
-#         return to_wrap(*args, **kwargs)
-#
-#     return wrapped
 
 
 @to_target_process
@@ -49,7 +41,7 @@ def put_image(
         )
 
     try:
-        Image.open(io.BytesIO(data))
+        PilImage.open(io.BytesIO(data))
     except UnidentifiedImageError:
         return "Invalid image file data", HTTPStatus.UNSUPPORTED_MEDIA_TYPE
 
@@ -64,3 +56,9 @@ def put_image(
         return f"Image with same ID already exists: {imageId}", HTTPStatus.CONFLICT
 
     return imageId, HTTPStatus.CREATED if not updated else HTTPStatus.OK
+
+
+@to_target_process
+@display_id_handler
+def get_image(display_controller: DisplayController, image_id: str) -> Optional[Image]:
+    return display_controller.image_store.get(image_id)

@@ -532,7 +532,7 @@ use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
 name = "requests-toolbelt"
 version = "0.9.1"
 description = "A utility belt for advanced users of python-requests"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -720,7 +720,7 @@ webserver = ["cheroot", "requests"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "df840f743f1f073aa986c471bcfe9c39b56aa53718feb8663415bb378e87c723"
+content-hash = "e27ae8d18f9eafd560c93aa75390f4c4c36d57afdb36b86ed35c0f35727b6221"
 
 [metadata.files]
 apscheduler = [
