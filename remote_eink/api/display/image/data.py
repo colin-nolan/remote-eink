@@ -16,7 +16,7 @@ from remote_eink.controllers.base import DisplayController
 def search(displayId: str, imageId: str, *args, **kwargs):
     result = _get_data(displayId, imageId, *args, **kwargs)
     if result is None:
-        # `make_response` must be ran in the thread handling the response
+        # `make_response` must be run in the thread handling the response
         return make_response(f"Image not found: {imageId}", HTTPStatus.NOT_FOUND)
     return send_file(*result)
 

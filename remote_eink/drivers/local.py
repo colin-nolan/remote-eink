@@ -7,16 +7,12 @@ from multiprocessing.connection import Pipe, Connection
 from threading import Thread, RLock
 
 import math
+from PIL import ImageTk, Image
 
 from remote_eink.drivers.base import BaseDisplayDriver
 
 logger = logging.getLogger(__name__)
 
-try:
-    from PIL import ImageTk, Image
-except ImportError:
-    logger.error('"localdisplay" extra not installed')
-    raise
 
 
 class LocalDisplayDriver(BaseDisplayDriver):

@@ -1,11 +1,12 @@
+import io
 from http import HTTPStatus
-from typing import Callable, TypeVar, ParamSpec, Optional, Type
+from typing import TypeVar
 
+from PIL import Image, UnidentifiedImageError
 from marshmallow import Schema, fields
 
 from remote_eink.api.display import to_target_process, display_id_handler
 from remote_eink.api.display._common import CONTENT_TYPE_HEADER, ImageTypeToMimeType
-from remote_eink.app_data import apps_data
 from remote_eink.controllers.base import DisplayController
 from remote_eink.images import FunctionBasedImage
 from remote_eink.storage.image.base import ImageAlreadyExistsError
@@ -46,6 +47,11 @@ def put_image(
             f"Unsupported image format: {image_type} (based on content type: {content_type})",
             HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
         )
+
+    try:
+        Image.open(io.BytesIO(data))
+    except UnidentifiedImageError:
+        return "Invalid image file data", HTTPStatus.BAD_REQUEST
 
     image = FunctionBasedImage(imageId, lambda: data, image_type, metadata=dict(rotation=rotation))
     updated = False

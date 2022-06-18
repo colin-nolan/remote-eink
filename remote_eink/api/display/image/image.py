@@ -1,4 +1,3 @@
-import io
 from http import HTTPStatus
 from uuid import uuid4
 
@@ -13,12 +12,6 @@ from remote_eink.api.display._common import (
 from remote_eink.api.display.image._common import put_image
 from remote_eink.controllers.base import DisplayController
 
-try:
-    from PIL import Image, UnidentifiedImageError
-
-    _HAS_IMAGE_TOOLS = True
-except ImportError:
-    _HAS_IMAGE_TOOLS = False
 
 
 @to_target_process
