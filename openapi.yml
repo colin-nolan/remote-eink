@@ -156,7 +156,7 @@ paths:
               metadata:
                 contentType: application/json
               data:
-                contentType: image/*,application/octet-stream
+                contentType: image/*
       responses:
         201:
           description: Image created.
