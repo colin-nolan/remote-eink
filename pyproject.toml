@@ -15,7 +15,7 @@ keywords = []
 [tool.poetry.dependencies]
 apscheduler = "^3.8.1"
 bidict = "^0.21.4"
-connexion2 = { version = "^2.10.0", extras = ["swagger-ui"] }
+connexion = { version = "^2.13.1", extras = ["swagger-ui"] }
 Flask = "^2.0.2"
 flask-cors = "^3.0.8"
 marshmallow = "^3.14.1"

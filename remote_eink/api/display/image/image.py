@@ -33,7 +33,7 @@ def search(display_controller: DisplayController):
 def put(*args, **kwargs):
     content_type = request.headers.get(CONTENT_TYPE_HEADER)
 
-    if not content_type.startswith("multipart/form-data"):
+    if content_type is None or not content_type.startswith("multipart/form-data"):
         return (
             f"Unsupported content type (expected 'multipart/form-data'): {CONTENT_TYPE_HEADER}",
             HTTPStatus.BAD_REQUEST,
@@ -73,6 +73,7 @@ def _put(
     *,
     overwrite: bool = True,
 ):
+    # TODO: are we always going to have image tools?
     if content_type.lower() == "application/octet-stream" and _HAS_IMAGE_TOOLS:
         # Attempt to identify image type automatically
         try:
