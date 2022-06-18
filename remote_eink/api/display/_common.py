@@ -1,9 +1,10 @@
 from http import HTTPStatus
+from itertools import product
 from typing import Callable, Any
 
-from bidict import bidict
 from flask import current_app
 from marshmallow import Schema, fields
+from more_itertools import flatten
 
 from remote_eink.app import APP_ID_PROPERTY
 from remote_eink.app_data import apps_data
@@ -12,10 +13,13 @@ from remote_eink.images import ImageType
 
 CONTENT_TYPE_HEADER = "Content-Type"
 
-ImageTypeToMimeType = bidict(
-    {ImageType.BMP: "image/bmp", ImageType.JPG: "image/jpeg", ImageType.PNG: "image/png", ImageType.WEBP: "image/webp"}
-)
-assert set(ImageTypeToMimeType.keys()) == set(ImageType)
+ImageTypeToMimeTypes = {
+    ImageType.BMP: ("image/bmp",),
+    ImageType.JPG: ("image/jpeg", "image/jpg"),
+    ImageType.PNG: ("image/png",),
+    ImageType.WEBP: ("image/webp",),
+}
+MimeTypeToImageType = dict(flatten(product(v, (k,)) for k, v in ImageTypeToMimeTypes.items()))
 
 
 class ImageSchema(Schema):

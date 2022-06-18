@@ -14,7 +14,6 @@ from remote_eink.drivers.base import BaseDisplayDriver
 logger = logging.getLogger(__name__)
 
 
-
 class LocalDisplayDriver(BaseDisplayDriver):
     """
     Local display device driver.

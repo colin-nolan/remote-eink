@@ -13,7 +13,6 @@ from remote_eink.api.display.image._common import put_image
 from remote_eink.controllers.base import DisplayController
 
 
-
 @to_target_process
 @display_id_handler
 def search(display_controller: DisplayController):

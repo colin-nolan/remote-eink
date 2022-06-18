@@ -2,7 +2,7 @@ import json
 from http import HTTPStatus
 from io import BytesIO
 
-from remote_eink.api.display._common import ImageTypeToMimeType
+from remote_eink.api.display._common import ImageTypeToMimeTypes
 from remote_eink.images import FunctionBasedImage, ImageType
 from remote_eink.tests._common import create_image, set_content_type_header
 from remote_eink.tests.api.display.image._common import BaseTestDisplayImage, create_image_upload_content
@@ -88,11 +88,11 @@ class TestDisplayImage(BaseTestDisplayImage):
             f"/display/{self.display_controller.identifier}/image/{self.image.identifier}",
             data={
                 "metadata": (BytesIO(str.encode(json.dumps({}))), None, "application/json"),
-                "data": (BytesIO(b"invalid"), "blob", ImageTypeToMimeType[ImageType.PNG]),
+                "data": (BytesIO(b"invalid"), "blob", ImageTypeToMimeTypes[ImageType.PNG][0]),
             },
             content_type="multipart/form-data",
         )
-        self.assertEqual(HTTPStatus.BAD_REQUEST, result.status_code)
+        self.assertEqual(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, result.status_code)
 
     def test_put_display_not_exist(self):
         result = self.client.put(

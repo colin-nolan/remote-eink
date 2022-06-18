@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from remote_eink.api.display._common import ImageTypeToMimeType
+from remote_eink.api.display._common import ImageTypeToMimeTypes
 from remote_eink.images import ImageType
 from remote_eink.tests._common import create_image
 from remote_eink.tests.api.display.image._common import BaseTestDisplayImage
@@ -19,7 +19,7 @@ class TestDisplayImageData(BaseTestDisplayImage):
                 display_controller.image_store.add(image)
                 result = self.client.get(f"/display/{display_controller.identifier}/image/{image.identifier}/data")
                 self.assertEqual(HTTPStatus.OK, result.status_code)
-                self.assertEqual(ImageTypeToMimeType[image_type], result.mimetype)
+                self.assertIn(result.mimetype, ImageTypeToMimeTypes[image_type])
                 self.assertEqual(display_controller.image_store.get(image.identifier).data, result.data)
 
     def test_get_when_does_not_exist(self):

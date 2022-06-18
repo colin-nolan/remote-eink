@@ -7,7 +7,7 @@ from flask_testing import TestCase
 from multiprocessing_on_dill.connection import Pipe
 from multiprocessing_on_dill.context import Process
 
-from remote_eink.api.display._common import CONTENT_TYPE_HEADER, ImageTypeToMimeType
+from remote_eink.api.display._common import CONTENT_TYPE_HEADER, ImageTypeToMimeTypes
 from remote_eink.app import create_app, destroy_app, get_app_data
 from remote_eink.app_data import AppData
 from remote_eink.controllers.base import DisplayController
@@ -66,7 +66,7 @@ def set_content_type_header(image: Image, headers: Optional[Dict] = None):
     """
     if headers is None:
         headers = {}
-    headers[CONTENT_TYPE_HEADER] = ImageTypeToMimeType[image.type]
+    headers[CONTENT_TYPE_HEADER] = ImageTypeToMimeTypes[image.type]
     return headers
 
 

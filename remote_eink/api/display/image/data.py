@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 from flask import make_response, send_file, request
 
 from remote_eink.api.display._common import (
-    ImageTypeToMimeType,
+    ImageTypeToMimeTypes,
     display_id_handler,
     to_target_process,
     CONTENT_TYPE_HEADER,
@@ -36,4 +36,4 @@ def _get_data(display_controller: DisplayController, image_id: str) -> Optional[
     if image is None:
         return None
 
-    return BytesIO(image.data), ImageTypeToMimeType[image.type]
+    return BytesIO(image.data), ImageTypeToMimeTypes[image.type][0]
