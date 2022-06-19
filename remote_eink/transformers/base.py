@@ -49,7 +49,7 @@ class ImageTransformer(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def configuration(self) -> Dict[str, Any]:
+    def configuration(self) -> dict[str, Any]:
         """
         Transformer's configuration in a JSON (or similar) serialisable form.
         :return: transformer's configuration
@@ -72,7 +72,7 @@ class ImageTransformer(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def modify_configuration(self, configuration: Dict[str, Any]):
+    def modify_configuration(self, configuration: dict[str, Any]):
         """
         Modifies the current configuration using the given configuration.
         :param configuration: configuration in the same form as available through the `configuration` property
@@ -80,20 +80,12 @@ class ImageTransformer(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def _transform(self, image: Image) -> Image:
+    def transform(self, image: Image) -> Image:
         """
         Applies transform to the given image and returns the result as a new image.
         :param image: image to apply transform to
         :return: resulting image
         """
-
-    def transform(self, image: Image) -> Image:
-        """
-        Applies transformation to the given image.
-        :param image: image to transform (not modified)
-        :return: new image with the transform
-        """
-        return self._transform(image)
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, ImageTransformer):
@@ -110,7 +102,7 @@ class ImageTransformer(metaclass=ABCMeta):
         return hash(self.identifier)
 
 
-class BaseImageTransformer(ImageTransformer, metaclass=ABCMeta):
+class BaseMutableImageTransformer(ImageTransformer, metaclass=ABCMeta):
     """
     Image transformer.
     """
@@ -137,7 +129,7 @@ class BaseImageTransformer(ImageTransformer, metaclass=ABCMeta):
         self._active = active
 
 
-class ListenableImageTransformer(ImageTransformer):
+class ListenableMutableImageTransformer(ImageTransformer):
     """
     Wraps an image transformer to make it listenable.
     """
@@ -154,7 +146,7 @@ class ListenableImageTransformer(ImageTransformer):
     @active.setter
     def active(self, active: bool):
         self._image_transformer.active = active
-        self.event_listeners.call_listeners(ListenableImageTransformer.Event.ACTIVATE_STATE, [active])
+        self.event_listeners.call_listeners(ListenableMutableImageTransformer.Event.ACTIVATE_STATE, [active])
 
     @property
     def configuration(self) -> Dict[str, Any]:
@@ -174,12 +166,14 @@ class ListenableImageTransformer(ImageTransformer):
         :param image_transformer: the image transformer to wrap
         """
         self._image_transformer = image_transformer
-        self.event_listeners = EventListenerController[ListenableImageTransformer.Event]()
+        self.event_listeners = EventListenerController[ListenableMutableImageTransformer.Event]()
 
     def modify_configuration(self, configuration: Dict[str, Any]):
         return self._image_transformer.modify_configuration(configuration)
 
-    def _transform(self, image: Image) -> Image:
-        transformed_image = self._image_transformer._transform(image)
-        self.event_listeners.call_listeners(ListenableImageTransformer.Event.TRANSFORM, [image, transformed_image])
+    def transform(self, image: Image) -> Image:
+        transformed_image = self._image_transformer.transform(image)
+        self.event_listeners.call_listeners(
+            ListenableMutableImageTransformer.Event.TRANSFORM, [image, transformed_image]
+        )
         return transformed_image

@@ -82,6 +82,12 @@ class AbstractTest:
             self.image_transformers.set_position(image_transformer, 0)
             self.assertEqual(0, self.image_transformers.get_position(image_transformer))
 
+        def test_set_position_with_id(self):
+            image_transformer = self.image_transformers[1]
+            assert self.image_transformers.get_position(image_transformer) == 1
+            self.image_transformers.set_position(image_transformer.identifier, 0)
+            self.assertEqual(0, self.image_transformers.get_position(image_transformer))
+
         def test_set_position_beyond_end(self):
             image_transformer = self.image_transformers[1]
             assert len(self.image_transformers) < 10

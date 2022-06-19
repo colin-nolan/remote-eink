@@ -1,27 +1,36 @@
 from http import HTTPStatus
-from typing import Dict
+from typing import Iterable
 
 from marshmallow import Schema, fields
 
 from remote_eink.api.display._common import (
-    display_id_handler,
     ImageSchema,
     to_target_process,
-    display_controllers_handler,
+    RemoteThreadDisplayController,
+    handle_display_controller_not_found_response,
 )
-from remote_eink.controllers.base import DisplayController
+from remote_eink.app_data import apps_data
 
 
-@to_target_process
-@display_controllers_handler
-def search(display_controllers: Dict[str, DisplayController]):
-    return [{"id": identifier} for identifier in display_controllers.keys()], HTTPStatus.OK
+def search():
+    return [{"id": identifier} for identifier in _get_display_controller_ids()], HTTPStatus.OK
 
 
-@to_target_process
-@display_id_handler
-def get(display_controller: DisplayController):
+@handle_display_controller_not_found_response
+def get(displayId: str):
+    display_controller = RemoteThreadDisplayController(displayId)
     return _DisplayControllerSchema().dump(display_controller), HTTPStatus.OK
+
+
+@to_target_process
+def _get_display_controller_ids(app_id: str) -> Iterable[str]:
+    """
+    Gets iterable of controller IDs.
+    :param app_id: injected from `to_target_process`
+    :return: iterable of IDs
+    """
+    app_data = apps_data[app_id]
+    return tuple(app_data.display_controllers.keys())
 
 
 class _DisplayControllerSchema(Schema):

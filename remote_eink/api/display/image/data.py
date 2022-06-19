@@ -1,37 +1,51 @@
 from http import HTTPStatus
 from io import BytesIO
-from typing import Optional, Tuple
 
-from flask import make_response, send_file, request
+from flask import make_response, send_file, request, Response
 
 from remote_eink.api.display._common import (
     ImageTypeToMimeTypes,
-    display_id_handler,
-    to_target_process,
     CONTENT_TYPE_HEADER,
+    RemoteThreadImageStore,
 )
-from remote_eink.controllers.base import DisplayController
+from remote_eink.api.display.image import put_image
+from remote_eink.api.display import handle_display_controller_not_found_response
+from remote_eink.images import ImageType, DataBasedImage
 
 
-def search(displayId: str, imageId: str, *args, **kwargs):
-    result = _get_data(displayId, imageId, *args, **kwargs)
-    if result is None:
-        # `make_response` must be run in the thread handling the response
-        return make_response(f"Image not found: {imageId}", HTTPStatus.NOT_FOUND)
-    return send_file(*result)
-
-
-def put(body: bytes, **kwargs):
-    kwargs["content_type"] = request.headers.get(CONTENT_TYPE_HEADER)
-    pass
-
-
-@to_target_process
-@display_id_handler
-def _get_data(display_controller: DisplayController, image_id: str) -> Optional[Tuple[BytesIO, str]]:
-    image = display_controller.image_store.get(image_id)
-
+@handle_display_controller_not_found_response
+def search(imageId: str, displayId: str) -> Response:
+    image = RemoteThreadImageStore(displayId).get(image_id=imageId)
     if image is None:
-        return None
+        return make_response(f"Image not found: {imageId}", HTTPStatus.NOT_FOUND)
 
-    return BytesIO(image.data), ImageTypeToMimeTypes[image.type][0]
+    return send_file(BytesIO(image.data), ImageTypeToMimeTypes[image.type][0])
+
+
+def put(body: bytes, imageId: str, **kwargs) -> Response:
+    # FIXME: implement
+    # image = get_image(image_id=imageId, displayId=displayId)
+    image = DataBasedImage("test", b"test", ImageType.JPG)
+    # if image is None:
+    #     return make_response(f"Image not found: {imageId}", HTTPStatus.NOT_FOUND)
+
+    content_type = request.headers.get(CONTENT_TYPE_HEADER)
+    return put_image(
+        image_id=imageId,
+        content_type=content_type,
+        data=body,
+        metadata=image.metadata,
+        overwrite=True,
+        **kwargs,
+    )
+
+
+# @to_target_process
+# @display_id_handler
+# def _get_data(display_controller: DisplayController, image_id: str) -> Optional[Tuple[BytesIO, str]]:
+#     image = display_controller.image_store.get(image_id)
+#
+#     if image is None:
+#         return None
+#
+#     return BytesIO(image.data), ImageTypeToMimeTypes[image.type][0]

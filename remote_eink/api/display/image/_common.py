@@ -1,41 +1,41 @@
 import io
+import json
 from http import HTTPStatus
-from typing import TypeVar, Optional
+from types import MappingProxyType
 
-from PIL import UnidentifiedImageError
 from PIL import Image as PilImage
+from PIL import UnidentifiedImageError
+from flask import make_response, Response
 from marshmallow import Schema, fields
 
-from remote_eink.api.display import to_target_process, display_id_handler
-from remote_eink.api.display._common import CONTENT_TYPE_HEADER, MimeTypeToImageType
+from remote_eink.api.display._common import (
+    CONTENT_TYPE_HEADER,
+    MimeTypeToImageType,
+    to_target_process,
+    _display_id_handler,
+    handle_display_controller_not_found_response,
+)
 from remote_eink.controllers.base import DisplayController
 from remote_eink.images import FunctionBasedImage, Image
 from remote_eink.storage.image.base import ImageAlreadyExistsError
 
-_T = TypeVar("_T")
 
-
+# FIXME: no longer required (as schema is flexible depending on transformers?)
 class ImageMetadataSchema(Schema):
     rotation = fields.Float(data_key="rotation", dump_default=0)
 
 
-@to_target_process
-@display_id_handler
+@handle_display_controller_not_found_response
 def put_image(
-    display_controller: DisplayController,
-    content_type: str,
-    imageId: str,
-    data: bytes,
-    rotation: float = 0,
-    *,
-    overwrite: bool = True,
-):
+    image_id: str, content_type: str, data: bytes, metadata: dict = MappingProxyType({}), *, overwrite: bool, **kwargs
+) -> Response:
     if content_type is None:
-        return f"{CONTENT_TYPE_HEADER} header is required", HTTPStatus.BAD_REQUEST
+        return make_response(f"{CONTENT_TYPE_HEADER} header is required", HTTPStatus.BAD_REQUEST)
 
     image_type = MimeTypeToImageType.get(content_type)
     if image_type is None:
-        return (
+        # TODO: try sniffing
+        return make_response(
             f"Unsupported image format: {image_type} (based on content type: {content_type})",
             HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
         )
@@ -43,22 +43,30 @@ def put_image(
     try:
         PilImage.open(io.BytesIO(data))
     except UnidentifiedImageError:
-        return "Invalid image file data", HTTPStatus.UNSUPPORTED_MEDIA_TYPE
+        return make_response("Invalid image file data", HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
 
-    image = FunctionBasedImage(imageId, lambda: data, image_type, metadata=dict(rotation=rotation))
-    updated = False
-    # FIXME: lock over both of these is required!
-    if overwrite:
-        updated = display_controller.image_store.remove(image.identifier)
+    # TODO: full metadata support
+    image = FunctionBasedImage(image_id, lambda: data, image_type, metadata=metadata)
+
     try:
-        display_controller.image_store.add(image)
+        updated = _put_image(image=image, overwrite=overwrite, **kwargs)
     except ImageAlreadyExistsError:
-        return f"Image with same ID already exists: {imageId}", HTTPStatus.CONFLICT
+        return make_response(f"Image with same ID already exists: {image_id}", HTTPStatus.CONFLICT)
 
-    return imageId, HTTPStatus.CREATED if not updated else HTTPStatus.OK
+    return Response(
+        response=json.dumps(image_id),
+        status=HTTPStatus.CREATED if not updated else HTTPStatus.OK,
+        mimetype="application/json",
+    )
 
 
+# FIXME
 @to_target_process
-@display_id_handler
-def get_image(display_controller: DisplayController, image_id: str) -> Optional[Image]:
-    return display_controller.image_store.get(image_id)
+@_display_id_handler
+def _put_image(display_controller: DisplayController, image: Image, overwrite: bool) -> bool:
+    # FIXME: lock required!
+    if not overwrite and display_controller.image_store.get(image.identifier) is not None:
+        raise ImageAlreadyExistsError(image.identifier)
+    updated = display_controller.image_store.remove(image.identifier)
+    display_controller.image_store.add(image)
+    return updated

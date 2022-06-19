@@ -5,8 +5,8 @@ from types import MappingProxyType
 from typing import Any, Callable, Dict
 
 ImageDataReader = Callable[[], bytes]
-# XXX: ideally want to limit Dict to "Self"
-ImageMetadata = Dict[str, str | int | float | Dict]
+# XXX: ideally want to limit dict to "Self"
+ImageMetadata = dict[str, str | int | float | dict]
 
 
 @unique

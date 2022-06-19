@@ -41,7 +41,7 @@ class AppData:
         Constructor.
         :param display_controllers: display controllers
         """
-        self._display_controllers: Dict[str, DisplayController] = {}
+        self._display_controllers: dict[str, DisplayController] = {}
 
         communication_pipe = CommunicationPipe()
         Thread(target=communication_pipe.receiver.run).start()

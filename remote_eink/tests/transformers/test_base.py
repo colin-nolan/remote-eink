@@ -6,7 +6,7 @@ from typing import TypeVar, Generic
 from remote_eink.transformers.base import (
     ImageTransformer,
     InvalidConfigurationError,
-    ListenableImageTransformer,
+    ListenableMutableImageTransformer,
 )
 from remote_eink.transformers.simple import SimpleImageTransformer
 
@@ -50,7 +50,7 @@ class TestListenableImageTransformer(unittest.TestCase):
     """
 
     def setUp(self):
-        self.image_transformer = ListenableImageTransformer(SimpleImageTransformer())
+        self.image_transformer = ListenableMutableImageTransformer(SimpleImageTransformer())
 
     def test_listen_to_active_change(self):
         changed = Semaphore(0)
@@ -61,6 +61,8 @@ class TestListenableImageTransformer(unittest.TestCase):
             changed.release()
 
         self.image_transformer.active = False
-        self.image_transformer.event_listeners.add_listener(on_change, ListenableImageTransformer.Event.ACTIVATE_STATE)
+        self.image_transformer.event_listeners.add_listener(
+            on_change, ListenableMutableImageTransformer.Event.ACTIVATE_STATE
+        )
         self.image_transformer.active = True
         self.assertTrue(changed.acquire(timeout=15))

@@ -1,10 +1,10 @@
 from abc import ABCMeta, abstractmethod
 from enum import unique, Enum, auto
+from functools import singledispatch, singledispatchmethod
 from typing import Sequence, Optional, Union, Iterator
 
 from remote_eink.events import EventListenerController
-from remote_eink.transformers import ImageTransformer
-from remote_eink.transformers.base import InvalidPositionError
+from remote_eink.transformers.base import InvalidPositionError, ImageTransformer
 
 
 class ImageTransformerSequence(Sequence[ImageTransformer], metaclass=ABCMeta):
@@ -29,11 +29,11 @@ class ImageTransformerSequence(Sequence[ImageTransformer], metaclass=ABCMeta):
         :raises KeyError: when the image transformer is not in the sequence
         """
 
-    @abstractmethod
-    def set_position(self, image_transformer: ImageTransformer, position: int):
+    @singledispatchmethod
+    def set_position(self, image_transformer: ImageTransformer | str, position: int):
         """
-        Sets the position of the given image transformer in the sequence.
-        :param image_transformer: image transformer that must be in the sequence (use `add` if it's not)
+        Sets the position of an image transformer in the sequence.
+        :param image_transformer: image transformer or ID of the image transformer to change position of
         :param position: position in sequence, where 0 is the start. If the position is larger than the size of the
         sequence, the image transformer will be put in the last position
         :raises InvalidPositionError: when the position is invalid
@@ -99,7 +99,9 @@ class SimpleImageTransformerSequence(ImageTransformerSequence):
                 return i
         raise KeyError(f"Image transformer not in collection: {image_transformer}")
 
-    def set_position(self, image_transformer: ImageTransformer, position: int):
+    def set_position(self, image_transformer: ImageTransformer | str, position: int):
+        if isinstance(image_transformer, str):
+            return self.set_position(self.get_by_id(image_transformer), position)
         if image_transformer not in self._image_transformers:
             raise KeyError(f"Image transformer not in sequence: {image_transformer}")
         if position < 0:

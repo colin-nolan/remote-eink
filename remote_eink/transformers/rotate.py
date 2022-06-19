@@ -4,7 +4,11 @@ from io import BytesIO
 from typing import Dict, Any
 
 from remote_eink.images import Image, FunctionBasedImage
-from remote_eink.transformers.base import ImageTypeToPillowFormat, InvalidConfigurationError, BaseImageTransformer
+from remote_eink.transformers.base import (
+    ImageTypeToPillowFormat,
+    InvalidConfigurationError,
+    BaseMutableImageTransformer,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -25,7 +29,7 @@ class RotateConfigurationParameter(Enum):
     FILL_COLOR = "fill_color"
 
 
-class RotateImageTransformer(BaseImageTransformer):
+class RotateImageTransformer(BaseMutableImageTransformer):
     """
     Transformer that rotates the image by a common angle (the rotation on the image itself is ignored).
     """
@@ -93,7 +97,7 @@ class RotateImageTransformer(BaseImageTransformer):
             else:
                 raise InvalidConfigurationError(configuration, f"unknown property: {key}")
 
-    def _transform(self, image: Image) -> Image:
+    def transform(self, image: Image) -> Image:
         return FunctionBasedImage(
             image.identifier,
             lambda: RotateImageTransformer.rotate(image, self.angle, self.expand, self.fill_color),
@@ -113,7 +117,7 @@ class ImageRotationAwareRotateImageTransformer(RotateImageTransformer):
             f"rotation)"
         )
 
-    def _transform(self, image: Image) -> Image:
+    def transform(self, image: Image) -> Image:
         image_rotation = image.metadata.get(ROTATION_METADATA_KEY, 0)
         return FunctionBasedImage(
             image.identifier,

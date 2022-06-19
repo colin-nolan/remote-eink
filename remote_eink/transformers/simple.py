@@ -2,10 +2,10 @@ from typing import Dict, Any, Optional, Callable
 from uuid import uuid4
 
 from remote_eink.images import Image
-from remote_eink.transformers.base import BaseImageTransformer, InvalidConfigurationError
+from remote_eink.transformers.base import BaseMutableImageTransformer, InvalidConfigurationError
 
 
-class SimpleImageTransformer(BaseImageTransformer):
+class SimpleImageTransformer(BaseMutableImageTransformer):
     """
     Simple image transformer.
     """
@@ -36,5 +36,5 @@ class SimpleImageTransformer(BaseImageTransformer):
             raise InvalidConfigurationError(configuration)
         self._configuration = configuration
 
-    def _transform(self, image: Image) -> Image:
+    def transform(self, image: Image) -> Image:
         return self._transformer(image)

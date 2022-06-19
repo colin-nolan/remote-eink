@@ -1,8 +1,11 @@
+import logging
 import traceback
 from multiprocessing import Lock
 from typing import Any, Callable
 
 from multiprocessing_on_dill.connection import Connection, Pipe
+
+logger = logging.getLogger(__name__)
 
 
 class RequestReceiver:
@@ -61,6 +64,7 @@ class RequestSender:
         :return: the result received in response
         """
         with self._lock:
+            logger.debug(callable, args, kwargs)
             self._connection.send((callable, args, kwargs))
             result, raised = self._connection.recv()
             if raised:

@@ -3,31 +3,32 @@ from http import HTTPStatus
 from io import BytesIO
 from uuid import uuid4
 
-from flask import request, Response
+from flask import request, Response, make_response
 from requests_toolbelt import MultipartEncoder
 
 from remote_eink.api.display._common import (
     CONTENT_TYPE_HEADER,
-    display_id_handler,
     ImageSchema,
-    to_target_process,
     ImageTypeToMimeTypes,
+    RemoteThreadImageStore,
+    handle_display_controller_not_found_response,
 )
-from remote_eink.api.display.image._common import put_image, get_image
-from remote_eink.controllers.base import DisplayController
+from remote_eink.api.display.image._common import (
+    put_image,
+)
 
 
-@to_target_process
-@display_id_handler
-def search(display_controller: DisplayController):
-    images = display_controller.image_store.list()
+@handle_display_controller_not_found_response
+def search(displayId: str):
+    images = RemoteThreadImageStore(displayId).list()
     return ImageSchema(only=["identifier"]).dump(images, many=True), HTTPStatus.OK
 
 
-def get(displayId: str, imageId: str):
-    image = get_image(image_id=imageId, displayId=displayId)
+@handle_display_controller_not_found_response
+def get(imageId: str, displayId: str) -> Response:
+    image = RemoteThreadImageStore(displayId).get(image_id=imageId)
     if not image:
-        return f"Image not found: {imageId}", HTTPStatus.NOT_FOUND
+        return make_response(f"Image not found: {imageId}", HTTPStatus.NOT_FOUND)
 
     multipart_content = MultipartEncoder(
         fields={
@@ -39,46 +40,42 @@ def get(displayId: str, imageId: str):
     return Response(multipart_content.to_string(), mimetype=multipart_content.content_type)
 
 
-def put(*args, **kwargs):
+def put(imageId: str, **kwargs) -> Response:
     content_type = request.headers.get(CONTENT_TYPE_HEADER)
 
     if content_type is None or not content_type.startswith("multipart/form-data"):
-        return (
+        return make_response(
             f"Unsupported content type (expected 'multipart/form-data'): {CONTENT_TYPE_HEADER}",
             HTTPStatus.BAD_REQUEST,
         )
     try:
         data = kwargs["data"]
     except KeyError:
-        return (
+        return make_response(
             f"No data supplied",
             HTTPStatus.BAD_REQUEST,
         )
 
     content_type = kwargs["data"].content_type
-    image_metadata = kwargs["body"]["metadata"]
-    image_data = data.stream.read()
+    metadata = kwargs["body"]["metadata"]
+    data = data.stream.read()
 
-    # Removing as we've extracted what we wanted from these (keeping them does not help with multiprocessor
-    # serialisation!)
     del kwargs["body"]
     del kwargs["data"]
 
-    extras = {}
-    if "rotation" in image_metadata:
-        extras["rotation"] = image_metadata["rotation"]
+    if "overwrite" not in kwargs:
+        kwargs["overwrite"] = True
 
-    return put_image(*args, **kwargs, data=image_data, content_type=content_type, **extras)
-
-
-def post(*args, **kwargs):
-    return put(*args, **kwargs, imageId=str(uuid4()), overwrite=False)
+    return put_image(image_id=imageId, content_type=content_type, data=data, metadata=metadata, **kwargs)
 
 
-@to_target_process
-@display_id_handler
-def delete(display_controller: DisplayController, imageId: str):
-    deleted = display_controller.image_store.remove(imageId)
+def post(**kwargs) -> Response:
+    return put(str(uuid4()), **kwargs, overwrite=False)
+
+
+@handle_display_controller_not_found_response
+def delete(imageId: str, displayId: str) -> Response:
+    deleted = RemoteThreadImageStore(displayId).remove(image_id=imageId)
     if not deleted:
-        return f"Image not found: {imageId}", HTTPStatus.NOT_FOUND
-    return f"Deleted: {imageId}", HTTPStatus.OK
+        return make_response(f"Image not found: {imageId}", HTTPStatus.NOT_FOUND)
+    return make_response(f"Deleted: {imageId}", HTTPStatus.OK)
