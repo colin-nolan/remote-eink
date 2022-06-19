@@ -6,7 +6,6 @@ from types import MappingProxyType
 from PIL import Image as PilImage
 from PIL import UnidentifiedImageError
 from flask import make_response, Response
-from marshmallow import Schema, fields
 
 from remote_eink.api.display._common import (
     CONTENT_TYPE_HEADER,
@@ -20,14 +19,15 @@ from remote_eink.images import FunctionBasedImage, Image
 from remote_eink.storage.image.base import ImageAlreadyExistsError
 
 
-# FIXME: no longer required (as schema is flexible depending on transformers?)
-class ImageMetadataSchema(Schema):
-    rotation = fields.Float(data_key="rotation", dump_default=0)
-
-
 @handle_display_controller_not_found_response
 def put_image(
-    image_id: str, content_type: str, data: bytes, metadata: dict = MappingProxyType({}), *, overwrite: bool, **kwargs
+    image_id: str,
+    display_id: str,
+    content_type: str,
+    data: bytes,
+    metadata: dict = MappingProxyType({}),
+    *,
+    overwrite: bool,
 ) -> Response:
     if content_type is None:
         return make_response(f"{CONTENT_TYPE_HEADER} header is required", HTTPStatus.BAD_REQUEST)
@@ -49,7 +49,7 @@ def put_image(
     image = FunctionBasedImage(image_id, lambda: data, image_type, metadata=metadata)
 
     try:
-        updated = _put_image(image=image, overwrite=overwrite, **kwargs)
+        updated = _put_image(image=image, overwrite=overwrite, displayId=display_id)
     except ImageAlreadyExistsError:
         return make_response(f"Image with same ID already exists: {image_id}", HTTPStatus.CONFLICT)
 

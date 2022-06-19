@@ -1,7 +1,10 @@
 from http import HTTPStatus
 
-from remote_eink.api.display._common import ImageSchema, RemoteThreadDisplayController
-from remote_eink.api.display import handle_display_controller_not_found_response
+from remote_eink.api.display._common import (
+    ImageSchema,
+    RemoteThreadDisplayController,
+    handle_display_controller_not_found_response,
+)
 
 
 @handle_display_controller_not_found_response

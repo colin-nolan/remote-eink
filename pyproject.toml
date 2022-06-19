@@ -38,7 +38,7 @@ webserver = ["cheroot", "requests"]
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
 Flask-Testing = "^0.8.1"
-get-port = "^0.0.5"     # Cannot be made optional on `webserver` extra: https://github.com/python-poetry/poetry/issues/129
+get-port = "^0.0.5"
 requests-toolbelt = "^0.9.1"
 
 [build-system]

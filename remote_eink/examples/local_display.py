@@ -37,7 +37,7 @@ def main(port: int = 8080):
     display_controller.start()
 
     app = create_app((display_controller,))
-    app.run("localhost", 8080)
+    app.run(host="localhost", port=port)
     # run(app, interface="localhost", port=port)  # Blocking
     # server = start(app, interface="localhost", port=8080)   # Non-blocking alternative
 

@@ -9,6 +9,4 @@ RUN poetry config virtualenvs.create false
 COPY pyproject.toml poetry.lock /tmp/
 
 RUN cd /tmp \
-    && poetry install -E webserver -E image-tools -E localdisplay
-
-
+    && poetry install -E webserver

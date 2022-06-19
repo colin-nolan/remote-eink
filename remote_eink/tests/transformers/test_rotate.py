@@ -5,31 +5,17 @@ from io import BytesIO
 from typing import Tuple, TypeVar, Generic
 
 import math
+from PIL import Image as PilImage
 
 from remote_eink.images import Image, FunctionBasedImage
 from remote_eink.tests.storage._common import WHITE_IMAGE
 from remote_eink.tests.transformers.test_base import AbstractTest
-from remote_eink.transformers.base import ImageTransformer
-
-try:
-    from remote_eink.transformers.rotate import (
-        RotateImageTransformer,
-        RotateConfigurationParameter,
-        ImageRotationAwareRotateImageTransformer,
-        ROTATION_METADATA_KEY,
-    )
-    from PIL import Image as PilImage
-
-    IMAGE_TOOLS_INSTALLED = True
-except ImportError:
-
-    class RotateImageTransformer(ImageTransformer, metaclass=ABCMeta):
-        """Stub"""
-
-    class ImageRotationAwareRotateImageTransformer(ImageTransformer, metaclass=ABCMeta):
-        """Stub"""
-
-    IMAGE_TOOLS_INSTALLED = False
+from remote_eink.transformers.rotate import (
+    RotateImageTransformer,
+    RotateConfigurationParameter,
+    ImageRotationAwareRotateImageTransformer,
+    ROTATION_METADATA_KEY,
+)
 
 EXAMPLE_ANGLE = 10
 EXAMPLE_EXPAND = False
@@ -60,7 +46,6 @@ def _calculate_new_size(image_size: Tuple[int, int], angle: float) -> Tuple[int,
     return int(new_width), int(new_height)
 
 
-@unittest.skipIf(not IMAGE_TOOLS_INSTALLED, "Optional `image-tools` not installed")
 class BaseTest(
     Generic[RotatingImageTransformerType],
     AbstractTest.TestImageTransformer[RotatingImageTransformerType],

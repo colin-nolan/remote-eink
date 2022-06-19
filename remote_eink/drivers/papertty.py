@@ -2,6 +2,8 @@ import logging
 from io import BytesIO
 from typing import Callable, TypeVar, ParamSpec, Optional, Type
 
+from PIL import Image as PILImage
+
 from remote_eink.drivers.base import BaseDisplayDriver
 
 logger = logging.getLogger(__name__)
@@ -9,7 +11,6 @@ logger = logging.getLogger(__name__)
 try:
     from papertty.drivers.drivers_base import DisplayDriver as DeviceDisplayDriver
     from papertty.papertty import PaperTTY, display_image
-    from PIL import Image as PILImage
 except ImportError:
     logger.error('"papertty" extra not installed')
     raise

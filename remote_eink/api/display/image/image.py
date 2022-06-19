@@ -40,7 +40,7 @@ def get(imageId: str, displayId: str) -> Response:
     return Response(multipart_content.to_string(), mimetype=multipart_content.content_type)
 
 
-def put(imageId: str, **kwargs) -> Response:
+def put(imageId: str, displayId: str, **kwargs) -> Response:
     content_type = request.headers.get(CONTENT_TYPE_HEADER)
 
     if content_type is None or not content_type.startswith("multipart/form-data"):
@@ -66,7 +66,9 @@ def put(imageId: str, **kwargs) -> Response:
     if "overwrite" not in kwargs:
         kwargs["overwrite"] = True
 
-    return put_image(image_id=imageId, content_type=content_type, data=data, metadata=metadata, **kwargs)
+    return put_image(
+        image_id=imageId, display_id=displayId, content_type=content_type, data=data, metadata=metadata, **kwargs
+    )
 
 
 def post(**kwargs) -> Response:

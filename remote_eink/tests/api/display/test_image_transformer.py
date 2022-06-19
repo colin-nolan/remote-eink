@@ -13,7 +13,6 @@ except ImportError:
     IMAGE_TOOLS_INSTALLED = False
 
 
-@unittest.skipIf(not IMAGE_TOOLS_INSTALLED, "Optional `image-tools` not installed")
 class TestImageTransformer(AppTestBase):
     """
     Tests for the `/display/{displayId}/image-transformer` endpoint.
