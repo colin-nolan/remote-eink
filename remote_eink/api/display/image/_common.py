@@ -6,6 +6,7 @@ from types import MappingProxyType
 from PIL import Image as PilImage
 from PIL import UnidentifiedImageError
 from flask import make_response, Response
+from marshmallow import Schema, fields
 
 from remote_eink.api.display._common import (
     CONTENT_TYPE_HEADER,
@@ -54,7 +55,7 @@ def put_image(
         return make_response(f"Image with same ID already exists: {image_id}", HTTPStatus.CONFLICT)
 
     return Response(
-        response=json.dumps(image_id),
+        response=json.dumps({"id": image_id}),
         status=HTTPStatus.CREATED if not updated else HTTPStatus.OK,
         mimetype="application/json",
     )

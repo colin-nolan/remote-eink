@@ -61,7 +61,7 @@ class TestDisplayImage(BaseTestDisplayImage):
             data=create_image_upload_content(self.image),
         )
         self.assertEqual(HTTPStatus.CREATED, result.status_code, result)
-        image_identifier = result.json
+        image_identifier = result.json["id"]
         expected_image = FunctionBasedImage(
             image_identifier, lambda: self.image.data, self.image.type, self.image.metadata
         )
